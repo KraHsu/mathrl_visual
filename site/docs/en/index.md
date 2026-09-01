@@ -18,13 +18,13 @@ hero:
       text: Start Chapter 1
       link: /en/learn/ch01/
     - theme: alt
-      text: Explore the Chapter 2 pilot
-      link: /en/learn/ch02/
+      text: Explore Chapter 3 optimality
+      link: /en/learn/ch03/
 features:
   - title: Synchronized concepts
-    details: Move from states, actions, and returns to Bellman expectations and policy evaluation.
+    details: Move from states and policy evaluation to optimal values, greedy actions, and the Bellman optimality equation.
   - title: Reproducible numbers
-    details: Rust/Wasm produces seeded trajectories and deterministic policy-evaluation traces that can be checked again.
+    details: Rust/Wasm produces seeded trajectories and deterministic expectation and optimality traces that can be checked again.
   - title: Paired languages
     details: English and Chinese pages share content IDs, experiment state, and mathematical notation.
 ---

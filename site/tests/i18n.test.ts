@@ -4,6 +4,8 @@ import en from '../docs/.vitepress/i18n/ui.en.json'
 import zhHans from '../docs/.vitepress/i18n/ui.zh-Hans.json'
 import bellmanEn from '../docs/.vitepress/i18n/bellman.en.json'
 import bellmanZhHans from '../docs/.vitepress/i18n/bellman.zh-Hans.json'
+import optimalityEn from '../docs/.vitepress/i18n/optimality.en.json'
+import optimalityZhHans from '../docs/.vitepress/i18n/optimality.zh-Hans.json'
 
 function keys(value: unknown, prefix = ''): string[] {
   if (typeof value !== 'object' || value === null) return [prefix]
@@ -40,10 +42,12 @@ describe('UI message catalogs', () => {
   it('have identical key sets', () => {
     expect(keys(zhHans).sort()).toEqual(keys(en).sort())
     expect(keys(bellmanZhHans).sort()).toEqual(keys(bellmanEn).sort())
+    expect(keys(optimalityZhHans).sort()).toEqual(keys(optimalityEn).sort())
   })
 
   it('preserve interpolation placeholders across locales', () => {
     expectPlaceholderParity(zhHans, en)
     expectPlaceholderParity(bellmanZhHans, bellmanEn)
+    expectPlaceholderParity(optimalityZhHans, optimalityEn)
   })
 })

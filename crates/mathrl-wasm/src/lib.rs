@@ -2,8 +2,13 @@ use mathrl_core::{
     Action, AdvanceOutcome as CoreAdvanceOutcome, BellmanEvaluator as CoreBellmanEvaluator,
     BellmanTerm as CoreBellmanTerm, BellmanUpdate as CoreBellmanUpdate, EvaluationConfig,
     EvaluationSnapshot as CoreEvaluationSnapshot, GoalMode, GridWorldConfig,
-    GridWorldSession as CoreSession, Policy, Rewards, SweepOutcome as CoreSweepOutcome,
-    Transition as CoreEvaluationTransition, TransitionOutcome,
+    GridWorldSession as CoreSession, OptimalityAdvanceOutcome as CoreOptimalityAdvanceOutcome,
+    OptimalityConfig, OptimalityEvaluator as CoreOptimalityEvaluator,
+    OptimalityReference as CoreOptimalityReference, OptimalitySnapshot as CoreOptimalitySnapshot,
+    OptimalitySweepOutcome as CoreOptimalitySweepOutcome,
+    OptimalityTransition as CoreOptimalityTransition, OptimalityUpdate as CoreOptimalityUpdate,
+    Policy, Rewards, SweepOutcome as CoreSweepOutcome, Transition as CoreEvaluationTransition,
+    TransitionOutcome,
 };
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
@@ -54,6 +59,136 @@ struct TransitionPayload {
     probability: f64,
     reward: f64,
     boundary_collision: bool,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct OptimalitySnapshotPayload {
+    values: [f64; 16],
+    action_values: [[f64; 5]; 16],
+    greedy_masks: [u8; 16],
+    sweep_count: u32,
+    residual: f64,
+    converged: bool,
+    truncated: bool,
+}
+
+impl From<CoreOptimalitySnapshot> for OptimalitySnapshotPayload {
+    fn from(snapshot: CoreOptimalitySnapshot) -> Self {
+        Self {
+            values: snapshot.values,
+            action_values: snapshot.action_values,
+            greedy_masks: snapshot.greedy_masks,
+            sweep_count: snapshot.sweep_count,
+            residual: snapshot.residual,
+            converged: snapshot.converged,
+            truncated: snapshot.truncated,
+        }
+    }
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct OptimalityReferencePayload {
+    values: [f64; 16],
+    action_values: [[f64; 5]; 16],
+    greedy_masks: [u8; 16],
+    residual: f64,
+}
+
+impl From<CoreOptimalityReference> for OptimalityReferencePayload {
+    fn from(reference: CoreOptimalityReference) -> Self {
+        Self {
+            values: reference.values,
+            action_values: reference.action_values,
+            greedy_masks: reference.greedy_masks,
+            residual: reference.residual,
+        }
+    }
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct OptimalityTransitionPayload {
+    state: u16,
+    requested_action: u8,
+    actual_action: u8,
+    next_state: u16,
+    probability: f64,
+    reward: f64,
+    boundary_collision: bool,
+}
+
+impl From<CoreOptimalityTransition> for OptimalityTransitionPayload {
+    fn from(transition: CoreOptimalityTransition) -> Self {
+        Self {
+            state: transition.state,
+            requested_action: transition.requested_action.code(),
+            actual_action: transition.actual_action.code(),
+            next_state: transition.next_state,
+            probability: transition.probability,
+            reward: transition.reward,
+            boundary_collision: transition.boundary_collision,
+        }
+    }
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct OptimalityUpdatePayload {
+    state: u16,
+    old_value: f64,
+    new_value: f64,
+    delta: f64,
+    action_values: [f64; 5],
+    greedy_mask: u8,
+}
+
+impl From<CoreOptimalityUpdate> for OptimalityUpdatePayload {
+    fn from(update: CoreOptimalityUpdate) -> Self {
+        Self {
+            state: update.state,
+            old_value: update.old_value,
+            new_value: update.new_value,
+            delta: update.delta,
+            action_values: update.action_values,
+            greedy_mask: update.greedy_mask,
+        }
+    }
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct OptimalitySweepPayload {
+    snapshot: OptimalitySnapshotPayload,
+    updates: Vec<OptimalityUpdatePayload>,
+    max_update: f64,
+}
+
+impl From<CoreOptimalitySweepOutcome> for OptimalitySweepPayload {
+    fn from(outcome: CoreOptimalitySweepOutcome) -> Self {
+        Self {
+            snapshot: outcome.snapshot.into(),
+            updates: outcome.updates.into_iter().map(Into::into).collect(),
+            max_update: outcome.max_update,
+        }
+    }
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct OptimalityAdvancePayload {
+    snapshot: OptimalitySnapshotPayload,
+    residual_history: Vec<f64>,
+}
+
+impl From<CoreOptimalityAdvanceOutcome> for OptimalityAdvancePayload {
+    fn from(outcome: CoreOptimalityAdvanceOutcome) -> Self {
+        Self {
+            snapshot: outcome.snapshot.into(),
+            residual_history: outcome.residual_history,
+        }
+    }
 }
 
 #[derive(Serialize)]
@@ -215,6 +350,82 @@ fn parse_seed(seed_hex: &str) -> Result<u64, JsValue> {
 #[wasm_bindgen]
 pub fn engine_version() -> String {
     env!("CARGO_PKG_VERSION").to_owned()
+}
+
+#[wasm_bindgen]
+pub struct OptimalityEvaluator {
+    inner: CoreOptimalityEvaluator,
+}
+
+#[wasm_bindgen]
+impl OptimalityEvaluator {
+    #[wasm_bindgen(constructor)]
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        discount: f64,
+        slip_probability: f64,
+        tolerance: f64,
+        max_sweeps: u32,
+        default_reward: f64,
+        boundary_reward: f64,
+        hazard_reward: f64,
+        goal_reward: f64,
+    ) -> Result<Self, JsValue> {
+        console_error_panic_hook::set_once();
+        let config = OptimalityConfig {
+            discount,
+            slip_probability,
+            tolerance,
+            max_sweeps,
+            rewards: Rewards {
+                default: default_reward,
+                boundary: boundary_reward,
+                hazard: hazard_reward,
+                goal: goal_reward,
+            },
+        };
+        let inner = CoreOptimalityEvaluator::new(config)
+            .map_err(|error| error_value(error.code(), error.to_string()))?;
+        Ok(Self { inner })
+    }
+
+    pub fn snapshot(&self) -> Result<JsValue, JsValue> {
+        serialize(&OptimalitySnapshotPayload::from(self.inner.snapshot()))
+    }
+
+    pub fn reset(&mut self) -> Result<JsValue, JsValue> {
+        serialize(&OptimalitySnapshotPayload::from(self.inner.reset()))
+    }
+
+    pub fn transition_model(&self) -> Result<JsValue, JsValue> {
+        let transitions: Vec<_> = self
+            .inner
+            .transition_model()
+            .into_iter()
+            .map(OptimalityTransitionPayload::from)
+            .collect();
+        serialize(&transitions)
+    }
+
+    pub fn reference_solution(&self) -> Result<JsValue, JsValue> {
+        serialize(&OptimalityReferencePayload::from(
+            self.inner.reference_solution(),
+        ))
+    }
+
+    pub fn sweep(&mut self) -> Result<JsValue, JsValue> {
+        serialize(&OptimalitySweepPayload::from(self.inner.sweep()))
+    }
+
+    pub fn advance(&mut self, sweeps: u32) -> Result<JsValue, JsValue> {
+        serialize(&OptimalityAdvancePayload::from(self.inner.advance(sweeps)))
+    }
+
+    pub fn run_to_convergence(&mut self) -> Result<JsValue, JsValue> {
+        serialize(&OptimalityAdvancePayload::from(
+            self.inner.run_to_convergence(),
+        ))
+    }
 }
 
 #[wasm_bindgen]
@@ -430,9 +641,73 @@ impl GridWorldSession {
 #[cfg(all(test, target_arch = "wasm32"))]
 mod tests {
     use super::*;
+    use serde::Deserialize;
     use wasm_bindgen_test::*;
 
     wasm_bindgen_test_configure!(run_in_browser);
+
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct TestOptimalitySnapshot {
+        values: Vec<f64>,
+        action_values: Vec<Vec<f64>>,
+        greedy_masks: Vec<u8>,
+        sweep_count: u32,
+        residual: f64,
+        converged: bool,
+        truncated: bool,
+    }
+
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct TestOptimalityReference {
+        values: Vec<f64>,
+        action_values: Vec<Vec<f64>>,
+        greedy_masks: Vec<u8>,
+        residual: f64,
+    }
+
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct TestOptimalityTransition {
+        state: u16,
+        requested_action: u8,
+        actual_action: u8,
+        next_state: u16,
+        probability: f64,
+        reward: f64,
+        boundary_collision: bool,
+    }
+
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct TestOptimalityUpdate {
+        state: u16,
+        old_value: f64,
+        new_value: f64,
+        delta: f64,
+        action_values: Vec<f64>,
+        greedy_mask: u8,
+    }
+
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct TestOptimalitySweep {
+        snapshot: TestOptimalitySnapshot,
+        updates: Vec<TestOptimalityUpdate>,
+        max_update: f64,
+    }
+
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct TestOptimalityAdvance {
+        snapshot: TestOptimalitySnapshot,
+        residual_history: Vec<f64>,
+    }
+
+    fn from_js<T: for<'de> Deserialize<'de>>(value: JsValue) -> T {
+        serde_wasm_bindgen::from_value(value).expect("payload follows the documented JS contract")
+    }
 
     #[wasm_bindgen_test]
     fn creates_a_session_and_returns_a_snapshot() {
@@ -467,5 +742,85 @@ mod tests {
         assert!(evaluator.advance(3).is_ok());
         assert!(evaluator.run_to_convergence().is_ok());
         assert!(evaluator.reset().is_ok());
+    }
+
+    #[wasm_bindgen_test]
+    fn solves_bellman_optimality_on_the_shared_grid() {
+        let mut evaluator =
+            OptimalityEvaluator::new(0.9, 0.0, 1e-12, 1_000, -0.04, -1.0, -1.0, 1.0)
+                .expect("valid evaluator");
+
+        let initial: TestOptimalitySnapshot =
+            from_js(evaluator.snapshot().expect("snapshot serializes"));
+        assert_eq!(initial.values, vec![0.0; 16]);
+        assert_eq!(initial.action_values.len(), 16);
+        assert!(initial.action_values.iter().all(|row| row.len() == 5));
+        assert_eq!(initial.greedy_masks.len(), 16);
+        assert_eq!(initial.sweep_count, 0);
+        assert_eq!(initial.residual, 1.0);
+        assert!(!initial.converged);
+        assert!(!initial.truncated);
+
+        let model: Vec<TestOptimalityTransition> =
+            from_js(evaluator.transition_model().expect("model serializes"));
+        assert_eq!(model.len(), 75);
+        let hazard_entry = model
+            .iter()
+            .find(|transition| {
+                transition.state == 5
+                    && transition.requested_action == Action::Right.code()
+                    && transition.actual_action == Action::Right.code()
+            })
+            .expect("shared Grid World hazard entry is exposed");
+        assert_eq!(hazard_entry.next_state, 6);
+        assert_eq!(hazard_entry.probability, 1.0);
+        assert_eq!(hazard_entry.reward, -1.0);
+        assert!(!hazard_entry.boundary_collision);
+
+        let reference: TestOptimalityReference = from_js(
+            evaluator
+                .reference_solution()
+                .expect("reference serializes"),
+        );
+        assert_eq!(reference.values.len(), 16);
+        assert_eq!(reference.action_values.len(), 16);
+        assert!(reference.action_values.iter().all(|row| row.len() == 5));
+        assert_eq!(reference.greedy_masks.len(), 16);
+        assert!((reference.values[0] - 0.426_686).abs() <= 1e-12);
+        assert_eq!(reference.greedy_masks[0], 0b00110);
+        assert!(reference.residual <= 1e-12);
+
+        let first: TestOptimalitySweep = from_js(evaluator.sweep().expect("sweep serializes"));
+        assert_eq!(first.snapshot.sweep_count, 1);
+        assert_eq!(first.snapshot.values[11], 1.0);
+        assert_eq!(first.snapshot.residual, 0.9);
+        assert_eq!(first.updates.len(), 16);
+        assert_eq!(first.max_update, 1.0);
+        let state_ten = &first.updates[10];
+        assert_eq!(state_ten.state, 10);
+        assert_eq!(state_ten.old_value, 0.0);
+        assert_eq!(state_ten.new_value, -0.04);
+        assert_eq!(state_ten.delta, -0.04);
+        assert_eq!(state_ten.action_values.len(), 5);
+        assert_ne!(state_ten.greedy_mask, 0);
+
+        let advanced: TestOptimalityAdvance =
+            from_js(evaluator.advance(2).expect("advance serializes"));
+        assert_eq!(advanced.snapshot.sweep_count, 3);
+        assert_eq!(advanced.residual_history.len(), 3);
+        assert_eq!(advanced.residual_history[0], 0.9);
+
+        let converged: TestOptimalityAdvance = from_js(
+            evaluator
+                .run_to_convergence()
+                .expect("converged run serializes"),
+        );
+        assert_eq!(converged.snapshot.sweep_count, 6);
+        assert!(converged.snapshot.converged);
+        assert!(!converged.snapshot.truncated);
+
+        let reset: TestOptimalitySnapshot = from_js(evaluator.reset().expect("reset serializes"));
+        assert_eq!(reset.sweep_count, 0);
+        assert_eq!(reset.values, vec![0.0; 16]);
     }
 }

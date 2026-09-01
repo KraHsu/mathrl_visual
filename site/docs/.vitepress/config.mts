@@ -29,6 +29,8 @@ const chapterSources = {
     'https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning/blob/0e348961c28496096d308f1066009266b3674c5a/3%20-%20Chapter%201%20Basic%20Concepts.pdf',
   ch02:
     'https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning/blob/0e348961c28496096d308f1066009266b3674c5a/3%20-%20Chapter%202%20State%20Values%20and%20Bellman%20Equation.pdf',
+  ch03:
+    'https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning/blob/0e348961c28496096d308f1066009266b3674c5a/3%20-%20Chapter%203%20Optimal%20State%20Values%20and%20Bellman%20Optimality%20Equation.pdf',
 } as const
 
 export default defineConfig({
@@ -53,10 +55,12 @@ export default defineConfig({
       title: '强化学习数学基础 · 可视化伴读',
       description: '用交互实验学习强化学习的数学基础。',
       themeConfig: {
+        siteTitle: '强化学习数学基础',
         nav: [
           { text: '第一章', link: '/zh-Hans/learn/ch01/' },
           { text: '第二章', link: '/zh-Hans/learn/ch02/' },
-          { text: '实验', link: '/zh-Hans/labs/bellman-grid' },
+          { text: '第三章', link: '/zh-Hans/learn/ch03/' },
+          { text: '实验', link: '/zh-Hans/labs/bellman-optimality-grid' },
         ],
         sidebar: {
           '/zh-Hans/learn/ch01/': [
@@ -97,6 +101,30 @@ export default defineConfig({
               items: [{ text: 'Bellman 策略评估实验', link: '/zh-Hans/labs/bellman-grid' }],
             },
           ],
+          '/zh-Hans/learn/ch03/': [
+            {
+              text: '第三章 · 最优状态价值与 Bellman 最优方程',
+              items: [
+                { text: '章节导览', link: '/zh-Hans/learn/ch03/' },
+                { text: '策略改进', link: '/zh-Hans/learn/ch03/policy-improvement' },
+                { text: '最优价值与策略', link: '/zh-Hans/learn/ch03/optimal-values' },
+                { text: 'Bellman 最优方程', link: '/zh-Hans/learn/ch03/optimality-equation' },
+                { text: '压缩映射', link: '/zh-Hans/learn/ch03/contraction' },
+                { text: '贪心最优策略', link: '/zh-Hans/learn/ch03/greedy-policies' },
+                { text: '折扣、奖励与模型', link: '/zh-Hans/learn/ch03/factors' },
+                { text: '章节检查点', link: '/zh-Hans/learn/ch03/checkpoint' },
+              ],
+            },
+            {
+              text: '动手实验',
+              items: [
+                {
+                  text: 'Bellman 最优方程实验',
+                  link: '/zh-Hans/labs/bellman-optimality-grid',
+                },
+              ],
+            },
+          ],
           '/zh-Hans/labs/': [
             {
               text: '第一章实验',
@@ -105,6 +133,15 @@ export default defineConfig({
             {
               text: '第二章实验',
               items: [{ text: 'Bellman 策略评估实验', link: '/zh-Hans/labs/bellman-grid' }],
+            },
+            {
+              text: '第三章实验',
+              items: [
+                {
+                  text: 'Bellman 最优方程实验',
+                  link: '/zh-Hans/labs/bellman-optimality-grid',
+                },
+              ],
             },
           ],
         },
@@ -146,10 +183,12 @@ export default defineConfig({
       title: 'Mathematical Foundations of RL · Visual Companion',
       description: 'Learn the mathematical foundations of reinforcement learning through interactive experiments.',
       themeConfig: {
+        siteTitle: 'MathRL Visual',
         nav: [
           { text: 'Chapter 1', link: '/en/learn/ch01/' },
           { text: 'Chapter 2', link: '/en/learn/ch02/' },
-          { text: 'Lab', link: '/en/labs/bellman-grid' },
+          { text: 'Chapter 3', link: '/en/learn/ch03/' },
+          { text: 'Lab', link: '/en/labs/bellman-optimality-grid' },
         ],
         sidebar: {
           '/en/learn/ch01/': [
@@ -190,6 +229,30 @@ export default defineConfig({
               items: [{ text: 'Bellman policy-evaluation lab', link: '/en/labs/bellman-grid' }],
             },
           ],
+          '/en/learn/ch03/': [
+            {
+              text: 'Chapter 3 · Optimal Values and Bellman Optimality',
+              items: [
+                { text: 'Chapter map', link: '/en/learn/ch03/' },
+                { text: 'Policy improvement', link: '/en/learn/ch03/policy-improvement' },
+                { text: 'Optimal values and policies', link: '/en/learn/ch03/optimal-values' },
+                { text: 'Bellman optimality equation', link: '/en/learn/ch03/optimality-equation' },
+                { text: 'Contraction mapping', link: '/en/learn/ch03/contraction' },
+                { text: 'Greedy optimal policies', link: '/en/learn/ch03/greedy-policies' },
+                { text: 'Discount, rewards, and model', link: '/en/learn/ch03/factors' },
+                { text: 'Chapter checkpoint', link: '/en/learn/ch03/checkpoint' },
+              ],
+            },
+            {
+              text: 'Hands-on lab',
+              items: [
+                {
+                  text: 'Bellman optimality lab',
+                  link: '/en/labs/bellman-optimality-grid',
+                },
+              ],
+            },
+          ],
           '/en/labs/': [
             {
               text: 'Chapter 1 labs',
@@ -198,6 +261,15 @@ export default defineConfig({
             {
               text: 'Chapter 2 labs',
               items: [{ text: 'Bellman policy-evaluation lab', link: '/en/labs/bellman-grid' }],
+            },
+            {
+              text: 'Chapter 3 labs',
+              items: [
+                {
+                  text: 'Bellman optimality lab',
+                  link: '/en/labs/bellman-optimality-grid',
+                },
+              ],
             },
           ],
         },
@@ -276,6 +348,12 @@ function absoluteRouteFor(locale: 'zh-Hans' | 'en', relativePath: string): strin
 }
 
 function sourceFor(relativePath: string): string | undefined {
+  if (
+    relativePath.includes('/learn/ch03/') ||
+    relativePath.includes('/labs/bellman-optimality-grid.md')
+  ) {
+    return chapterSources.ch03
+  }
   if (relativePath.includes('/learn/ch02/') || relativePath.includes('/labs/bellman-grid.md')) {
     return chapterSources.ch02
   }

@@ -5,6 +5,17 @@ const dist = new URL('site/docs/.vitepress/dist/', projectRoot)
 const base = normalizeBase(process.env.PAGES_BASE ?? '/mathrl_visual/')
 const origin = (process.env.PAGES_ORIGIN ?? '').replace(/\/$/, '')
 const preview = process.env.PAGES_STAGE === 'preview'
+const chapter3Routes = [
+  'learn/ch03/',
+  'learn/ch03/policy-improvement',
+  'learn/ch03/optimal-values',
+  'learn/ch03/optimality-equation',
+  'learn/ch03/contraction',
+  'learn/ch03/greedy-policies',
+  'learn/ch03/factors',
+  'learn/ch03/checkpoint',
+  'labs/bellman-optimality-grid',
+]
 
 const requiredFiles = [
   'index.html',
@@ -18,6 +29,11 @@ const requiredFiles = [
   'en/learn/ch02/index.html',
   'zh-Hans/labs/bellman-grid.html',
   'en/labs/bellman-grid.html',
+  ...['zh-Hans', 'en'].flatMap((locale) =>
+    chapter3Routes.map((route) =>
+      `${locale}/${route.endsWith('/') ? `${route}index.html` : `${route}.html`}`,
+    ),
+  ),
 ]
 
 for (const relativePath of requiredFiles) {
@@ -29,6 +45,9 @@ for (const relativePath of requiredFiles) {
 const assetNames = await readdir(new URL('assets/', dist), { recursive: true })
 if (!assetNames.some((name) => name.endsWith('.wasm'))) {
   throw new Error('GitHub Pages artifact does not contain the Rust/Wasm engine')
+}
+if (!assetNames.some((name) => name.includes('optimality.worker-') && name.endsWith('.js'))) {
+  throw new Error('GitHub Pages artifact does not contain the Chapter 3 optimality Worker')
 }
 if (!assetNames.some((name) => name.includes('@localSearchIndexzh-Hans'))) {
   throw new Error('GitHub Pages artifact does not contain the Chinese search index')
@@ -62,6 +81,31 @@ if (origin) {
   }
 }
 
+const chapter3Source =
+  'https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning/blob/0e348961c28496096d308f1066009266b3674c5a/3%20-%20Chapter%203%20Optimal%20State%20Values%20and%20Bellman%20Optimality%20Equation.pdf'
+const chapter3Pages = ['zh-Hans', 'en'].flatMap((locale) =>
+  chapter3Routes.map((route) => ({
+    locale,
+    counterpart: locale === 'zh-Hans' ? 'en' : 'zh-Hans',
+    route,
+  })),
+)
+for (const page of chapter3Pages) {
+  const fileRoute = page.route.endsWith('/') ? `${page.route}index.html` : `${page.route}.html`
+  const html = await readFile(new URL(`${page.locale}/${fileRoute}`, dist), 'utf8')
+  const canonical = publicArtifactUrl(`${page.locale}/${page.route}`)
+  const alternate = publicArtifactUrl(`${page.counterpart}/${page.route}`)
+  if (!html.includes(`rel="canonical" href="${canonical}"`)) {
+    throw new Error(`${page.locale}/${fileRoute} has an incorrect Chapter 3 canonical URL`)
+  }
+  if (!html.includes(`hreflang="${page.counterpart}" href="${alternate}"`)) {
+    throw new Error(`${page.locale}/${fileRoute} is missing its Chapter 3 locale alternate`)
+  }
+  if (!html.includes(`name="mathrl:source" content="${chapter3Source}"`)) {
+    throw new Error(`${page.locale}/${fileRoute} is missing the pinned Chapter 3 source`)
+  }
+}
+
 console.log(
   `GitHub Pages artifact OK: ${htmlFiles.length} HTML files, base ${base}, ${assetNames.length} assets`,
 )
@@ -73,6 +117,10 @@ function normalizeBase(value) {
 
 function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function publicArtifactUrl(path) {
+  return `${origin}${base}${path}`
 }
 
 async function collectHtmlFiles(directory) {

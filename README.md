@@ -4,7 +4,7 @@
 
 An unofficial, bilingual interactive companion for *Mathematical Foundations of Reinforcement Learning*, built with Rust, WebAssembly, Vue 3, and VitePress.
 
-Chapter 1 is implemented as a draft vertical slice. Chapter 2 now has a bilingual pilot with original explanations and a focused four-state Bellman micro-lab; the planned Bellman view derived from Chapter 1's shared 4×4 Grid World remains a follow-up. See [PLAN.md](./PLAN.md) and [RIGHTS.md](./RIGHTS.md).
+Chapter 1 is implemented as a draft vertical slice. Chapter 2 has a bilingual four-state policy-evaluation pilot. Chapter 3 provides a bilingual optimality vertical slice derived from Chapter 1's shared 4×4 Grid World; the planned Chapter 2 integration with that shared model remains a follow-up. See [PLAN.md](./PLAN.md) and [RIGHTS.md](./RIGHTS.md).
 
 Public draft preview: <https://krahsu.github.io/mathrl_visual/>
 
@@ -32,6 +32,16 @@ The content metadata remains `draft`; `RELEASE=1` intentionally blocks publicati
 
 This pilot isolates the Bellman mechanics for auditability. It is not yet the plan's cross-chapter shared-Grid-World implementation, so Chapter 2 remains a draft preview rather than a completed vertical slice.
 
+## Chapter 3 optimality slice
+
+- Paired English and Simplified Chinese pages for policy improvement, optimal values, the Bellman optimality equation, contraction mappings, greedy optimal policies, parameter effects, and an integrated checkpoint
+- The same original 4×4 Grid World geometry, action set, transition semantics, hazards, terminal goal, and rewards used by Chapter 1
+- Rust/Wasm action-aware Bellman optimality backups, synchronous optimality sweeps, all greedy ties, residuals, bounded convergence, and a high-precision reference solution
+- A 16-state value heatmap, action-value ledger, greedy-policy arrows, propagation trace, contraction witness, parameter presets, and live model audit
+- Strict Worker protocol validation, retryable Worker/Wasm startup, reduced-motion batching, responsive numeric alternatives, and deterministic cross-language restoration
+
+Chapter 3 is published as an original technical preview. Its mathematics and runtime are test-gated, while the bilingual human-review metadata remains `draft` and therefore cannot pass the release-only content gate yet. Repeated optimality sweeps are used here to expose the fixed point; Chapter 4 remains responsible for the full Value Iteration and Policy Iteration algorithm treatment.
+
 ## Prerequisites
 
 - Rust 1.97.1 with the `wasm32-unknown-unknown` target
@@ -50,7 +60,7 @@ corepack pnpm wasm:build
 corepack pnpm dev
 ```
 
-Open the URL printed by VitePress, then visit `/zh-Hans/learn/ch02/` or `/en/learn/ch02/`.
+Open the URL printed by VitePress, then visit `/zh-Hans/learn/ch03/` or `/en/learn/ch03/`.
 
 ## Static build
 

@@ -271,6 +271,115 @@ impl GridWorldConfig {
     pub const fn state_count(&self) -> u16 {
         self.width as u16 * self.height as u16
     }
+
+    /// Returns the complete transition distribution for an action from any
+    /// state in this validated Grid World. This is the language-neutral model
+    /// query used by planning algorithms; it does not mutate or sample a
+    /// session.
+    pub fn transition_distribution_from(
+        &self,
+        state: u16,
+        requested_action: Action,
+    ) -> Result<Vec<TransitionOutcome>, ConfigError> {
+        self.validate()?;
+        if state >= self.state_count() {
+            return Err(ConfigError::StateOutOfBounds {
+                field: "state",
+                value: state,
+                state_count: self.state_count(),
+            });
+        }
+        Ok(self.transition_distribution_from_validated(state, requested_action))
+    }
+
+    pub(crate) fn transition_distribution_from_validated(
+        &self,
+        state: u16,
+        requested_action: Action,
+    ) -> Vec<TransitionOutcome> {
+        if state == self.goal && self.goal_mode == GoalMode::Terminate {
+            return Vec::new();
+        }
+        if requested_action == Action::Stay {
+            return vec![self.model_outcome_from(state, requested_action, Action::Stay, 1.0)];
+        }
+
+        let slip_share = self.slip_probability / 4.0;
+        [Action::Up, Action::Right, Action::Down, Action::Left]
+            .into_iter()
+            .filter_map(|actual_action| {
+                let probability = slip_share
+                    + if actual_action == requested_action {
+                        1.0 - self.slip_probability
+                    } else {
+                        0.0
+                    };
+                (probability > 0.0).then(|| {
+                    self.model_outcome_from(state, requested_action, actual_action, probability)
+                })
+            })
+            .collect()
+    }
+
+    fn model_outcome_from(
+        &self,
+        state: u16,
+        requested_action: Action,
+        actual_action: Action,
+        probability: f64,
+    ) -> TransitionOutcome {
+        let (next_state, boundary_collision) = self.transition_from(state, actual_action);
+        TransitionOutcome {
+            requested_action,
+            actual_action,
+            next_state,
+            probability,
+            reward: self.reward_for_transition(state, next_state, boundary_collision),
+            boundary_collision,
+        }
+    }
+
+    fn reward_for_transition(
+        &self,
+        previous_state: u16,
+        next_state: u16,
+        boundary_collision: bool,
+    ) -> f64 {
+        if previous_state == self.goal && self.goal_mode == GoalMode::Absorb {
+            0.0
+        } else if boundary_collision {
+            self.rewards.boundary
+        } else if next_state == self.goal {
+            self.rewards.goal
+        } else if self.hazards.contains(&next_state) {
+            self.rewards.hazard
+        } else {
+            self.rewards.default
+        }
+    }
+
+    fn transition_from(&self, state: u16, action: Action) -> (u16, bool) {
+        if state == self.goal && self.goal_mode == GoalMode::Absorb {
+            return (state, false);
+        }
+
+        let width = self.width as u16;
+        let row = state / width;
+        let column = state % width;
+        let candidate = match action {
+            Action::Up if row > 0 => Some(state - width),
+            Action::Right if column + 1 < width => Some(state + 1),
+            Action::Down if row + 1 < self.height as u16 => Some(state + width),
+            Action::Left if column > 0 => Some(state - 1),
+            Action::Stay => Some(state),
+            _ => None,
+        };
+
+        match candidate {
+            Some(next_state) => (next_state, false),
+            None => (state, true),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -466,24 +575,8 @@ impl GridWorldSession {
         if self.done {
             return Vec::new();
         }
-        if requested_action == Action::Stay {
-            return vec![self.model_outcome(requested_action, Action::Stay, 1.0)];
-        }
-
-        let slip_share = self.config.slip_probability / 4.0;
-        [Action::Up, Action::Right, Action::Down, Action::Left]
-            .into_iter()
-            .filter_map(|actual_action| {
-                let probability = slip_share
-                    + if actual_action == requested_action {
-                        1.0 - self.config.slip_probability
-                    } else {
-                        0.0
-                    };
-                (probability > 0.0)
-                    .then(|| self.model_outcome(requested_action, actual_action, probability))
-            })
-            .collect()
+        self.config
+            .transition_distribution_from_validated(self.state, requested_action)
     }
 
     pub fn transition_model(&self) -> Vec<TransitionOutcome> {
@@ -509,8 +602,12 @@ impl GridWorldSession {
         let previous_state = self.state;
         let actual_action = self.sample_action(requested_action);
         let slipped = actual_action != requested_action;
-        let (next_state, boundary_collision) = self.transition(previous_state, actual_action);
-        let reward = self.reward_for(previous_state, next_state, boundary_collision);
+        let modeled =
+            self.config
+                .model_outcome_from(previous_state, requested_action, actual_action, 1.0);
+        let next_state = modeled.next_state;
+        let boundary_collision = modeled.boundary_collision;
+        let reward = modeled.reward;
 
         let discount_weight = self.config.discount.powi(self.step_count as i32);
         let discounted_contribution = discount_weight * reward;
@@ -547,61 +644,6 @@ impl GridWorldSession {
         }
 
         Action::from_cardinal_index(self.rng.random_range(0..4))
-    }
-
-    fn model_outcome(
-        &self,
-        requested_action: Action,
-        actual_action: Action,
-        probability: f64,
-    ) -> TransitionOutcome {
-        let (next_state, boundary_collision) = self.transition(self.state, actual_action);
-        TransitionOutcome {
-            requested_action,
-            actual_action,
-            next_state,
-            probability,
-            reward: self.reward_for(self.state, next_state, boundary_collision),
-            boundary_collision,
-        }
-    }
-
-    fn reward_for(&self, previous_state: u16, next_state: u16, boundary_collision: bool) -> f64 {
-        if previous_state == self.config.goal && self.config.goal_mode == GoalMode::Absorb {
-            0.0
-        } else if boundary_collision {
-            self.config.rewards.boundary
-        } else if next_state == self.config.goal {
-            self.config.rewards.goal
-        } else if self.config.hazards.binary_search(&next_state).is_ok() {
-            self.config.rewards.hazard
-        } else {
-            self.config.rewards.default
-        }
-    }
-
-    fn transition(&self, state: u16, action: Action) -> (u16, bool) {
-        if state == self.config.goal && self.config.goal_mode == GoalMode::Absorb {
-            return (state, false);
-        }
-
-        let width = self.config.width as u16;
-        let row = state / width;
-        let column = state % width;
-
-        let candidate = match action {
-            Action::Up if row > 0 => Some(state - width),
-            Action::Right if column + 1 < width => Some(state + 1),
-            Action::Down if row + 1 < self.config.height as u16 => Some(state + width),
-            Action::Left if column > 0 => Some(state - 1),
-            Action::Stay => Some(state),
-            _ => None,
-        };
-
-        match candidate {
-            Some(next_state) => (next_state, false),
-            None => (state, true),
-        }
     }
 }
 
@@ -841,6 +883,68 @@ mod tests {
         assert_eq!(outcomes[0].actual_action, Action::Right);
         assert_eq!(outcomes[0].next_state, 1);
         assert_eq!(outcomes[0].probability, 1.0);
+    }
+
+    #[test]
+    fn model_queries_any_state_without_mutating_a_session() {
+        let model = config();
+
+        let hazard = model
+            .transition_distribution_from(5, Action::Right)
+            .expect("state 5 is in bounds");
+        assert_eq!(hazard.len(), 1);
+        assert_eq!(hazard[0].next_state, 6);
+        assert_eq!(hazard[0].reward, model.rewards.hazard);
+
+        let terminal = model
+            .transition_distribution_from(model.goal, Action::Stay)
+            .expect("the goal is a valid state");
+        assert!(
+            terminal.is_empty(),
+            "a terminating goal has no later action row"
+        );
+    }
+
+    #[test]
+    fn model_queries_do_not_require_sorted_hazards() {
+        let mut model = config();
+        model.hazards = vec![9, 6];
+
+        let hazard = model
+            .transition_distribution_from(5, Action::Right)
+            .expect("an unsorted but otherwise valid hazard list");
+
+        assert_eq!(hazard[0].next_state, 6);
+        assert_eq!(hazard[0].reward, model.rewards.hazard);
+    }
+
+    #[test]
+    fn session_and_model_queries_share_the_same_transition_rules() {
+        let model = config();
+        let session = GridWorldSession::new(model.clone()).expect("valid config");
+
+        for action in Action::ALL {
+            assert_eq!(
+                session.transition_distribution(action),
+                model
+                    .transition_distribution_from(model.start, action)
+                    .expect("the start state is in bounds")
+            );
+        }
+    }
+
+    #[test]
+    fn model_queries_reject_out_of_bounds_states() {
+        let model = config();
+
+        assert_eq!(
+            model.transition_distribution_from(model.state_count(), Action::Stay),
+            Err(ConfigError::StateOutOfBounds {
+                field: "state",
+                value: model.state_count(),
+                state_count: model.state_count(),
+            })
+        );
     }
 
     #[test]

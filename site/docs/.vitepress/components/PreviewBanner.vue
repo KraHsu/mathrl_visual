@@ -1,6 +1,6 @@
 <template>
   <aside class="preview-banner" role="status">
     <strong>Preview · 预览</strong>
-    <span>Chapter 1 is a technical draft pending bilingual review. · 第一章为待双语译审的技术草稿。</span>
+    <span>Chapters 1–3 are technical previews pending bilingual review. · 第一至三章为待双语译审的技术预览。</span>
   </aside>
 </template>
