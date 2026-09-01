@@ -74,7 +74,7 @@ The default controls are:
 
 The **baseline**, **wind 20%**, **short horizon**, and **long horizon** presets each change a documented factor. Changing a field validates it in the Vue layer and again in the Worker/Wasm engine. A failed validation is recoverable without reloading the page.
 
-The values in this table describe the browser's responsive **baseline preset**. The native Rust API also accepts an explicit configuration, while the Worker always sends the preset values shown here so a shared link has a stable workload.
+The values in this table describe the browser's responsive **baseline preset**. The native Rust API and the Worker both accept the explicit values currently applied in the controls; the named presets are reproducible shortcuts for common configurations.
 
 Changing language preserves the algorithm, model parameters, counters, policy, values, and current trace. Reset intentionally clears the run while retaining the applied configuration.
 
