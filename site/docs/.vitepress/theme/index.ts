@@ -2,6 +2,7 @@ import DefaultTheme from 'vitepress/theme'
 import type { Theme } from 'vitepress'
 import { h } from 'vue'
 
+import BellmanLab from '../components/BellmanLab.vue'
 import GridWorldLab from '../components/GridWorldLab.vue'
 import PreviewBanner from '../components/PreviewBanner.vue'
 import './custom.css'
@@ -21,6 +22,7 @@ export default {
         : {},
     ),
   enhanceApp({ app }) {
+    app.component('BellmanLab', BellmanLab)
     app.component('GridWorldLab', GridWorldLab)
   },
 } satisfies Theme

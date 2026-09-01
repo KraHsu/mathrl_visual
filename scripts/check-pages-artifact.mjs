@@ -14,6 +14,10 @@ const requiredFiles = [
   'en/index.html',
   'zh-Hans/labs/ch01-gridworld.html',
   'en/labs/ch01-gridworld.html',
+  'zh-Hans/learn/ch02/index.html',
+  'en/learn/ch02/index.html',
+  'zh-Hans/labs/bellman-grid.html',
+  'en/labs/bellman-grid.html',
 ]
 
 for (const relativePath of requiredFiles) {

@@ -136,6 +136,12 @@ const canRestart = computed(() => phase.value !== 'loading')
 const selectedOutcomes = computed(() =>
   model.value.filter((outcome) => outcome.requestedAction === inspectedAction.value),
 )
+const showGuidedWind = computed(
+  () =>
+    phase.value === 'ready' &&
+    model.value.length > 0 &&
+    appliedConfig.value.slipProbability === 0,
+)
 const rightSuccessProbability = computed(
   () =>
     model.value.find(
@@ -736,11 +742,11 @@ onBeforeUnmount(() => {
               </tbody>
             </table>
           </div>
-          <p v-if="appliedConfig.slipProbability === 0" class="lab-panel__hint">
+          <p v-if="showGuidedWind" class="lab-panel__hint">
             {{ copy.transitionWindHint }}
           </p>
           <button
-            v-if="appliedConfig.slipProbability === 0"
+            v-if="showGuidedWind"
             class="lab-button lab-button--primary"
             type="button"
             :disabled="!canRestart"
@@ -874,11 +880,11 @@ onBeforeUnmount(() => {
               }}
             </li>
           </ul>
-          <p v-if="appliedConfig.slipProbability === 0" class="lab-panel__hint">
+          <p v-if="showGuidedWind" class="lab-panel__hint">
             {{ copy.increaseWind }}
           </p>
           <button
-            v-if="appliedConfig.slipProbability === 0"
+            v-if="showGuidedWind"
             class="lab-button lab-button--primary"
             type="button"
             :disabled="!canRestart"
@@ -890,7 +896,7 @@ onBeforeUnmount(() => {
               })
             }}
           </button>
-          <template v-else>
+          <template v-if="appliedConfig.slipProbability > 0">
             <p class="concept-callout concept-callout--warning">{{ copy.markovFails }}</p>
             <p class="concept-callout">{{ copy.markovRestored }}</p>
           </template>

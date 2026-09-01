@@ -18,13 +18,13 @@ hero:
       text: 开始第一章
       link: /zh-Hans/learn/ch01/
     - theme: alt
-      text: 打开 Grid World 实验
-      link: /zh-Hans/labs/ch01-gridworld
+      text: 探索第二章先导版
+      link: /zh-Hans/learn/ch02/
 features:
   - title: 概念同步
-    details: 状态、动作、转移、奖励与回报在同一实验中同步变化。
+    details: 从状态、动作与回报继续走向 Bellman 期望和策略评估。
   - title: 数值可复现
-    details: Rust/Wasm 引擎使用固定随机种子，轨迹可以重复验证。
+    details: Rust/Wasm 同时提供可复现的固定种子轨迹和确定性的策略评估过程。
   - title: 双语同构
     details: 中英文页面共享内容 ID、实验状态和数学符号。
 ---

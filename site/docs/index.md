@@ -11,10 +11,10 @@ hero:
 <div class="bilingual-entry">
   <a href="./zh-Hans/">
     <strong>进入简体中文版 →</strong>
-    <span>从状态、动作和 Grid World 开始</span>
+    <span>从状态与动作继续学到 Bellman 策略评估</span>
   </a>
   <a href="./en/">
     <strong>Continue in English →</strong>
-    <span>Start with states, actions, and Grid World</span>
+    <span>Learn from states and actions through Bellman policy evaluation</span>
   </a>
 </div>

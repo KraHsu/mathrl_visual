@@ -4,7 +4,7 @@
 
 An unofficial, bilingual interactive companion for *Mathematical Foundations of Reinforcement Learning*, built with Rust, WebAssembly, Vue 3, and VitePress.
 
-Chapter 1 is implemented as draft companion content using original explanations and an original 4×4 Grid World. See [PLAN.md](./PLAN.md) and [RIGHTS.md](./RIGHTS.md).
+Chapter 1 is implemented as a draft vertical slice. Chapter 2 now has a bilingual pilot with original explanations and a focused four-state Bellman micro-lab; the planned Bellman view derived from Chapter 1's shared 4×4 Grid World remains a follow-up. See [PLAN.md](./PLAN.md) and [RIGHTS.md](./RIGHTS.md).
 
 Public draft preview: <https://krahsu.github.io/mathrl_visual/>
 
@@ -20,6 +20,17 @@ Public draft preview: <https://krahsu.github.io/mathrl_visual/>
 - Separate local search indexes, canonical URLs, and reciprocal `hreflang` links
 
 The content metadata remains `draft`; `RELEASE=1` intentionally blocks publication until bilingual human review is approved.
+
+## Chapter 2 pilot
+
+- Paired English and Simplified Chinese pages for state values, the Bellman expectation equation, matrix form, iterative policy evaluation, action values, and a checkpoint
+- An original four-state Markov reward process with a complete transition table and policy-induced dependency graph
+- Rust/Wasm synchronous Bellman sweeps, current Bellman residual, bounded convergence, structured validation, and a partial-pivoting linear-system reference solution
+- A selectable one-step expectation ledger, state-value heatmap, matrix table, residual trace, and model audit
+- Single-sweep, run, pause, reset, speed, discount, tolerance, and iteration-limit controls through a dedicated Worker
+- Deterministic replay that preserves configuration, sweep count, values, and view state across language changes
+
+This pilot isolates the Bellman mechanics for auditability. It is not yet the plan's cross-chapter shared-Grid-World implementation, so Chapter 2 remains a draft preview rather than a completed vertical slice.
 
 ## Prerequisites
 
@@ -39,7 +50,7 @@ corepack pnpm wasm:build
 corepack pnpm dev
 ```
 
-Open the URL printed by VitePress, then visit `/zh-Hans/learn/ch01/` or `/en/learn/ch01/`.
+Open the URL printed by VitePress, then visit `/zh-Hans/learn/ch02/` or `/en/learn/ch02/`.
 
 ## Static build
 

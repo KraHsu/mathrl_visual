@@ -1,6 +1,9 @@
 use mathrl_core::{
-    Action, GoalMode, GridWorldConfig, GridWorldSession as CoreSession, Policy, Rewards,
-    TransitionOutcome,
+    Action, AdvanceOutcome as CoreAdvanceOutcome, BellmanEvaluator as CoreBellmanEvaluator,
+    BellmanTerm as CoreBellmanTerm, BellmanUpdate as CoreBellmanUpdate, EvaluationConfig,
+    EvaluationSnapshot as CoreEvaluationSnapshot, GoalMode, GridWorldConfig,
+    GridWorldSession as CoreSession, Policy, Rewards, SweepOutcome as CoreSweepOutcome,
+    Transition as CoreEvaluationTransition, TransitionOutcome,
 };
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
@@ -53,6 +56,128 @@ struct TransitionPayload {
     boundary_collision: bool,
 }
 
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct EvaluationSnapshotPayload {
+    values: [f64; 4],
+    sweep_count: u32,
+    residual: f64,
+    converged: bool,
+    truncated: bool,
+}
+
+impl From<CoreEvaluationSnapshot> for EvaluationSnapshotPayload {
+    fn from(snapshot: CoreEvaluationSnapshot) -> Self {
+        Self {
+            values: snapshot.values,
+            sweep_count: snapshot.sweep_count,
+            residual: snapshot.residual,
+            converged: snapshot.converged,
+            truncated: snapshot.truncated,
+        }
+    }
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct EvaluationTransitionPayload {
+    state: u8,
+    next_state: u8,
+    probability: f64,
+    reward: f64,
+}
+
+impl From<CoreEvaluationTransition> for EvaluationTransitionPayload {
+    fn from(transition: CoreEvaluationTransition) -> Self {
+        Self {
+            state: transition.state,
+            next_state: transition.next_state,
+            probability: transition.probability,
+            reward: transition.reward,
+        }
+    }
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct BellmanTermPayload {
+    next_state: u8,
+    probability: f64,
+    reward: f64,
+    next_value: f64,
+    discounted_next_value: f64,
+    contribution: f64,
+}
+
+impl From<CoreBellmanTerm> for BellmanTermPayload {
+    fn from(term: CoreBellmanTerm) -> Self {
+        Self {
+            next_state: term.next_state,
+            probability: term.probability,
+            reward: term.reward,
+            next_value: term.next_value,
+            discounted_next_value: term.discounted_next_value,
+            contribution: term.contribution,
+        }
+    }
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct BellmanUpdatePayload {
+    state: u8,
+    old_value: f64,
+    new_value: f64,
+    delta: f64,
+    terms: Vec<BellmanTermPayload>,
+}
+
+impl From<CoreBellmanUpdate> for BellmanUpdatePayload {
+    fn from(update: CoreBellmanUpdate) -> Self {
+        Self {
+            state: update.state,
+            old_value: update.old_value,
+            new_value: update.new_value,
+            delta: update.delta,
+            terms: update.terms.into_iter().map(Into::into).collect(),
+        }
+    }
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct SweepPayload {
+    snapshot: EvaluationSnapshotPayload,
+    updates: Vec<BellmanUpdatePayload>,
+    max_update: f64,
+}
+
+impl From<CoreSweepOutcome> for SweepPayload {
+    fn from(outcome: CoreSweepOutcome) -> Self {
+        Self {
+            snapshot: outcome.snapshot.into(),
+            updates: outcome.updates.into_iter().map(Into::into).collect(),
+            max_update: outcome.max_update,
+        }
+    }
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct AdvancePayload {
+    snapshot: EvaluationSnapshotPayload,
+    residual_history: Vec<f64>,
+}
+
+impl From<CoreAdvanceOutcome> for AdvancePayload {
+    fn from(outcome: CoreAdvanceOutcome) -> Self {
+        Self {
+            snapshot: outcome.snapshot.into(),
+            residual_history: outcome.residual_history,
+        }
+    }
+}
+
 impl From<TransitionOutcome> for TransitionPayload {
     fn from(outcome: TransitionOutcome) -> Self {
         Self {
@@ -90,6 +215,75 @@ fn parse_seed(seed_hex: &str) -> Result<u64, JsValue> {
 #[wasm_bindgen]
 pub fn engine_version() -> String {
     env!("CARGO_PKG_VERSION").to_owned()
+}
+
+#[wasm_bindgen]
+pub struct BellmanEvaluator {
+    inner: CoreBellmanEvaluator,
+}
+
+#[wasm_bindgen]
+impl BellmanEvaluator {
+    #[wasm_bindgen(constructor)]
+    pub fn new(discount: f64, tolerance: f64, max_sweeps: u32) -> Result<Self, JsValue> {
+        console_error_panic_hook::set_once();
+        let config = EvaluationConfig {
+            discount,
+            tolerance,
+            max_sweeps,
+        };
+        let inner = CoreBellmanEvaluator::new(config)
+            .map_err(|error| error_value(error.code(), error.to_string()))?;
+        Ok(Self { inner })
+    }
+
+    pub fn snapshot(&self) -> Result<JsValue, JsValue> {
+        serialize(&EvaluationSnapshotPayload::from(self.inner.snapshot()))
+    }
+
+    pub fn reset(&mut self) -> Result<JsValue, JsValue> {
+        let snapshot = self.inner.reset();
+        serialize(&EvaluationSnapshotPayload::from(snapshot))
+    }
+
+    pub fn transition_model(&self) -> Result<JsValue, JsValue> {
+        let transitions: Vec<_> = self
+            .inner
+            .transition_model()
+            .iter()
+            .copied()
+            .map(EvaluationTransitionPayload::from)
+            .collect();
+        serialize(&transitions)
+    }
+
+    pub fn bellman_update(&self, state: u8) -> Result<JsValue, JsValue> {
+        let update = self
+            .inner
+            .bellman_update(state)
+            .map_err(|error| error_value(error.code(), error.to_string()))?;
+        serialize(&BellmanUpdatePayload::from(update))
+    }
+
+    pub fn exact_values(&self) -> Result<JsValue, JsValue> {
+        let values = self
+            .inner
+            .exact_values()
+            .map_err(|error| error_value(error.code(), error.to_string()))?;
+        serialize(&values)
+    }
+
+    pub fn sweep(&mut self) -> Result<JsValue, JsValue> {
+        serialize(&SweepPayload::from(self.inner.sweep()))
+    }
+
+    pub fn advance(&mut self, sweeps: u32) -> Result<JsValue, JsValue> {
+        serialize(&AdvancePayload::from(self.inner.advance(sweeps)))
+    }
+
+    pub fn run_to_convergence(&mut self) -> Result<JsValue, JsValue> {
+        serialize(&AdvancePayload::from(self.inner.run_to_convergence()))
+    }
 }
 
 #[wasm_bindgen]
@@ -260,5 +454,18 @@ mod tests {
         .expect("valid session");
         assert!(session.snapshot().is_ok());
         assert!(session.transition_model().is_ok());
+    }
+
+    #[wasm_bindgen_test]
+    fn evaluates_the_fixed_four_state_model() {
+        let mut evaluator = BellmanEvaluator::new(0.9, 1e-8, 1_000).expect("valid evaluator");
+        assert!(evaluator.snapshot().is_ok());
+        assert!(evaluator.transition_model().is_ok());
+        assert!(evaluator.bellman_update(0).is_ok());
+        assert!(evaluator.exact_values().is_ok());
+        assert!(evaluator.sweep().is_ok());
+        assert!(evaluator.advance(3).is_ok());
+        assert!(evaluator.run_to_convergence().is_ok());
+        assert!(evaluator.reset().is_ok());
     }
 }

@@ -1,6 +1,7 @@
 /target/
 node_modules/
 /.vitepress/
+/site/.vitepress/
 /site/docs/.vitepress/cache/
 /site/docs/.vitepress/dist/
 /site/docs/.vitepress/generated/wasm/

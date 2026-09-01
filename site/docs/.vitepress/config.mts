@@ -24,8 +24,12 @@ function routeFor(locale: 'zh-Hans' | 'en', relativePath: string): string {
   return withBase(`${locale}/${route}`)
 }
 
-const chapterSource =
-  'https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning/blob/0e348961c28496096d308f1066009266b3674c5a/3%20-%20Chapter%201%20Basic%20Concepts.pdf'
+const chapterSources = {
+  ch01:
+    'https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning/blob/0e348961c28496096d308f1066009266b3674c5a/3%20-%20Chapter%201%20Basic%20Concepts.pdf',
+  ch02:
+    'https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning/blob/0e348961c28496096d308f1066009266b3674c5a/3%20-%20Chapter%202%20State%20Values%20and%20Bellman%20Equation.pdf',
+} as const
 
 export default defineConfig({
   base,
@@ -51,7 +55,8 @@ export default defineConfig({
       themeConfig: {
         nav: [
           { text: '第一章', link: '/zh-Hans/learn/ch01/' },
-          { text: '实验', link: '/zh-Hans/labs/ch01-gridworld' },
+          { text: '第二章', link: '/zh-Hans/learn/ch02/' },
+          { text: '实验', link: '/zh-Hans/labs/bellman-grid' },
         ],
         sidebar: {
           '/zh-Hans/learn/ch01/': [
@@ -74,10 +79,32 @@ export default defineConfig({
               items: [{ text: 'Grid World 概念实验', link: '/zh-Hans/labs/ch01-gridworld' }],
             },
           ],
+          '/zh-Hans/learn/ch02/': [
+            {
+              text: '第二章 · 状态价值与 Bellman 方程',
+              items: [
+                { text: '章节导览', link: '/zh-Hans/learn/ch02/' },
+                { text: '状态价值', link: '/zh-Hans/learn/ch02/state-values' },
+                { text: 'Bellman 方程', link: '/zh-Hans/learn/ch02/bellman-equation' },
+                { text: '矩阵形式', link: '/zh-Hans/learn/ch02/matrix-form' },
+                { text: '迭代策略评估', link: '/zh-Hans/learn/ch02/policy-evaluation' },
+                { text: '动作价值', link: '/zh-Hans/learn/ch02/action-values' },
+                { text: '章节检查点', link: '/zh-Hans/learn/ch02/checkpoint' },
+              ],
+            },
+            {
+              text: '动手实验',
+              items: [{ text: 'Bellman 策略评估实验', link: '/zh-Hans/labs/bellman-grid' }],
+            },
+          ],
           '/zh-Hans/labs/': [
             {
               text: '第一章实验',
               items: [{ text: 'Grid World 概念实验', link: '/zh-Hans/labs/ch01-gridworld' }],
+            },
+            {
+              text: '第二章实验',
+              items: [{ text: 'Bellman 策略评估实验', link: '/zh-Hans/labs/bellman-grid' }],
             },
           ],
         },
@@ -121,7 +148,8 @@ export default defineConfig({
       themeConfig: {
         nav: [
           { text: 'Chapter 1', link: '/en/learn/ch01/' },
-          { text: 'Lab', link: '/en/labs/ch01-gridworld' },
+          { text: 'Chapter 2', link: '/en/learn/ch02/' },
+          { text: 'Lab', link: '/en/labs/bellman-grid' },
         ],
         sidebar: {
           '/en/learn/ch01/': [
@@ -144,10 +172,32 @@ export default defineConfig({
               items: [{ text: 'Grid World concept lab', link: '/en/labs/ch01-gridworld' }],
             },
           ],
+          '/en/learn/ch02/': [
+            {
+              text: 'Chapter 2 · State Values and Bellman Equation',
+              items: [
+                { text: 'Chapter map', link: '/en/learn/ch02/' },
+                { text: 'State values', link: '/en/learn/ch02/state-values' },
+                { text: 'The Bellman equation', link: '/en/learn/ch02/bellman-equation' },
+                { text: 'Matrix form', link: '/en/learn/ch02/matrix-form' },
+                { text: 'Iterative policy evaluation', link: '/en/learn/ch02/policy-evaluation' },
+                { text: 'Action values', link: '/en/learn/ch02/action-values' },
+                { text: 'Chapter checkpoint', link: '/en/learn/ch02/checkpoint' },
+              ],
+            },
+            {
+              text: 'Hands-on lab',
+              items: [{ text: 'Bellman policy-evaluation lab', link: '/en/labs/bellman-grid' }],
+            },
+          ],
           '/en/labs/': [
             {
               text: 'Chapter 1 labs',
               items: [{ text: 'Grid World concept lab', link: '/en/labs/ch01-gridworld' }],
+            },
+            {
+              text: 'Chapter 2 labs',
+              items: [{ text: 'Bellman policy-evaluation lab', link: '/en/labs/bellman-grid' }],
             },
           ],
         },
@@ -210,11 +260,12 @@ export default defineConfig({
 
     const locale = path.startsWith('zh-Hans/') ? 'zh-Hans' : path.startsWith('en/') ? 'en' : null
     if (!locale) return []
+    const source = sourceFor(path)
     return [
       ['link', { rel: 'canonical', href: absoluteRouteFor(locale, path) }],
       ['link', { rel: 'alternate', hreflang: 'zh-Hans', href: absoluteRouteFor('zh-Hans', path) }],
       ['link', { rel: 'alternate', hreflang: 'en', href: absoluteRouteFor('en', path) }],
-      ['meta', { name: 'mathrl:source', content: chapterSource }],
+      ...(source ? ([['meta', { name: 'mathrl:source', content: source }]] as const) : []),
     ]
   },
 })
@@ -222,4 +273,14 @@ export default defineConfig({
 function absoluteRouteFor(locale: 'zh-Hans' | 'en', relativePath: string): string {
   const route = routeFor(locale, relativePath)
   return siteOrigin ? `${siteOrigin}${route}` : route
+}
+
+function sourceFor(relativePath: string): string | undefined {
+  if (relativePath.includes('/learn/ch02/') || relativePath.includes('/labs/bellman-grid.md')) {
+    return chapterSources.ch02
+  }
+  if (relativePath.includes('/learn/ch01/') || relativePath.includes('/labs/ch01-gridworld.md')) {
+    return chapterSources.ch01
+  }
+  return undefined
 }

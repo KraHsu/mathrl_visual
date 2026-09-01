@@ -389,6 +389,11 @@
   opacity: 0.45;
 }
 
+.lab-button[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 .lab-panel__check,
 .lab-panel__hint {
   background: var(--vp-c-bg-soft);
@@ -405,7 +410,7 @@
   overflow-x: auto;
 }
 
-.mini-table {
+.grid-lab .mini-table {
   display: table;
   font-size: 0.66rem;
   margin: 0;
@@ -593,6 +598,243 @@
   width: 100%;
 }
 
+.bellman-lab__deterministic {
+  color: var(--vp-c-brand-1);
+  font-size: 0.72rem;
+  font-weight: 700;
+  margin: -0.9rem 0 1.2rem;
+}
+
+.bellman-lab {
+  container-type: inline-size;
+}
+
+.bellman-controls {
+  background: color-mix(in srgb, var(--vp-c-bg) 86%, transparent);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 16px;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(4, minmax(120px, 1fr));
+  margin-bottom: 1.35rem;
+  padding: 0.9rem;
+}
+
+.bellman-controls label {
+  color: var(--vp-c-text-2);
+  display: grid;
+  font-size: 0.7rem;
+  gap: 0.35rem;
+}
+
+.bellman-controls input {
+  accent-color: var(--vp-c-brand-1);
+  background: var(--vp-c-bg);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+  color: var(--vp-c-text-1);
+  min-width: 0;
+  padding: 0.42rem 0.5rem;
+  width: 100%;
+}
+
+.bellman-controls input[type='range'] {
+  padding: 0.42rem 0;
+}
+
+.bellman-controls__buttons {
+  display: grid;
+  gap: 0.45rem;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.bellman-controls__buttons .lab-button {
+  margin: 0;
+}
+
+.bellman-workspace {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: minmax(220px, 0.7fr) minmax(420px, 1.3fr);
+}
+
+.bellman-heatmap-panel,
+.bellman-view-panel {
+  background: color-mix(in srgb, var(--vp-c-bg) 86%, transparent);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 16px;
+  min-width: 0;
+  padding: 1rem;
+}
+
+.bellman-heatmap-panel h3,
+.bellman-view-panel h3 {
+  font-size: 0.95rem;
+  margin: 0 0 0.65rem;
+}
+
+.bellman-heatmap-panel > p,
+.bellman-view-panel > p {
+  color: var(--vp-c-text-2);
+  font-size: 0.74rem;
+  line-height: 1.55;
+  margin: 0 0 0.85rem;
+}
+
+.bellman-heatmap {
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: repeat(2, minmax(92px, 1fr));
+  margin: 0.9rem 0;
+}
+
+.bellman-state {
+  align-content: space-between;
+  aspect-ratio: 1.18;
+  border: 1px solid color-mix(in srgb, var(--vp-c-divider) 80%, var(--vp-c-text-2));
+  border-radius: 13px;
+  color: var(--mathrl-ink);
+  cursor: pointer;
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 0.65rem;
+  text-align: left;
+}
+
+.bellman-state:hover,
+.bellman-state:focus-visible,
+.bellman-state--selected {
+  border-color: var(--vp-c-brand-1);
+  box-shadow: inset 0 0 0 2px var(--vp-c-brand-1);
+}
+
+.bellman-state:focus-visible {
+  outline: 3px solid var(--vp-c-brand-1);
+  outline-offset: 2px;
+}
+
+.bellman-state--terminal {
+  border-style: double;
+}
+
+.bellman-state span,
+.bellman-state small {
+  font-size: 0.65rem;
+}
+
+.bellman-state span {
+  font-weight: 700;
+}
+
+.bellman-state strong {
+  font-family: var(--vp-font-family-mono);
+  font-size: clamp(1.2rem, 3vw, 1.8rem);
+}
+
+.bellman-state small {
+  color: var(--mathrl-ink);
+}
+
+.bellman-equation-card {
+  display: grid;
+  gap: 0.35rem;
+  white-space: normal;
+}
+
+.bellman-equation-card span {
+  color: var(--vp-c-text-2);
+  font-family: var(--vp-font-family-base);
+  font-size: 0.65rem;
+}
+
+.bellman-term-table {
+  min-width: 620px;
+}
+
+.bellman-term-table tfoot th {
+  text-align: right;
+}
+
+.bellman-graph {
+  background: var(--vp-c-bg);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+  display: block;
+  margin: 0.8rem 0;
+  width: 100%;
+}
+
+.bellman-graph__edges path {
+  fill: none;
+  stroke: var(--vp-c-text-2);
+  stroke-width: 1.7;
+}
+
+.bellman-graph marker path {
+  fill: var(--vp-c-text-2);
+  stroke: none;
+}
+
+.bellman-graph__edges text {
+  fill: var(--vp-c-text-2);
+  font-family: var(--vp-font-family-mono);
+  font-size: 11px;
+}
+
+.bellman-graph__nodes circle {
+  fill: var(--vp-c-brand-soft);
+  stroke: var(--vp-c-brand-1);
+  stroke-width: 2;
+}
+
+.bellman-graph__nodes text {
+  fill: var(--vp-c-text-1);
+  font-family: var(--vp-font-family-mono);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.bellman-matrix-table {
+  min-width: 680px;
+}
+
+.bellman-residual-chart {
+  background:
+    linear-gradient(var(--vp-c-divider) 1px, transparent 1px),
+    linear-gradient(90deg, var(--vp-c-divider) 1px, transparent 1px),
+    var(--vp-c-bg);
+  background-size: 42px 26px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+  display: block;
+  margin: 0.8rem 0;
+  width: 100%;
+}
+
+.bellman-residual-chart line {
+  stroke: var(--vp-c-text-3);
+  stroke-width: 1;
+}
+
+.bellman-residual-chart polyline {
+  fill: none;
+  stroke: var(--vp-c-brand-1);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3;
+}
+
+.bellman-residual-chart circle {
+  fill: var(--vp-c-brand-1);
+}
+
+.bellman-history-table {
+  max-height: 260px;
+  overflow-y: auto;
+}
+
 .sr-only {
   height: 1px;
   margin: -1px;
@@ -602,6 +844,72 @@
   width: 1px;
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
+}
+
+@container (max-width: 720px) {
+  .bellman-controls {
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+  }
+
+  .bellman-controls__buttons {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bellman-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@container (max-width: 440px) {
+  .bellman-controls,
+  .bellman-controls__buttons,
+  .bellman-heatmap {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 850px) {
+  .VPNavBarTitle {
+    flex: 0 1 280px;
+    max-width: 280px;
+    min-width: 0;
+  }
+
+  .VPNavBarTitle .title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 767px) {
+  .VPNavBar > .wrapper > .container > .title {
+    flex: 1 1 auto;
+    max-width: calc(100% - 104px);
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .VPNavBarTitle,
+  .VPNavBarTitle.has-sidebar {
+    flex: 1 1 auto;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    width: 100%;
+  }
+
+  .VPNavBarTitle .title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .VPNavBar .content {
+    flex: 0 0 auto;
+  }
 }
 
 @media (max-width: 760px) {
@@ -617,6 +925,18 @@
     grid-template-columns: 1fr;
   }
 
+  .bellman-controls {
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+  }
+
+  .bellman-controls__buttons {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .bellman-workspace {
+    grid-template-columns: 1fr;
+  }
+
   .metric-strip {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -626,6 +946,11 @@
   .grid-world {
     grid-template-columns: repeat(var(--grid-columns), minmax(42px, 1fr));
     width: 100%;
+  }
+
+  .bellman-controls,
+  .bellman-controls__buttons {
+    grid-template-columns: 1fr;
   }
 }
 

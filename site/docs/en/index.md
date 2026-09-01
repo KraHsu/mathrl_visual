@@ -18,13 +18,13 @@ hero:
       text: Start Chapter 1
       link: /en/learn/ch01/
     - theme: alt
-      text: Open the Grid World lab
-      link: /en/labs/ch01-gridworld
+      text: Explore the Chapter 2 pilot
+      link: /en/learn/ch02/
 features:
   - title: Synchronized concepts
-    details: See states, actions, transitions, rewards, and returns change in one experiment.
+    details: Move from states, actions, and returns to Bellman expectations and policy evaluation.
   - title: Reproducible numbers
-    details: The Rust/Wasm engine uses an explicit seed so trajectories can be checked again.
+    details: Rust/Wasm produces seeded trajectories and deterministic policy-evaluation traces that can be checked again.
   - title: Paired languages
     details: English and Chinese pages share content IDs, experiment state, and mathematical notation.
 ---
