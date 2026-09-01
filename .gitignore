@@ -1,0 +1,10 @@
+/target/
+node_modules/
+/.vitepress/
+/site/docs/.vitepress/cache/
+/site/docs/.vitepress/dist/
+/site/docs/.vitepress/generated/wasm/
+/site/playwright-report/
+/site/test-results/
+*.log
+.DS_Store

@@ -1,0 +1,28 @@
+{
+  "name": "@mathrl/site",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vitepress build docs",
+    "dev": "vitepress dev docs",
+    "preview": "vitepress preview docs",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "typecheck": "vue-tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "vue": "3.5.42"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.1",
+    "@types/node": "22.20.1",
+    "@vue/test-utils": "2.4.6",
+    "markdown-it-mathjax3": "4.3.2",
+    "typescript": "5.9.3",
+    "vite": "5.4.21",
+    "vitepress": "1.6.4",
+    "vitest": "2.1.9",
+    "vue-tsc": "3.3.11"
+  }
+}

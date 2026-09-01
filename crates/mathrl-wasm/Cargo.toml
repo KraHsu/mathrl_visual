@@ -1,0 +1,26 @@
+[package]
+name = "mathrl-wasm"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description.workspace = true
+repository.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+console_error_panic_hook.workspace = true
+mathrl-core.workspace = true
+serde.workspace = true
+serde-wasm-bindgen.workspace = true
+wasm-bindgen.workspace = true
+
+[dev-dependencies]
+wasm-bindgen-test.workspace = true
+
+[package.metadata.wasm-pack.profile.release]
+# Keep local and CI builds reproducible without downloading a Binaryen release at build time.
+# A deployment pipeline may run a separately pinned wasm-opt step on the generated artifact.
+wasm-opt = false
