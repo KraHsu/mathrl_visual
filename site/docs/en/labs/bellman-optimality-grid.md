@@ -40,7 +40,7 @@ $$
 \text{How does }T_*\text{ transform the current 16-state value vector?}
 $$
 
-It does not sample trajectories, estimate unknown dynamics, or train from experience. It uses the complete model already exposed in Chapter 1. Repeated sweeps let you observe a contraction and fixed point; Chapter 4 will present complete planning algorithms and compare their procedures.
+It does not sample trajectories, estimate unknown dynamics, or train from experience. It uses the complete model already exposed in Chapter 1. Repeated sweeps let you observe a contraction and fixed point; [Chapter 4](../learn/ch04/) now presents complete planning algorithms and compares their procedures.
 
 <a id="model"></a>
 
@@ -270,7 +270,7 @@ When reduced motion is requested, numeric state should advance directly without 
 
 This lab visualizes $T_*$, its fixed point, greedy recovery, contraction, and sensitivity. Although the “run” control repeats synchronous optimality backups, Chapter 3 uses those repetitions as mathematical evidence.
 
-Chapter 4 will name and analyze value iteration as an algorithm, introduce policy iteration, compare update schedules and stopping rules, and discuss computational tradeoffs. Do not infer from this lab alone that one planning algorithm is always faster or preferable.
+Chapter 4 names and analyzes value iteration as an algorithm, introduces policy iteration, compares update schedules and stopping rules, and discusses computational tradeoffs. Do not infer from this lab alone that one planning algorithm is always faster or preferable.
 
 <a id="chapter-links"></a>
 

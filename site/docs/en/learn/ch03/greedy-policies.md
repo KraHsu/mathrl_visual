@@ -149,7 +149,7 @@ If the immediate inspect reward is changed from $2$ to $3$, forward and inspect 
 
 This page assumes $v_*$ is already available, then recovers a policy. A planning method must obtain an adequate approximation, decide when it is adequate, handle synchronous or asynchronous updates, and account for computation. Those are algorithmic questions.
 
-Chapter 4 will compare value iteration and policy iteration as complete procedures. Repeated $T_*$ sweeps shown in this chapter support the fixed-point argument; they are not yet the full algorithm lesson or an efficiency claim.
+The [Chapter 4 planning section](../ch04/) compares value iteration and policy iteration as complete procedures. Repeated $T_*$ sweeps shown in this chapter support the fixed-point argument; they are not themselves the full algorithm lesson or an efficiency claim.
 
 <a id="self-check"></a>
 

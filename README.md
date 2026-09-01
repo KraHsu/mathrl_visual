@@ -4,7 +4,7 @@
 
 An unofficial, bilingual interactive companion for *Mathematical Foundations of Reinforcement Learning*, built with Rust, WebAssembly, Vue 3, and VitePress.
 
-Chapter 1 is implemented as a draft vertical slice. Chapter 2 has a bilingual four-state policy-evaluation pilot. Chapter 3 provides a bilingual optimality vertical slice derived from Chapter 1's shared 4×4 Grid World; the planned Chapter 2 integration with that shared model remains a follow-up. See [PLAN.md](./PLAN.md) and [RIGHTS.md](./RIGHTS.md).
+Chapter 1 is implemented as a draft vertical slice. Chapter 2 has a bilingual four-state policy-evaluation pilot. Chapters 3 and 4 are bilingual technical slices built on Chapter 1's shared 4×4 Grid World; the planned Chapter 2 integration with that shared model remains a follow-up. See [PLAN.md](./PLAN.md) and [RIGHTS.md](./RIGHTS.md).
 
 Public draft preview: <https://krahsu.github.io/mathrl_visual/>
 
@@ -40,7 +40,17 @@ This pilot isolates the Bellman mechanics for auditability. It is not yet the pl
 - A 16-state value heatmap, action-value ledger, greedy-policy arrows, propagation trace, contraction witness, parameter presets, and live model audit
 - Strict Worker protocol validation, retryable Worker/Wasm startup, reduced-motion batching, responsive numeric alternatives, and deterministic cross-language restoration
 
-Chapter 3 is published as an original technical preview. Its mathematics and runtime are test-gated, while the bilingual human-review metadata remains `draft` and therefore cannot pass the release-only content gate yet. Repeated optimality sweeps are used here to expose the fixed point; Chapter 4 remains responsible for the full Value Iteration and Policy Iteration algorithm treatment.
+Chapter 3 is published as an original technical preview. Its mathematics and runtime are test-gated, while the bilingual human-review metadata remains `draft` and therefore cannot pass the release-only content gate yet. Repeated optimality sweeps are used here to expose the fixed point; Chapter 4 turns that operator into comparable planning schedules.
+
+## Chapter 4 planning slice
+
+- Nine paired English and Simplified Chinese routes covering Value Iteration, Policy Iteration, Truncated Policy Iteration, generalized policy iteration, a summary, Q&A, a checkpoint, and the planning lab
+- One shared Rust core and Wasm adapter with independent VI/PI/TPI state, synchronous backups, explicit policy-evaluation phases, deterministic tie masks, terminal-state handling, residuals, bounded convergence, and reference values
+- A side-by-side 4×4 planning laboratory with value/policy maps, requested-action transition ledgers, phase traces, residual history with a numeric fallback, work counters, configuration validation, reduced-motion batching, and local restoration
+- A documented 20% wind preset that changes the transition distribution while preserving the “expectation first, action maximum second” rule; the Chapter 1 Transition and Markov views provide the introductory one-click wind prompt
+- Pinned Chapter 4 source metadata, reciprocal locale links, Pages-subpath artifact checks, and browser coverage for the Worker/Wasm boundary
+
+Chapter 4 is also an original technical preview. The chapter and lab use `review_content: draft` and `review_language: draft`, so the release-only content gate must continue to fail until a human mathematics and bilingual review is recorded.
 
 ## Prerequisites
 
@@ -60,7 +70,7 @@ corepack pnpm wasm:build
 corepack pnpm dev
 ```
 
-Open the URL printed by VitePress, then visit `/zh-Hans/learn/ch03/` or `/en/learn/ch03/`.
+Open the URL printed by VitePress, then visit `/zh-Hans/learn/ch04/` or `/en/learn/ch04/` (or the planning lab at `/en/labs/ch04-planning-grid`).
 
 ## Static build
 

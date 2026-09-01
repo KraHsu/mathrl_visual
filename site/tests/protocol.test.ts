@@ -17,6 +17,13 @@ import {
   optimalityConfigValidationError,
   type OptimalityWorkerResponse,
 } from '../docs/.vitepress/optimalityProtocol'
+import {
+  PLANNING_PROTOCOL_VERSION,
+  acceptsPlanningResponse,
+  canonicalPlanningMode,
+  planningConfigValidationError,
+  type PlanningWorkerResponse,
+} from '../docs/.vitepress/planningProtocol'
 
 function response(runId: string, sequence: number): WorkerResponse {
   return {
@@ -54,6 +61,18 @@ function optimalityResponse(runId: string, sequence: number): OptimalityWorkerRe
   }
 }
 
+function planningResponse(runId: string, sequence: number): PlanningWorkerResponse {
+  return {
+    v: PLANNING_PROTOCOL_VERSION,
+    runId,
+    sequence,
+    kind: 'error',
+    code: 'test',
+    message: 'test',
+    recoverable: true,
+  }
+}
+
 describe('acceptsResponse', () => {
   it('accepts only newer messages for the current run', () => {
     expect(acceptsResponse(response('active', 4), 'active', 3)).toBe(true)
@@ -71,6 +90,12 @@ describe('acceptsResponse', () => {
     expect(acceptsOptimalityResponse(optimalityResponse('active', 4), 'active', 3)).toBe(true)
     expect(acceptsOptimalityResponse(optimalityResponse('stale', 5), 'active', 3)).toBe(false)
     expect(acceptsOptimalityResponse(optimalityResponse('active', 3), 'active', 3)).toBe(false)
+  })
+
+  it('applies the stale-message guard to planning comparisons', () => {
+    expect(acceptsPlanningResponse(planningResponse('active', 4), 'active', 3)).toBe(true)
+    expect(acceptsPlanningResponse(planningResponse('stale', 5), 'active', 3)).toBe(false)
+    expect(acceptsPlanningResponse(planningResponse('active', 3), 'active', 3)).toBe(false)
   })
 
   it('rejects Bellman values that the Wasm ABI would otherwise coerce', () => {
@@ -112,5 +137,35 @@ describe('acceptsResponse', () => {
       })?.code,
     ).toBe('optimality_reward_range')
     expect(optimalityConfigValidationError(valid)).toBeUndefined()
+  })
+
+  it('rejects planning configuration before Wasm coercion', () => {
+    const valid = {
+      discount: 0.9,
+      slipProbability: 0,
+      tolerance: 1e-10,
+      maxOuterIterations: 100,
+      evaluationSweeps: 4,
+      maxEvaluationSweeps: 1000,
+      rewards: { default: -0.04, boundary: -1, hazard: -1, goal: 1 },
+    }
+    expect(planningConfigValidationError({ ...valid, discount: 1 })?.code).toBe(
+      'planning_discount_range',
+    )
+    expect(planningConfigValidationError({ ...valid, maxOuterIterations: 1.5 })?.code).toBe(
+      'planning_max_outer_iterations_range',
+    )
+    expect(planningConfigValidationError({ ...valid, evaluationSweeps: 2000 })?.code).toBe(
+      'planning_evaluation_budget',
+    )
+    expect(planningConfigValidationError(valid)).toBeUndefined()
+  })
+
+  it('canonicalizes the public and legacy planning mode names', () => {
+    expect(canonicalPlanningMode('valueIteration')).toBe('value_iteration')
+    expect(canonicalPlanningMode('modified-policy-iteration')).toBe(
+      'truncated_policy_iteration',
+    )
+    expect(canonicalPlanningMode('unknown')).toBeUndefined()
   })
 })

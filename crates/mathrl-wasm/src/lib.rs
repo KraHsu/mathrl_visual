@@ -7,7 +7,12 @@ use mathrl_core::{
     OptimalityReference as CoreOptimalityReference, OptimalitySnapshot as CoreOptimalitySnapshot,
     OptimalitySweepOutcome as CoreOptimalitySweepOutcome,
     OptimalityTransition as CoreOptimalityTransition, OptimalityUpdate as CoreOptimalityUpdate,
-    Policy, Rewards, SweepOutcome as CoreSweepOutcome, Transition as CoreEvaluationTransition,
+    PlanningAdvanceOutcome as CorePlanningAdvanceOutcome, PlanningConfig as CorePlanningConfig,
+    PlanningEvaluator as CorePlanningEvaluator, PlanningMode as CorePlanningMode,
+    PlanningPhase as CorePlanningPhase, PlanningReference as CorePlanningReference,
+    PlanningSnapshot as CorePlanningSnapshot, PlanningStepOutcome as CorePlanningStepOutcome,
+    PlanningTransition as CorePlanningTransition, PlanningUpdate as CorePlanningUpdate, Policy,
+    Rewards, SweepOutcome as CoreSweepOutcome, Transition as CoreEvaluationTransition,
     TransitionOutcome,
 };
 use serde::Serialize;
@@ -193,6 +198,235 @@ impl From<CoreOptimalityAdvanceOutcome> for OptimalityAdvancePayload {
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
+struct PlanningCostPayload {
+    backups: u64,
+    policy_evaluations: u64,
+    improvement_steps: u64,
+    /// Fixed-size action-evaluation slots, including terminal no-op slots.
+    action_evaluations: u64,
+}
+
+impl From<mathrl_core::PlanningCost> for PlanningCostPayload {
+    fn from(cost: mathrl_core::PlanningCost) -> Self {
+        Self {
+            backups: cost.backups,
+            policy_evaluations: cost.policy_evaluation_sweeps,
+            improvement_steps: cost.policy_improvement_steps,
+            action_evaluations: cost.action_evaluations,
+        }
+    }
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct PlanningSnapshotPayload {
+    mode: String,
+    values: [f64; 16],
+    action_values: [[f64; 5]; 16],
+    greedy_masks: [u8; 16],
+    policy_masks: [u8; 16],
+    /// `-1` represents the terminal state; action codes are 0..4 elsewhere.
+    policy: [i16; 16],
+    outer_iteration: u32,
+    evaluation_sweep: u32,
+    residual: f64,
+    value_residual: f64,
+    evaluation_residual: f64,
+    policy_stable: bool,
+    converged: bool,
+    truncated: bool,
+    /// True when the most recent exact PI evaluation stopped at its safety
+    /// cap before reaching the requested inner tolerance.
+    evaluation_truncated: bool,
+    cost: PlanningCostPayload,
+}
+
+impl From<CorePlanningSnapshot> for PlanningSnapshotPayload {
+    fn from(snapshot: CorePlanningSnapshot) -> Self {
+        Self {
+            mode: snapshot.mode.code().to_owned(),
+            values: snapshot.values,
+            action_values: snapshot.action_values,
+            greedy_masks: snapshot.greedy_masks,
+            policy_masks: snapshot.policy_masks,
+            policy: snapshot
+                .policy
+                .map(|action| if action == u8::MAX { -1 } else { action as i16 }),
+            outer_iteration: snapshot.outer_iteration,
+            evaluation_sweep: snapshot.evaluation_sweeps,
+            residual: snapshot.residual,
+            value_residual: snapshot.value_residual,
+            evaluation_residual: snapshot.evaluation_residual,
+            policy_stable: snapshot.policy_stable,
+            converged: snapshot.converged,
+            truncated: snapshot.truncated,
+            evaluation_truncated: snapshot.evaluation_truncated,
+            cost: snapshot.cost.into(),
+        }
+    }
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct PlanningReferencePayload {
+    values: [f64; 16],
+    action_values: [[f64; 5]; 16],
+    greedy_masks: [u8; 16],
+    residual: f64,
+}
+
+impl From<CorePlanningReference> for PlanningReferencePayload {
+    fn from(reference: CorePlanningReference) -> Self {
+        Self {
+            values: reference.values,
+            action_values: reference.action_values,
+            greedy_masks: reference.greedy_masks,
+            residual: reference.residual,
+        }
+    }
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct PlanningTransitionPayload {
+    state: u16,
+    requested_action: u8,
+    actual_action: u8,
+    next_state: u16,
+    probability: f64,
+    reward: f64,
+    boundary_collision: bool,
+}
+
+impl From<CorePlanningTransition> for PlanningTransitionPayload {
+    fn from(transition: CorePlanningTransition) -> Self {
+        Self {
+            state: transition.state,
+            requested_action: transition.requested_action.code(),
+            actual_action: transition.actual_action.code(),
+            next_state: transition.next_state,
+            probability: transition.probability,
+            reward: transition.reward,
+            boundary_collision: transition.boundary_collision,
+        }
+    }
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct PlanningUpdatePayload {
+    state: u16,
+    old_value: f64,
+    new_value: f64,
+    delta: f64,
+    action_values: [f64; 5],
+    greedy_mask: u8,
+    policy_mask: u8,
+    policy: i16,
+    policy_before: i16,
+    policy_after: i16,
+}
+
+fn action_code_payload(action: u8) -> i16 {
+    if action == u8::MAX { -1 } else { action as i16 }
+}
+
+impl From<CorePlanningUpdate> for PlanningUpdatePayload {
+    fn from(update: CorePlanningUpdate) -> Self {
+        let policy_before = action_code_payload(update.policy_before);
+        let policy_after = action_code_payload(update.policy_after);
+        let policy = policy_after;
+        let policy_mask = if policy < 0 { 0 } else { 1_u8 << policy };
+        Self {
+            state: update.state,
+            old_value: update.old_value,
+            new_value: update.new_value,
+            delta: update.delta,
+            action_values: update.action_values,
+            greedy_mask: update.greedy_mask,
+            policy_mask,
+            policy,
+            policy_before,
+            policy_after,
+        }
+    }
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct PlanningPhasePayload {
+    kind: String,
+    sweeps: u32,
+    changed_states: u16,
+    residual: f64,
+    outer_iteration: u32,
+    max_update: f64,
+    policy_stable: bool,
+}
+
+impl From<CorePlanningPhase> for PlanningPhasePayload {
+    fn from(phase: CorePlanningPhase) -> Self {
+        Self {
+            kind: match phase.kind {
+                mathrl_core::PlanningPhaseKind::ValueBackup => "backup",
+                mathrl_core::PlanningPhaseKind::PolicyEvaluation => "evaluation",
+                mathrl_core::PlanningPhaseKind::PolicyImprovement => "improvement",
+            }
+            .to_owned(),
+            sweeps: phase.sweeps,
+            changed_states: phase.changed_states,
+            residual: phase.residual,
+            outer_iteration: phase.outer_iteration,
+            max_update: phase.max_update,
+            policy_stable: phase.policy_stable,
+        }
+    }
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct PlanningStepPayload {
+    snapshot: PlanningSnapshotPayload,
+    updates: Vec<PlanningUpdatePayload>,
+    residual_history: Vec<f64>,
+    phases: Vec<PlanningPhasePayload>,
+    max_update: f64,
+}
+
+impl From<CorePlanningStepOutcome> for PlanningStepPayload {
+    fn from(outcome: CorePlanningStepOutcome) -> Self {
+        Self {
+            snapshot: outcome.snapshot.into(),
+            updates: outcome.updates.into_iter().map(Into::into).collect(),
+            residual_history: outcome.residual_history,
+            phases: outcome.phases.into_iter().map(Into::into).collect(),
+            max_update: outcome.max_update,
+        }
+    }
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct PlanningAdvancePayload {
+    snapshot: PlanningSnapshotPayload,
+    updates: Vec<PlanningUpdatePayload>,
+    residual_history: Vec<f64>,
+    phases: Vec<PlanningPhasePayload>,
+}
+
+impl From<CorePlanningAdvanceOutcome> for PlanningAdvancePayload {
+    fn from(outcome: CorePlanningAdvanceOutcome) -> Self {
+        Self {
+            snapshot: outcome.snapshot.into(),
+            updates: Vec::new(),
+            residual_history: outcome.residual_history,
+            phases: outcome.phases.into_iter().map(Into::into).collect(),
+        }
+    }
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 struct EvaluationSnapshotPayload {
     values: [f64; 4],
     sweep_count: u32,
@@ -347,6 +581,11 @@ fn parse_seed(seed_hex: &str) -> Result<u64, JsValue> {
         .map_err(|_| error_value("invalid_seed", "seed must be a hexadecimal u64"))
 }
 
+fn parse_planning_mode(mode: &str) -> Result<CorePlanningMode, JsValue> {
+    CorePlanningMode::try_from(mode.trim())
+        .map_err(|error| error_value(error.code(), error.to_string()))
+}
+
 #[wasm_bindgen]
 pub fn engine_version() -> String {
     env!("CARGO_PKG_VERSION").to_owned()
@@ -425,6 +664,172 @@ impl OptimalityEvaluator {
         serialize(&OptimalityAdvancePayload::from(
             self.inner.run_to_convergence(),
         ))
+    }
+}
+
+/// Wasm adapter for the Chapter 4 value/policy-iteration laboratory.
+///
+/// The underlying core object keeps an independent state for each mode, so a
+/// browser can compare the three algorithms without accidentally sharing a
+/// value vector.  Mode arguments use the stable strings from
+/// `planningProtocol.ts`.
+#[wasm_bindgen]
+pub struct PlanningEvaluator {
+    inner: CorePlanningEvaluator,
+}
+
+#[wasm_bindgen]
+impl PlanningEvaluator {
+    #[wasm_bindgen(constructor)]
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        discount: f64,
+        slip_probability: f64,
+        tolerance: f64,
+        max_outer_iterations: u32,
+        evaluation_sweeps: u32,
+        max_evaluation_sweeps: u32,
+        default_reward: f64,
+        boundary_reward: f64,
+        hazard_reward: f64,
+        goal_reward: f64,
+    ) -> Result<Self, JsValue> {
+        console_error_panic_hook::set_once();
+        let config = CorePlanningConfig {
+            discount,
+            slip_probability,
+            tolerance,
+            max_outer_iterations,
+            evaluation_sweeps,
+            max_evaluation_sweeps,
+            rewards: Rewards {
+                default: default_reward,
+                boundary: boundary_reward,
+                hazard: hazard_reward,
+                goal: goal_reward,
+            },
+        };
+        let inner = CorePlanningEvaluator::new(config)
+            .map_err(|error| error_value(error.code(), error.to_string()))?;
+        Ok(Self { inner })
+    }
+
+    /// Return one mode's current snapshot.  Omitting the mode returns all
+    /// three snapshots as an array, which is useful during worker startup.
+    pub fn snapshot(&self, mode: Option<String>) -> Result<JsValue, JsValue> {
+        match mode {
+            Some(mode) => {
+                let mode = parse_planning_mode(&mode)?;
+                serialize(&PlanningSnapshotPayload::from(self.inner.snapshot(mode)))
+            }
+            None => {
+                let snapshots: Vec<_> = self
+                    .inner
+                    .snapshots()
+                    .into_iter()
+                    .map(PlanningSnapshotPayload::from)
+                    .collect();
+                serialize(&snapshots)
+            }
+        }
+    }
+
+    pub fn snapshots(&self) -> Result<JsValue, JsValue> {
+        let snapshots: Vec<_> = self
+            .inner
+            .snapshots()
+            .into_iter()
+            .map(PlanningSnapshotPayload::from)
+            .collect();
+        serialize(&snapshots)
+    }
+
+    /// Reset one mode; omitting the mode resets all modes and returns an
+    /// array.  This optional argument keeps the generated JS API compatible
+    /// with both the single-mode and side-by-side worker paths.
+    pub fn reset(&mut self, mode: Option<String>) -> Result<JsValue, JsValue> {
+        match mode {
+            Some(mode) => {
+                let mode = parse_planning_mode(&mode)?;
+                serialize(&PlanningSnapshotPayload::from(self.inner.reset(mode)))
+            }
+            None => {
+                let snapshots: Vec<_> = self
+                    .inner
+                    .reset_all()
+                    .into_iter()
+                    .map(PlanningSnapshotPayload::from)
+                    .collect();
+                serialize(&snapshots)
+            }
+        }
+    }
+
+    pub fn reset_all(&mut self) -> Result<JsValue, JsValue> {
+        let snapshots: Vec<_> = self
+            .inner
+            .reset_all()
+            .into_iter()
+            .map(PlanningSnapshotPayload::from)
+            .collect();
+        serialize(&snapshots)
+    }
+
+    pub fn transition_model(&self) -> Result<JsValue, JsValue> {
+        let transitions: Vec<_> = self
+            .inner
+            .transition_model()
+            .into_iter()
+            .map(PlanningTransitionPayload::from)
+            .collect();
+        serialize(&transitions)
+    }
+
+    pub fn reference_solution(&self) -> Result<JsValue, JsValue> {
+        serialize(&PlanningReferencePayload::from(
+            self.inner.reference_solution(),
+        ))
+    }
+
+    pub fn step(&mut self, mode: String) -> Result<JsValue, JsValue> {
+        let mode = parse_planning_mode(&mode)?;
+        serialize(&PlanningStepPayload::from(self.inner.step(mode)))
+    }
+
+    /// `sweep` is retained as a compatibility alias for early worker builds.
+    pub fn sweep(&mut self, mode: String) -> Result<JsValue, JsValue> {
+        self.step(mode)
+    }
+
+    pub fn advance(&mut self, mode: String, outer_steps: u32) -> Result<JsValue, JsValue> {
+        let mode = parse_planning_mode(&mode)?;
+        serialize(&PlanningAdvancePayload::from(
+            self.inner.advance(mode, outer_steps),
+        ))
+    }
+
+    pub fn run_to_convergence(&mut self, mode: String) -> Result<JsValue, JsValue> {
+        let mode = parse_planning_mode(&mode)?;
+        serialize(&PlanningAdvancePayload::from(
+            self.inner.run_to_convergence(mode),
+        ))
+    }
+
+    /// Camel-case aliases are intentionally explicit because some consumers
+    /// import the generated module without the TypeScript worker wrapper.
+    #[wasm_bindgen(js_name = runToConvergence)]
+    pub fn run_to_convergence_alias(&mut self, mode: String) -> Result<JsValue, JsValue> {
+        self.run_to_convergence(mode)
+    }
+
+    #[wasm_bindgen(js_name = transitionModel)]
+    pub fn transition_model_alias(&self) -> Result<JsValue, JsValue> {
+        self.transition_model()
+    }
+
+    #[wasm_bindgen(js_name = referenceSolution)]
+    pub fn reference_solution_alias(&self) -> Result<JsValue, JsValue> {
+        self.reference_solution()
     }
 }
 
@@ -705,6 +1110,86 @@ mod tests {
         residual_history: Vec<f64>,
     }
 
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct TestPlanningCost {
+        backups: u64,
+        policy_evaluations: u64,
+        improvement_steps: u64,
+        action_evaluations: u64,
+    }
+
+    #[allow(dead_code)]
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct TestPlanningSnapshot {
+        mode: String,
+        values: Vec<f64>,
+        action_values: Vec<Vec<f64>>,
+        greedy_masks: Vec<u8>,
+        policy_masks: Vec<u8>,
+        policy: Vec<i16>,
+        outer_iteration: u32,
+        evaluation_sweep: u32,
+        residual: f64,
+        value_residual: f64,
+        evaluation_residual: f64,
+        policy_stable: bool,
+        converged: bool,
+        truncated: bool,
+        evaluation_truncated: bool,
+        cost: TestPlanningCost,
+    }
+
+    #[allow(dead_code)]
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct TestPlanningPhase {
+        kind: String,
+        sweeps: u32,
+        changed_states: u16,
+        residual: f64,
+        outer_iteration: u32,
+        max_update: f64,
+        policy_stable: bool,
+    }
+
+    #[allow(dead_code)]
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct TestPlanningUpdate {
+        state: u16,
+        old_value: f64,
+        new_value: f64,
+        delta: f64,
+        action_values: Vec<f64>,
+        greedy_mask: u8,
+        policy_mask: u8,
+        policy: i16,
+        policy_before: i16,
+        policy_after: i16,
+    }
+
+    #[allow(dead_code)]
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct TestPlanningOutcome {
+        snapshot: TestPlanningSnapshot,
+        updates: Vec<TestPlanningUpdate>,
+        residual_history: Vec<f64>,
+        phases: Vec<TestPlanningPhase>,
+    }
+
+    #[allow(dead_code)]
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct TestPlanningReference {
+        values: Vec<f64>,
+        action_values: Vec<Vec<f64>>,
+        greedy_masks: Vec<u8>,
+        residual: f64,
+    }
+
     fn from_js<T: for<'de> Deserialize<'de>>(value: JsValue) -> T {
         serde_wasm_bindgen::from_value(value).expect("payload follows the documented JS contract")
     }
@@ -822,5 +1307,138 @@ mod tests {
         let reset: TestOptimalitySnapshot = from_js(evaluator.reset().expect("reset serializes"));
         assert_eq!(reset.sweep_count, 0);
         assert_eq!(reset.values, vec![0.0; 16]);
+    }
+
+    #[wasm_bindgen_test]
+    fn compares_all_three_chapter_four_algorithms() {
+        let mut evaluator =
+            PlanningEvaluator::new(0.9, 0.0, 1e-12, 1_000, 1, 1_000, -0.04, -1.0, -1.0, 1.0)
+                .expect("valid planning evaluator");
+
+        let initial: TestPlanningSnapshot = from_js(
+            evaluator
+                .snapshot(Some("value_iteration".to_owned()))
+                .expect("snapshot serializes"),
+        );
+        assert_eq!(initial.mode, "value_iteration");
+        assert_eq!(initial.values, vec![0.0; 16]);
+        assert_eq!(initial.action_values.len(), 16);
+        assert!(initial.action_values.iter().all(|row| row.len() == 5));
+        assert_eq!(initial.greedy_masks[0], 22);
+        assert_eq!(initial.policy[15], -1);
+        assert_eq!(initial.policy_masks[15], 0);
+        assert!(!initial.evaluation_truncated);
+        assert_eq!(initial.outer_iteration, 0);
+        assert_eq!(initial.evaluation_sweep, 0);
+        assert_eq!(initial.cost.backups, 0);
+        assert_eq!(initial.cost.policy_evaluations, 0);
+        assert_eq!(initial.cost.improvement_steps, 0);
+        assert_eq!(initial.cost.action_evaluations, 0);
+
+        let first: TestPlanningOutcome = from_js(
+            evaluator
+                .step("value_iteration".to_owned())
+                .expect("step serializes"),
+        );
+        assert_eq!(first.snapshot.outer_iteration, 1);
+        assert_eq!(first.snapshot.values[11], 1.0);
+        assert_eq!(first.updates.len(), 16);
+        assert!(first.phases.iter().any(|phase| phase.kind == "backup"));
+        assert!(first.phases.iter().any(|phase| phase.kind == "improvement"));
+        assert!(first.phases.iter().all(|phase| phase.outer_iteration == 1));
+        let backup_phase = first
+            .phases
+            .iter()
+            .find(|phase| phase.kind == "backup")
+            .expect("backup phase");
+        assert!(backup_phase.changed_states > 0);
+        assert!(backup_phase.max_update > 0.0);
+        assert!(
+            first
+                .updates
+                .iter()
+                .all(|update| update.action_values.len() == 5)
+        );
+        assert_eq!(first.updates[15].policy, -1);
+        assert_eq!(first.updates[15].policy_mask, 0);
+        assert_eq!(first.updates[15].policy_before, -1);
+        assert_eq!(first.updates[15].policy_after, -1);
+
+        let tpi_first: TestPlanningOutcome = from_js(
+            evaluator
+                .step("truncated_policy_iteration".to_owned())
+                .expect("TPI step serializes"),
+        );
+        assert_eq!(tpi_first.snapshot.outer_iteration, 1);
+        assert_eq!(tpi_first.snapshot.values[11], 1.0);
+        assert!(
+            tpi_first
+                .phases
+                .iter()
+                .any(|phase| phase.kind == "evaluation" && phase.sweeps == 1)
+        );
+
+        let pi: TestPlanningOutcome = from_js(
+            evaluator
+                .run_to_convergence("policy_iteration".to_owned())
+                .expect("PI run serializes"),
+        );
+        assert!(pi.snapshot.converged);
+        assert!(pi.snapshot.cost.policy_evaluations > 0);
+        assert!(pi.snapshot.cost.improvement_steps > 0);
+        assert!(pi.snapshot.evaluation_residual <= 1e-12);
+        assert!(!pi.snapshot.evaluation_truncated);
+
+        let all: Vec<TestPlanningSnapshot> =
+            from_js(evaluator.snapshot(None).expect("all snapshots serialize"));
+        assert_eq!(all.len(), 3);
+
+        let reference: TestPlanningReference = from_js(
+            evaluator
+                .reference_solution()
+                .expect("reference serializes"),
+        );
+        assert_eq!(reference.values.len(), 16);
+        assert!((reference.values[0] - 0.426_686).abs() <= 1e-12);
+
+        let reset: TestPlanningSnapshot = from_js(
+            evaluator
+                .reset(Some("value_iteration".to_owned()))
+                .expect("reset serializes"),
+        );
+        assert_eq!(reset.outer_iteration, 0);
+        assert_eq!(reset.values, vec![0.0; 16]);
+    }
+
+    #[wasm_bindgen_test]
+    fn exposes_policy_evaluation_cap_and_phase_metadata() {
+        let mut evaluator =
+            PlanningEvaluator::new(0.9, 0.0, 1e-12, 1_000, 1, 1, -0.04, -1.0, -1.0, 1.0)
+                .expect("valid planning evaluator");
+        let outcome: TestPlanningOutcome = from_js(
+            evaluator
+                .step("policy_iteration".to_owned())
+                .expect("step serializes"),
+        );
+        assert!(outcome.snapshot.evaluation_truncated);
+        assert!(!outcome.snapshot.converged);
+        let evaluation = outcome
+            .phases
+            .iter()
+            .find(|phase| phase.kind == "evaluation")
+            .expect("evaluation phase");
+        assert_eq!(evaluation.sweeps, 1);
+        assert!(evaluation.changed_states > 0);
+        assert_eq!(evaluation.outer_iteration, 1);
+        assert!(evaluation.residual > 1e-12);
+        assert!(evaluation.max_update > 0.0);
+        assert!(!evaluation.policy_stable);
+        let first_update = outcome.updates.first().expect("state update");
+        assert_eq!(first_update.state, 0);
+        assert!(first_update.old_value.is_finite());
+        assert!(first_update.new_value.is_finite());
+        assert!(first_update.delta.is_finite());
+        assert!(first_update.greedy_mask > 0);
+        assert_eq!(first_update.policy_before, first_update.policy_after);
     }
 }

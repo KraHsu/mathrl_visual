@@ -1382,3 +1382,482 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Chapter 4 planning comparison lab.  The comparison deliberately has its
+   own namespace so a cached Chapter 3 page cannot inherit a half-upgraded
+   grid rule. */
+.planning-lab {
+  container-type: inline-size;
+}
+
+.planning-controls {
+  align-items: end;
+  background: color-mix(in srgb, var(--vp-c-bg-soft) 78%, transparent);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 14px;
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(4, minmax(120px, 1fr));
+  margin: 1rem 0;
+  padding: 0.8rem;
+}
+
+.planning-controls label,
+.planning-preset-control {
+  display: grid;
+  gap: 0.28rem;
+  min-width: 0;
+}
+
+.planning-controls label > span,
+.planning-preset-control label > span {
+  color: var(--vp-c-text-2);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.planning-controls input,
+.planning-controls select {
+  background: var(--vp-c-bg);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+  box-sizing: border-box;
+  color: var(--vp-c-text-1);
+  min-width: 0;
+  padding: 0.42rem 0.48rem;
+  width: 100%;
+}
+
+.planning-controls input[type='range'] {
+  accent-color: var(--vp-c-brand-1);
+  padding: 0.45rem 0;
+}
+
+.planning-preset-control {
+  align-items: end;
+  grid-column: span 2;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.planning-preset-control .lab-button {
+  white-space: nowrap;
+}
+
+.planning-controls__buttons {
+  display: grid;
+  gap: 0.45rem;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.planning-controls__buttons .lab-button {
+  min-height: 2.25rem;
+}
+
+.planning-mode-tabs {
+  margin-bottom: 1rem;
+}
+
+.planning-algorithm-grid {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.planning-algorithm-card {
+  background: var(--vp-c-bg-soft);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 15px;
+  min-width: 0;
+  padding: 0.75rem;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.planning-algorithm-card:hover,
+.planning-algorithm-card--selected {
+  border-color: var(--vp-c-brand-1);
+  box-shadow: 0 8px 22px rgba(25, 52, 56, 0.09);
+}
+
+.planning-algorithm-card > header {
+  align-items: start;
+  display: flex;
+  gap: 0.45rem;
+  justify-content: space-between;
+  min-height: 2.7rem;
+}
+
+.planning-algorithm-card h3 {
+  border: 0;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  margin: 0;
+  padding: 0;
+}
+
+.planning-selected-chip {
+  background: var(--vp-c-brand-soft);
+  border-radius: 999px;
+  color: var(--vp-c-brand-1);
+  font-size: 0.58rem;
+  font-weight: 800;
+  padding: 0.2rem 0.38rem;
+  white-space: nowrap;
+}
+
+.planning-card-equation {
+  color: var(--vp-c-text-2);
+  font-family: var(--vp-font-family-mono);
+  font-size: 0.64rem;
+  min-height: 2.15rem;
+  margin: 0.35rem 0 0.55rem;
+}
+
+.planning-grid {
+  display: grid;
+  gap: 0.22rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.planning-state {
+  align-items: stretch;
+  border: 1px solid color-mix(in srgb, var(--vp-c-divider) 82%, transparent);
+  border-radius: 7px;
+  color: var(--vp-c-text-1);
+  cursor: pointer;
+  display: grid;
+  gap: 0.08rem;
+  min-height: 70px;
+  min-width: 0;
+  padding: 0.24rem;
+  text-align: left;
+}
+
+.planning-state:hover,
+.planning-state:focus-visible,
+.planning-state--selected {
+  border-color: var(--vp-c-brand-1);
+  box-shadow: 0 0 0 2px var(--vp-c-brand-soft);
+  outline: none;
+}
+
+.planning-state--hazard {
+  box-shadow: inset 0 -3px 0 var(--mathrl-coral);
+}
+
+.planning-state--goal {
+  box-shadow: inset 0 -3px 0 var(--mathrl-gold);
+}
+
+.planning-state__label,
+.planning-state small {
+  color: var(--vp-c-text-2);
+  font-size: 0.48rem;
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.planning-state strong {
+  font-family: var(--vp-font-family-mono);
+  font-size: clamp(0.66rem, 1.25vw, 0.82rem);
+  line-height: 1.1;
+}
+
+.planning-state__arrows {
+  color: var(--vp-c-brand-1);
+  display: flex;
+  font-size: 0.78rem;
+  gap: 0.08rem;
+  min-height: 0.85rem;
+}
+
+.planning-card-metrics,
+.planning-cost-panel dl,
+.planning-reference-panel dl {
+  display: grid;
+  gap: 0.28rem;
+  margin: 0.65rem 0 0;
+}
+
+.planning-card-metrics > div,
+.planning-cost-panel dl > div,
+.planning-reference-panel dl > div {
+  align-items: baseline;
+  display: flex;
+  gap: 0.4rem;
+  justify-content: space-between;
+}
+
+.planning-card-metrics dt,
+.planning-cost-panel dt,
+.planning-reference-panel dt {
+  color: var(--vp-c-text-2);
+  font-size: 0.61rem;
+}
+
+.planning-card-metrics dd,
+.planning-cost-panel dd,
+.planning-reference-panel dd {
+  font-family: var(--vp-font-family-mono);
+  font-size: 0.65rem;
+  margin: 0;
+  text-align: right;
+}
+
+.planning-comparison-table,
+.planning-history-table {
+  margin-top: 0.9rem;
+}
+
+.planning-comparison-table .mini-table {
+  min-width: 670px;
+}
+
+.planning-detail-grid {
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  margin-top: 0.9rem;
+}
+
+.planning-detail-panel,
+.planning-phase-panel,
+.planning-cost-panel,
+.planning-residual-panel,
+.planning-reference-panel,
+.planning-audit-panel {
+  background: color-mix(in srgb, var(--vp-c-bg-soft) 72%, transparent);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 15px;
+  min-width: 0;
+  padding: 0.9rem;
+}
+
+.planning-detail-panel h3,
+.planning-phase-panel h3,
+.planning-cost-panel h3,
+.planning-residual-panel h3,
+.planning-reference-panel h3,
+.planning-audit-panel h3 {
+  border: 0;
+  font-size: 1rem;
+  margin: 0 0 0.35rem;
+  padding: 0;
+}
+
+.planning-detail-panel > p,
+.planning-phase-panel > p,
+.planning-cost-panel > p,
+.planning-residual-panel > p,
+.planning-reference-panel > p,
+.planning-audit-panel > p {
+  font-size: 0.78rem;
+  margin: 0 0 0.7rem;
+}
+
+.planning-action-table,
+.planning-ledger-table,
+.planning-phase-table {
+  min-width: 410px;
+}
+
+.planning-action-table tr[data-greedy='true'] {
+  background: var(--vp-c-brand-soft);
+}
+
+.planning-action-select {
+  background: transparent;
+  border: 0;
+  color: var(--vp-c-text-1);
+  cursor: pointer;
+  font: inherit;
+  padding: 0.2rem;
+}
+
+.planning-action-select:hover,
+.planning-action-select:focus-visible {
+  color: var(--vp-c-brand-1);
+  outline: 2px solid var(--vp-c-brand-1);
+  outline-offset: 1px;
+}
+
+.planning-detail-panel h4 {
+  font-size: 0.78rem;
+  margin: 0.85rem 0 0.35rem;
+}
+
+.planning-phase-table th,
+.planning-phase-table td {
+  white-space: nowrap;
+}
+
+.planning-cost-panel,
+.planning-residual-panel,
+.planning-reference-panel,
+.planning-audit-panel {
+  margin-top: 0.9rem;
+}
+
+.planning-cost-grid,
+.planning-reference-grid {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.planning-cost-grid article,
+.planning-reference-grid article {
+  background: var(--vp-c-bg);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 10px;
+  min-width: 0;
+  padding: 0.6rem;
+}
+
+.planning-cost-grid h4,
+.planning-reference-grid h4 {
+  font-size: 0.76rem;
+  margin: 0;
+}
+
+.planning-cost-grid article > strong {
+  display: block;
+  font-family: var(--vp-font-family-mono);
+  font-size: 1.15rem;
+  margin-top: 0.55rem;
+}
+
+.planning-cost-grid article > small {
+  color: var(--vp-c-text-2);
+  font-size: 0.6rem;
+}
+
+.planning-cost-panel .formula-card {
+  margin-bottom: 0;
+  margin-top: 0.7rem;
+}
+
+.planning-residual-chart {
+  background: var(--vp-c-bg);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 10px;
+  display: block;
+  height: auto;
+  margin: 0.7rem 0;
+  max-width: 100%;
+  width: 100%;
+}
+
+.planning-residual-chart line {
+  stroke: var(--vp-c-divider);
+  stroke-width: 1;
+}
+
+.planning-residual-chart polyline {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.2;
+}
+
+.planning-series--value_iteration {
+  stroke: var(--vp-c-brand-1);
+}
+
+.planning-series--policy_iteration {
+  stroke: #d58a20;
+}
+
+.planning-series--truncated_policy_iteration {
+  stroke: var(--mathrl-coral);
+}
+
+.planning-reference-grid article {
+  padding-bottom: 0.45rem;
+}
+
+.planning-audit-list {
+  margin-bottom: 0;
+}
+
+.planning-metric-strip {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  margin-top: 0.9rem;
+}
+
+@container (max-width: 980px) {
+  .planning-algorithm-grid,
+  .planning-cost-grid,
+  .planning-reference-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .planning-algorithm-card:last-child,
+  .planning-cost-grid article:last-child,
+  .planning-reference-grid article:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .planning-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@container (max-width: 680px) {
+  .planning-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .planning-preset-control,
+  .planning-controls__buttons {
+    grid-column: 1 / -1;
+  }
+
+  .planning-controls__buttons {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .planning-algorithm-grid,
+  .planning-cost-grid,
+  .planning-reference-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .planning-algorithm-card:last-child,
+  .planning-cost-grid article:last-child,
+  .planning-reference-grid article:last-child {
+    grid-column: auto;
+  }
+
+  .planning-metric-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container (max-width: 420px) {
+  .planning-controls,
+  .planning-controls__buttons,
+  .planning-preset-control {
+    grid-template-columns: 1fr;
+  }
+
+  .planning-preset-control {
+    grid-column: auto;
+  }
+
+  .planning-controls__buttons {
+    grid-column: auto;
+  }
+
+  .planning-state {
+    min-height: 66px;
+    padding: 0.2rem;
+  }
+
+  .planning-state__label,
+  .planning-state small {
+    font-size: 0.43rem;
+  }
+}

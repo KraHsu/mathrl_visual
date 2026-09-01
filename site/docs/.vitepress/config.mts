@@ -31,6 +31,8 @@ const chapterSources = {
     'https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning/blob/0e348961c28496096d308f1066009266b3674c5a/3%20-%20Chapter%202%20State%20Values%20and%20Bellman%20Equation.pdf',
   ch03:
     'https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning/blob/0e348961c28496096d308f1066009266b3674c5a/3%20-%20Chapter%203%20Optimal%20State%20Values%20and%20Bellman%20Optimality%20Equation.pdf',
+  ch04:
+    'https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning/blob/0e348961c28496096d308f1066009266b3674c5a/3%20-%20Chapter%204%20Value%20Iteration%20and%20Policy%20Iteration.pdf',
 } as const
 
 export default defineConfig({
@@ -60,6 +62,7 @@ export default defineConfig({
           { text: '第一章', link: '/zh-Hans/learn/ch01/' },
           { text: '第二章', link: '/zh-Hans/learn/ch02/' },
           { text: '第三章', link: '/zh-Hans/learn/ch03/' },
+          { text: '第四章', link: '/zh-Hans/learn/ch04/' },
           { text: '实验', link: '/zh-Hans/labs/bellman-optimality-grid' },
         ],
         sidebar: {
@@ -125,6 +128,36 @@ export default defineConfig({
               ],
             },
           ],
+          '/zh-Hans/learn/ch04/': [
+            {
+              text: '第四章 · Value 与 Policy Iteration',
+              items: [
+                { text: '章节导览', link: '/zh-Hans/learn/ch04/' },
+                { text: 'Value Iteration', link: '/zh-Hans/learn/ch04/value-iteration' },
+                { text: 'Policy Iteration', link: '/zh-Hans/learn/ch04/policy-iteration' },
+                {
+                  text: 'Truncated Policy Iteration',
+                  link: '/zh-Hans/learn/ch04/truncated-policy-iteration',
+                },
+                {
+                  text: 'GPI 与模型边界',
+                  link: '/zh-Hans/learn/ch04/generalized-policy-iteration',
+                },
+                { text: '总结', link: '/zh-Hans/learn/ch04/summary' },
+                { text: '问答', link: '/zh-Hans/learn/ch04/q-and-a' },
+                { text: '章节检查点', link: '/zh-Hans/learn/ch04/checkpoint' },
+              ],
+            },
+            {
+              text: '动手实验',
+              items: [
+                {
+                  text: 'Value / Policy Iteration 规划实验',
+                  link: '/zh-Hans/labs/ch04-planning-grid',
+                },
+              ],
+            },
+          ],
           '/zh-Hans/labs/': [
             {
               text: '第一章实验',
@@ -140,6 +173,15 @@ export default defineConfig({
                 {
                   text: 'Bellman 最优方程实验',
                   link: '/zh-Hans/labs/bellman-optimality-grid',
+                },
+              ],
+            },
+            {
+              text: '第四章实验',
+              items: [
+                {
+                  text: 'Value / Policy Iteration 规划实验',
+                  link: '/zh-Hans/labs/ch04-planning-grid',
                 },
               ],
             },
@@ -188,6 +230,7 @@ export default defineConfig({
           { text: 'Chapter 1', link: '/en/learn/ch01/' },
           { text: 'Chapter 2', link: '/en/learn/ch02/' },
           { text: 'Chapter 3', link: '/en/learn/ch03/' },
+          { text: 'Chapter 4', link: '/en/learn/ch04/' },
           { text: 'Lab', link: '/en/labs/bellman-optimality-grid' },
         ],
         sidebar: {
@@ -253,6 +296,36 @@ export default defineConfig({
               ],
             },
           ],
+          '/en/learn/ch04/': [
+            {
+              text: 'Chapter 4 · Value and Policy Iteration',
+              items: [
+                { text: 'Chapter map', link: '/en/learn/ch04/' },
+                { text: 'Value iteration', link: '/en/learn/ch04/value-iteration' },
+                { text: 'Policy iteration', link: '/en/learn/ch04/policy-iteration' },
+                {
+                  text: 'Truncated policy iteration',
+                  link: '/en/learn/ch04/truncated-policy-iteration',
+                },
+                {
+                  text: 'GPI and model boundary',
+                  link: '/en/learn/ch04/generalized-policy-iteration',
+                },
+                { text: 'Summary', link: '/en/learn/ch04/summary' },
+                { text: 'Q&A', link: '/en/learn/ch04/q-and-a' },
+                { text: 'Chapter checkpoint', link: '/en/learn/ch04/checkpoint' },
+              ],
+            },
+            {
+              text: 'Hands-on lab',
+              items: [
+                {
+                  text: 'Value / Policy Iteration planning lab',
+                  link: '/en/labs/ch04-planning-grid',
+                },
+              ],
+            },
+          ],
           '/en/labs/': [
             {
               text: 'Chapter 1 labs',
@@ -268,6 +341,15 @@ export default defineConfig({
                 {
                   text: 'Bellman optimality lab',
                   link: '/en/labs/bellman-optimality-grid',
+                },
+              ],
+            },
+            {
+              text: 'Chapter 4 labs',
+              items: [
+                {
+                  text: 'Value / Policy Iteration planning lab',
+                  link: '/en/labs/ch04-planning-grid',
                 },
               ],
             },
@@ -348,6 +430,12 @@ function absoluteRouteFor(locale: 'zh-Hans' | 'en', relativePath: string): strin
 }
 
 function sourceFor(relativePath: string): string | undefined {
+  if (
+    relativePath.includes('/learn/ch04/') ||
+    relativePath.includes('/labs/ch04-planning-grid.md')
+  ) {
+    return chapterSources.ch04
+  }
   if (
     relativePath.includes('/learn/ch03/') ||
     relativePath.includes('/labs/bellman-optimality-grid.md')

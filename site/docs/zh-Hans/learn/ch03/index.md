@@ -33,7 +33,7 @@ outline: deep
 
 本章研究**有限、折扣、模型已知的 MDP**。重点是最优性的数学结构：动作备份、Bellman 最优算子、不动点、压缩性以及从最优价值恢复贪心策略。
 
-我们会反复应用最优算子来观察不动点如何显现，但不会把它扩展为完整算法章。停止准则、实现变体、Value Iteration、Policy Iteration 与 Truncated Policy Iteration 的系统比较属于第四章。这个边界也避免把“展示一个算子的不动点”误报为已经完成后续算法体系。
+我们会反复应用最优算子来观察不动点如何显现，但不会把它扩展为完整算法章。停止准则、实现变体、Value Iteration、Policy Iteration 与 Truncated Policy Iteration 的系统比较已移到[第四章](../ch04/)。这个边界也避免把“展示一个算子的不动点”误报为已经完成后续算法体系。
 
 <a id="learning-goals"></a>
 

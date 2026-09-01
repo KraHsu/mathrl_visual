@@ -2,6 +2,7 @@
 
 pub mod gridworld;
 pub mod optimality;
+pub mod planning;
 pub mod policy_evaluation;
 
 pub use gridworld::{
@@ -13,6 +14,13 @@ pub use optimality::{
     OPTIMALITY_STATE_COUNT, OptimalityAdvanceOutcome, OptimalityConfig, OptimalityConfigError,
     OptimalityEvaluator, OptimalityReference, OptimalitySnapshot, OptimalitySweepOutcome,
     OptimalityTransition, OptimalityUpdate,
+};
+pub use planning::{
+    MAX_PLANNING_OUTER_ITERATIONS, MAX_PLANNING_REWARD_MAGNITUDE, MAX_POLICY_EVALUATION_SWEEPS,
+    MAX_TRUNCATED_POLICY_EVALUATION_SWEEPS, PLANNING_ACTION_COUNT, PLANNING_STATE_COUNT,
+    PlanningAdvanceOutcome, PlanningConfig, PlanningConfigError, PlanningCost, PlanningEvaluator,
+    PlanningMode, PlanningModeError, PlanningPhase, PlanningPhaseKind, PlanningReference,
+    PlanningSnapshot, PlanningStepOutcome, PlanningTransition, PlanningUpdate,
 };
 pub use policy_evaluation::{
     AdvanceOutcome, BellmanEvaluator, BellmanTerm, BellmanUpdate, EvaluationConfig,

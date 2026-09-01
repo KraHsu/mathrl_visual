@@ -4,7 +4,7 @@
 > 编制日期：2026-09-02
 > 项目类型：纯静态、交互式教材/伴读站点
 > 核心技术栈：Rust + WebAssembly + Vue 3 + VitePress
-> 当前实施状态：第一章 11 对双语页面与 8 视图 Grid World 工作台已完成；第二章已有四状态 Bellman 先导切片；第三章 9 对双语页面与共享 4×4 Grid World 最优性实验已完成技术实现，并通过 GitHub Actions 部署公开 Pages 草稿预览及公网 Worker/Wasm 验证。内容仍为 draft，G1 继续进行人工译审、全站 Firefox/WebKit 覆盖和回滚演练。
+> 当前实施状态：第一章 11 对双语页面与 8 视图 Grid World 工作台已完成；第二章已有四状态 Bellman 先导切片；第三章 9 对双语页面与共享 4×4 Grid World 最优性实验已完成技术实现；第四章 9 对双语页面、共享 Rust/Wasm 规划引擎和 Value/Policy/Truncated Policy Iteration 对比实验已完成技术实现，正在进行本次 Pages 构建与公网回归。内容仍为 draft，G1 继续进行人工译审、全站 Firefox/WebKit 覆盖和回滚演练。
 
 ## 1. 执行摘要
 
@@ -1139,6 +1139,39 @@ Bellman 方程、策略评估和值函数热图保留为第二章的首个算法
 - 页面和数值实现完成后仍维持原创草稿预览状态，不能伪造人工数学或双语审核；`RELEASE=1` 必须继续阻断，直到真实审核完成；
 - 第三章接入共享模型不自动补齐第二章的 16 状态策略评估视图，第二章的范围缺口继续单独记录。
 
+### 24.6 第四章 Value/Policy Iteration 规划技术切片
+
+第四章把第三章反复应用的 Bellman 最优算子展开成可逐阶段检查的规划算法。它仍是原创双语技术伴读，不复制上游正文、图表、题目或代码；页面通过固定 commit、PDF blob hash 和 `rights: companion-original` 记录主题来源，`review_content` 与 `review_language` 保持 `draft`。
+
+已实现的中英文内容与路由：
+
+- 章节导览、Value Iteration、Policy Iteration、Truncated Policy Iteration、Generalized Policy Iteration/模型边界、总结、问答和检查点，共 9 对双语页面；
+- `/zh-Hans/labs/ch04-planning-grid` 与 `/en/labs/ch04-planning-grid` 规划实验；
+- 每一对页面拥有稳定 `id`/`translation_key`、双向 `canonical`/`hreflang`、本地搜索索引和固定上游来源元数据；
+- 页面正文解释“已知完整模型的 planning”与“从轨迹估计模型”的边界，并保留无 JavaScript 的公式、首轮向量、伪代码和手算审计路径。
+
+已实现的 Rust/Wasm/Worker 契约：
+
+- `mathrl-core::PlanningEvaluator` 在同一份 4×4 Grid World、奖励、终止目标和风扰动模型上维护相互独立的 VI、PI、TPI 状态；
+- 同步 Bellman 备份、策略评估、确定性贪心改进、并列动作 mask、终止状态无策略、最优性/评估残差、外循环与内评估安全上限均由 Rust 决定；
+- Wasm 适配层只传输版本化快照、动作价值、阶段、更新和工作量账本，Dedicated Worker 负责重试、过期消息丢弃和输入二次校验；
+- TPI 的内层深度 $N=1$ 可与 VI 逐轮对照；PI/TPI 的 `backups`、动作期望、评估轮数和改进轮数分开计数，避免只比较外循环造成误导；
+- 参考解、风扰动 20% 预设、固定模型账本、有限值审计、截断/收敛区分和 reduced-motion 批处理都纳入测试协议。
+
+已实现的 Vue 可视化与验收路径：
+
+- 三列算法卡片、16 状态价值/策略地图、选中状态的 $q(s,a)$ 与转移账本、评估/改进阶段表、残差曲线及数值表、参考解对照和模型审计；
+- 基线、20% 风、短视域和长视域预设；控件、错误提示、状态播报、键盘焦点、窄屏布局、`prefers-reduced-motion` 和 session/local 恢复均提供中英文文案；
+- 第一章“转移分布/马尔可夫”视图在无风基线可见后，分别提供中英文的一键“开启 20% 风扰动并重置”引导，先看确定性分布，再比较隐藏风上下文；
+- 页面产物检查覆盖第四章 18 个 locale 文件、规划 Worker/Wasm、来源元数据和 Pages 子路径 canonical/hreflang；Chapter 4 的浏览器测试覆盖首轮 frontier、收敛/审计、风概率、无效输入、语言恢复、reduced-motion 与窄容器。
+
+当前出口与明确缺口：
+
+1. 完成本地 Rust、Wasm、TypeScript、单元测试、双语 parity、Pages artifact 和双语浏览器回归，并在推送后检查公网 Worker/Wasm；
+2. 继续保持 `RELEASE=1` 的 draft 审核门禁失败，直到数学与双语人工审核真实记录；
+3. 第二章仍是四状态 Bellman 先导，尚未补齐共享 4×4 Grid World 的 16 状态策略评估视图；
+4. Firefox/WebKit 全覆盖、性能预算、回滚演练、PWA 和全书第 5–10 章仍属于后续里程碑，不因第四章技术切片完成而提前宣称 v1 完成。
+
 ## 25. 主要风险与缓解
 
 | 风险 | 等级 | 缓解方案 |
@@ -1149,6 +1182,7 @@ Bellman 方程、策略评估和值函数热图保留为第二章的首个算法
 | 数值正确但视觉误导 | 高 | 公式、伪代码、数值表和图形同步；数学编辑验收 |
 | Wasm 包体过大 | 中 | 按实验拆包、懒加载、`wasm-opt`、真实体积预算 |
 | Worker 无法及时取消 | 中 | 分块执行、事件循环让步、限制每块工作量 |
+| PI 极端配置产生过大的乘积工作量 | 中 | UI 默认小预算并显示内/外计数；Worker 分块运行；将 `max_outer_iterations × max_evaluation_sweeps` 的性能预算列入后续硬化门禁 |
 | DQN/Actor-Critic 浏览器性能不足 | 中 | 教学型小网络、参数上限、预计算检查点 |
 | PWA 新旧资源混用 | 中 | 版本清单、显式更新、N-1 migration 测试 |
 | 双语产能不足或翻译长期过期 | 高 | G1 测量吞吐量；配置双语技术编辑；源 hash、stale 门禁和人工译审 |

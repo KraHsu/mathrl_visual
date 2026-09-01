@@ -49,8 +49,8 @@ test('runs the Rust/Wasm transition and restores it in the other locale', async 
   await expect(page.locator('.trajectory-panel tbody tr')).toHaveCount(1)
   await expect(page.getByRole('button', { name: '搜索站点' })).toBeVisible()
   await page.getByRole('button', { name: '转移', exact: true }).click()
-  await expect(page.getByText('先选择一个移动动作并观察上方无风的基准概率行')).toBeVisible()
-  await expect(page.getByRole('button', { name: '开启 20% 风扰动并重置' })).toBeVisible()
+  await expect(page.locator('[data-guided-wind="hint"]')).toContainText('先选择一个移动动作并观察上方无风的基准概率行')
+  await expect(page.locator('[data-guided-wind="button"]')).toHaveText('开启 20% 风扰动并重置')
 })
 
 test('recovers from an invalid restart without reloading the worker', async ({ page }) => {
@@ -105,9 +105,14 @@ test('exposes the Chapter 1 transition, policy, reward, return, and audit views'
   await page.getByRole('button', { name: 'Transition' }).click()
   await expect(page.locator('.mini-table tbody tr')).toHaveCount(1)
   await expect(page.locator('.mini-table tbody tr td').nth(1)).toHaveText('1')
-  await expect(page.getByText('First choose a movement action and inspect its no-wind baseline row above')).toBeVisible()
-  await page.getByRole('button', { name: 'Enable 20% wind and reset' }).click()
+  await expect(page.locator('[data-guided-wind="hint"]')).toContainText('First choose a movement action and inspect its no-wind baseline row above')
+  // Staying is intentionally unaffected by wind; the guided CTA should select
+  // a movement action so the comparison reveals the stochastic row.
+  await page.getByLabel('Requested action').selectOption('4')
+  await expect(page.locator('.mini-table tbody tr')).toHaveCount(1)
+  await page.locator('[data-guided-wind="button"]').click()
   await expect(page.locator('.engine-chip')).toHaveAttribute('data-phase', 'ready')
+  await expect(page.getByLabel('Requested action')).toHaveValue('1')
   await expect(page.locator('.mini-table tbody tr')).toHaveCount(4)
   await expect(page.locator('.mini-table tbody')).toContainText('0.85')
 
@@ -138,15 +143,32 @@ test('exposes the Chapter 1 transition, policy, reward, return, and audit views'
   await expect(page.locator('.trajectory-panel tbody tr td').nth(5)).toHaveText('1')
 
   await page.getByRole('button', { name: 'Markov' }).click()
-  await expect(page.getByText('First note that the calm and gusty predictions match while wind is off')).toBeVisible()
+  await expect(page.locator('[data-guided-wind="hint"]')).toContainText('First note that the calm and gusty predictions match while wind is off')
   await expect(page.locator('.context-list')).toHaveCount(0)
-  await page.getByRole('button', { name: 'Enable 20% wind and reset' }).click()
+  await page.locator('[data-guided-wind="button"]').click()
   await expect(page.locator('.engine-chip')).toHaveAttribute('data-phase', 'ready')
   await expect(page.getByRole('button', { name: 'Enable 20% wind and reset' })).toBeHidden()
   await expect(page.locator('.context-list')).toContainText('probability 0.85')
 
   await page.getByRole('button', { name: 'Audit' }).click()
   await expect(page.locator('.audit-list li[data-pass="true"]')).toHaveCount(5)
+})
+
+test('guides the Chinese Markov view from a calm baseline to wind', async ({ page }) => {
+  await page.goto('zh-Hans/labs/ch01-gridworld')
+  await expect(page.locator('.engine-chip')).toHaveAttribute('data-phase', 'ready')
+
+  await page.getByRole('button', { name: '马尔可夫', exact: true }).click()
+  await expect(page.locator('[data-guided-wind="hint"]')).toContainText(
+    '先注意无风时平静与阵风情形的预测完全相同',
+  )
+  await expect(page.locator('[data-guided-wind="button"]')).toHaveText('开启 20% 风扰动并重置')
+  await expect(page.locator('.context-list')).toHaveCount(0)
+
+  await page.locator('[data-guided-wind="button"]').click()
+  await expect(page.locator('.engine-chip')).toHaveAttribute('data-phase', 'ready')
+  await expect(page.locator('[data-guided-wind="button"]')).toHaveCount(0)
+  await expect(page.locator('.context-list')).toContainText('概率为 0.85')
 })
 
 test('distinguishes terminal, absorbing, and continuing goal semantics', async ({ page }) => {

@@ -146,7 +146,7 @@ $$
 
 This last expression is an upper bound, not a prediction that every observed error ratio equals $\gamma$. In the queue example, two applications happen to reach the exact fixed point because its simple deterministic structure eliminates the remaining disagreement faster than the worst-case guarantee.
 
-The convergence statement explains repeated optimality backups mathematically. Chapter 4 will turn that repeated operation into a complete algorithm, including implementation choices and stopping behavior.
+The convergence statement explains repeated optimality backups mathematically. [Chapter 4](../ch04/) turns that repeated operation into a complete algorithm, including implementation choices and stopping behavior.
 
 <a id="residual-bound"></a>
 

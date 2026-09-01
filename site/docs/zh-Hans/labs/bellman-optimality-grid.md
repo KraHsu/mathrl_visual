@@ -275,7 +275,7 @@ $$
 
 ## 与第四章的算法边界
 
-本实验反复应用 $T_*$，目的是验证 Bellman 最优方程的不动点和压缩性质。它可以提供单轮、运行、暂停与重置以便观察，但不在本章比较 Value Iteration、Policy Iteration 和 Truncated Policy Iteration 的伪代码、评估深度或计算代价；这些属于第四章。
+本实验反复应用 $T_*$，目的是验证 Bellman 最优方程的不动点和压缩性质。它可以提供单轮、运行、暂停与重置以便观察，但不在本章比较 Value Iteration、Policy Iteration 和 Truncated Policy Iteration 的伪代码、评估深度或计算代价；这些内容现在由[第四章](../learn/ch04/)负责。
 
 <a id="chapter-links"></a>
 

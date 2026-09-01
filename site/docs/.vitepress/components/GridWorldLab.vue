@@ -264,6 +264,12 @@ function stepPolicy(): void {
 }
 
 function enableGuidedWind(): void {
+  // Stay is intentionally deterministic even in the windy model. Keep the
+  // guided comparison meaningful by selecting a movement action before the
+  // reset, so the newly revealed stochastic row can be inspected immediately.
+  if (mode.value === 'transition' && inspectedAction.value === ACTION.stay) {
+    inspectedAction.value = ACTION.right
+  }
   Object.assign(config, cloneConfig(appliedConfig.value), {
     slipProbability: guidedWindProbability,
   })
@@ -742,13 +748,14 @@ onBeforeUnmount(() => {
               </tbody>
             </table>
           </div>
-          <p v-if="showGuidedWind" class="lab-panel__hint">
+          <p v-if="showGuidedWind" class="lab-panel__hint" data-guided-wind="hint">
             {{ copy.transitionWindHint }}
           </p>
           <button
             v-if="showGuidedWind"
             class="lab-button lab-button--primary"
             type="button"
+            data-guided-wind="button"
             :disabled="!canRestart"
             @click="enableGuidedWind"
           >
@@ -880,13 +887,14 @@ onBeforeUnmount(() => {
               }}
             </li>
           </ul>
-          <p v-if="showGuidedWind" class="lab-panel__hint">
+          <p v-if="showGuidedWind" class="lab-panel__hint" data-guided-wind="hint">
             {{ copy.increaseWind }}
           </p>
           <button
             v-if="showGuidedWind"
             class="lab-button lab-button--primary"
             type="button"
+            data-guided-wind="button"
             :disabled="!canRestart"
             @click="enableGuidedWind"
           >
