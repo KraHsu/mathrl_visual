@@ -4,7 +4,7 @@
 > 编制日期：2026-09-02
 > 项目类型：纯静态、交互式教材/伴读站点
 > 核心技术栈：Rust + WebAssembly + Vue 3 + VitePress
-> 当前实施状态：第一章 11 对双语页面与 8 视图 Grid World 工作台已完成技术实现，并已通过 GitHub Actions 部署公开 Pages 草稿预览；内容仍为 draft，G1 继续进行人工译审、Firefox/WebKit 覆盖和回滚演练。
+> 当前实施状态：第一章 11 对双语页面与 8 视图 Grid World 工作台已完成；第二章已有四状态 Bellman 先导切片；第三章 9 对双语页面与共享 4×4 Grid World 最优性实验已完成技术实现，并通过 GitHub Actions 部署公开 Pages 草稿预览及公网 Worker/Wasm 验证。内容仍为 draft，G1 继续进行人工译审、全站 Firefox/WebKit 覆盖和回滚演练。
 
 ## 1. 执行摘要
 
@@ -1033,7 +1033,7 @@ schema:  2
 
 ## 24. 当前第一垂直切片：第一章基本概念
 
-> 当前状态：第一章内容与交互链路已完整落地，GitHub Pages 自动部署及公网 Worker/Wasm 冒烟通过；第二章已进入四状态 Bellman 先导切片阶段，但尚未完成与第一章共享 4×4 Grid World 的模型整合；第三章正在以该共享 4×4 模型实现动作感知的 Bellman 最优方程完整技术切片。G1 仍需补齐 Firefox/WebKit 覆盖、回滚演练，以及首批人工译审和吞吐量记录。
+> 当前状态：第一章内容与交互链路已完整落地，GitHub Pages 自动部署及公网 Worker/Wasm 冒烟通过；第二章已进入四状态 Bellman 先导切片阶段，但尚未完成与第一章共享 4×4 Grid World 的模型整合；第三章基于该共享 4×4 模型的动作感知 Bellman 最优方程完整技术切片已完成，并已部署至公网草稿预览。G1 仍需补齐全站 Firefox/WebKit 覆盖、回滚演练，以及首批人工译审和吞吐量记录。
 
 依据最新实施顺序，第一项交付调整为：
 
