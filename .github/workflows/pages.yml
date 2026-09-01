@@ -47,10 +47,27 @@ jobs:
           --component clippy,rustfmt
           --target wasm32-unknown-unknown
 
+      - name: Restore pinned WebAssembly tools
+        id: wasm-tools-cache
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: |
+            ~/.cargo/bin/wasm-pack
+            ~/.cargo/bin/wasm-bindgen
+            ~/.cargo/bin/wasm-bindgen-test-runner
+            ~/.cargo/bin/wasm2es6js
+          key: ${{ runner.os }}-${{ runner.arch }}-wasm-pack-0.15.0-wasm-bindgen-0.2.127
+
       - name: Install pinned WebAssembly tools
+        if: steps.wasm-tools-cache.outputs.cache-hit != 'true'
         run: |
           cargo install wasm-pack --version 0.15.0 --locked
           cargo install wasm-bindgen-cli --version 0.2.127 --locked
+
+      - name: Verify WebAssembly tools
+        run: |
+          wasm-pack --version
+          wasm-bindgen --version
 
       - name: Install Playwright browser
         run: corepack pnpm --filter @mathrl/site exec playwright install --with-deps chrome

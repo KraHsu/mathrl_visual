@@ -1,10 +1,12 @@
 # MathRL Visual
 
+[![Deploy GitHub Pages](https://github.com/KraHsu/mathrl_visual/actions/workflows/pages.yml/badge.svg)](https://github.com/KraHsu/mathrl_visual/actions/workflows/pages.yml)
+
 An unofficial, bilingual interactive companion for *Mathematical Foundations of Reinforcement Learning*, built with Rust, WebAssembly, Vue 3, and VitePress.
 
 Chapter 1 is implemented as draft companion content using original explanations and an original 4×4 Grid World. See [PLAN.md](./PLAN.md) and [RIGHTS.md](./RIGHTS.md).
 
-Public draft preview: <https://krahssu.github.io/mathrl_visual/>
+Public draft preview: <https://krahsu.github.io/mathrl_visual/>
 
 ## Chapter 1 implementation
 
