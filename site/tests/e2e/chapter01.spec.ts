@@ -48,6 +48,8 @@ test('runs the Rust/Wasm transition and restores it in the other locale', async 
   await expect(page.locator('.grid-cell--active .grid-cell__state')).toHaveText('s1')
   await expect(page.locator('.trajectory-panel tbody tr')).toHaveCount(1)
   await expect(page.getByRole('button', { name: '搜索站点' })).toBeVisible()
+  await page.getByRole('button', { name: '转移', exact: true }).click()
+  await expect(page.getByRole('button', { name: '开启 20% 风扰动并重置' })).toBeVisible()
 })
 
 test('recovers from an invalid restart without reloading the worker', async ({ page }) => {
@@ -97,12 +99,19 @@ test('keeps the bilingual chapter readable without JavaScript', async ({ browser
 test('exposes the Chapter 1 transition, policy, reward, return, and audit views', async ({ page }) => {
   await page.goto('en/labs/ch01-gridworld')
   await expect(page.locator('.engine-chip')).toHaveAttribute('data-phase', 'ready')
+  await expect(page.locator('input[type="range"]')).toHaveValue('0')
 
   await page.getByRole('button', { name: 'Transition' }).click()
+  await expect(page.locator('.mini-table tbody tr')).toHaveCount(1)
+  await expect(page.locator('.mini-table tbody tr td').nth(1)).toHaveText('1')
+  await expect(page.getByText('Wind is off, so the requested action has one deterministic outcome.')).toBeVisible()
+  await page.getByRole('button', { name: 'Enable 20% wind and reset' }).click()
+  await expect(page.locator('.engine-chip')).toHaveAttribute('data-phase', 'ready')
   await expect(page.locator('.mini-table tbody tr')).toHaveCount(4)
   await expect(page.locator('.mini-table tbody')).toContainText('0.85')
 
   await page.getByRole('button', { name: 'World' }).click()
+  await expect(page.locator('input[type="range"]')).toHaveValue('0.2')
   await page.locator('input[type="range"]').fill('0')
   await page.getByRole('button', { name: 'Apply and reset' }).click()
   await expect(page.locator('.engine-chip')).toHaveAttribute('data-phase', 'ready')
@@ -126,6 +135,14 @@ test('exposes the Chapter 1 transition, policy, reward, return, and audit views'
   await page.getByRole('button', { name: 'Return' }).click()
   await expect(page.locator('.trajectory-panel tbody tr')).toContainText('-0.2')
   await expect(page.locator('.trajectory-panel tbody tr td').nth(5)).toHaveText('1')
+
+  await page.getByRole('button', { name: 'Markov' }).click()
+  await expect(page.getByText('Wind is off, so the calm and gusty predictions currently match.')).toBeVisible()
+  await expect(page.locator('.context-list')).toHaveCount(0)
+  await page.getByRole('button', { name: 'Enable 20% wind and reset' }).click()
+  await expect(page.locator('.engine-chip')).toHaveAttribute('data-phase', 'ready')
+  await expect(page.getByRole('button', { name: 'Enable 20% wind and reset' })).toBeHidden()
+  await expect(page.locator('.context-list')).toContainText('probability 0.85')
 
   await page.getByRole('button', { name: 'Audit' }).click()
   await expect(page.locator('.audit-list li[data-pass="true"]')).toHaveCount(5)

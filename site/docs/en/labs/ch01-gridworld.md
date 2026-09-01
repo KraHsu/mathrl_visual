@@ -99,6 +99,7 @@ In the Episode view, follow the same right-edge path under all three goal behavi
 
 - environment: an original 4×4 Grid World;
 - start: $s_0$; goal: $s_{15}$; hazards: $s_6,s_9$;
+- wind starts at 0% for deterministic controls; the Transition and Markov views offer a guided 20% wind experiment;
 - default ordinary movement reward: $-0.04$; boundary and hazard: $-1$; goal: $+1$; all four can be edited;
 - reaching the goal ends the episode;
 - one Rust core computes transition distributions, policy sampling, rewards, cumulative return, and discounted return; and

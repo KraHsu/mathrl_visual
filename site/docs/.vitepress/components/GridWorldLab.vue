@@ -21,6 +21,9 @@ const props = withDefaults(defineProps<{ locale?: Locale }>(), {
   locale: 'en',
 })
 
+const guidedWindProbability = 0.2
+const storageVersion = 5
+const storageKey = `mathrl:exp-ch01-gridworld-basics:v${storageVersion}`
 const copy = computed(() => messagesFor(props.locale).lab)
 type LabMode =
   | 'world'
@@ -65,7 +68,7 @@ const config = reactive<GridWorldConfig>({
   goal: 15,
   goalMode: GOAL_MODE.terminate,
   hazards: [6, 9],
-  slipProbability: 0.2,
+  slipProbability: 0,
   discount: 0.9,
   seedHex: '5eed',
   rewards: {
@@ -97,7 +100,6 @@ const currentRunId = ref('')
 const lastSequence = ref(-1)
 const replaying = ref(false)
 const awaitingStep = ref(false)
-const storageKey = 'mathrl:exp-ch01-gridworld-basics:v4'
 let worker: Worker | undefined
 let pendingConfig: GridWorldConfig | undefined
 let replayQueue: ExperimentCommand[] = []
@@ -253,6 +255,13 @@ function stepPolicy(): void {
     kind: 'stepPolicy',
     probabilities: [...policyProbabilities.value],
   })
+}
+
+function enableGuidedWind(): void {
+  Object.assign(config, cloneConfig(appliedConfig.value), {
+    slipProbability: guidedWindProbability,
+  })
+  start()
 }
 
 function normalizePolicy(): void {
@@ -451,7 +460,7 @@ function saveExperiment(): void {
     sessionStorage.setItem(
       storageKey,
       JSON.stringify({
-        v: 4,
+        v: storageVersion,
         config: cloneConfig(appliedConfig.value),
         commands: commandHistory.value.slice(0, 100).map(cloneCommand),
         mode: mode.value,
@@ -476,7 +485,7 @@ function restoreExperiment(): ExperimentCommand[] {
       inspectedAction?: unknown
       policy?: unknown[]
     }
-    if (saved.v !== 4 || !saved.config || !Array.isArray(saved.commands)) return []
+    if (saved.v !== storageVersion || !saved.config || !Array.isArray(saved.commands)) return []
 
     const restored = saved.config
     if (
@@ -727,6 +736,22 @@ onBeforeUnmount(() => {
               </tbody>
             </table>
           </div>
+          <p v-if="appliedConfig.slipProbability === 0" class="lab-panel__hint">
+            {{ copy.transitionWindHint }}
+          </p>
+          <button
+            v-if="appliedConfig.slipProbability === 0"
+            class="lab-button lab-button--primary"
+            type="button"
+            :disabled="!canRestart"
+            @click="enableGuidedWind"
+          >
+            {{
+              interpolate(copy.enableWind, {
+                probability: Math.round(guidedWindProbability * 100),
+              })
+            }}
+          </button>
         </section>
 
         <section v-else-if="mode === 'policy'" class="lab-panel">
@@ -839,7 +864,7 @@ onBeforeUnmount(() => {
           <h3>{{ copy.markovPanelTitle }}</h3>
           <p>{{ copy.markovPanelBody }}</p>
           <p><strong>{{ interpolate(copy.sameVisibleState, { state: snapshot.state }) }}</strong></p>
-          <ul class="context-list">
+          <ul v-if="appliedConfig.slipProbability > 0" class="context-list">
             <li>{{ copy.calmContext }}</li>
             <li>
               {{
@@ -852,8 +877,23 @@ onBeforeUnmount(() => {
           <p v-if="appliedConfig.slipProbability === 0" class="lab-panel__hint">
             {{ copy.increaseWind }}
           </p>
-          <p class="concept-callout concept-callout--warning">{{ copy.markovFails }}</p>
-          <p class="concept-callout">{{ copy.markovRestored }}</p>
+          <button
+            v-if="appliedConfig.slipProbability === 0"
+            class="lab-button lab-button--primary"
+            type="button"
+            :disabled="!canRestart"
+            @click="enableGuidedWind"
+          >
+            {{
+              interpolate(copy.enableWind, {
+                probability: Math.round(guidedWindProbability * 100),
+              })
+            }}
+          </button>
+          <template v-else>
+            <p class="concept-callout concept-callout--warning">{{ copy.markovFails }}</p>
+            <p class="concept-callout">{{ copy.markovRestored }}</p>
+          </template>
         </section>
 
         <section v-else class="lab-panel">
