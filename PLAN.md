@@ -4,7 +4,7 @@
 > 编制日期：2026-09-02
 > 项目类型：纯静态、交互式教材/伴读站点
 > 核心技术栈：Rust + WebAssembly + Vue 3 + VitePress
-> 当前实施状态：第一章 11 对双语页面与 8 视图 Grid World 工作台已完成；第二章已有四状态 Bellman 先导切片；第三章 9 对双语页面与共享 4×4 Grid World 最优性实验已完成技术实现；第四章 9 对双语页面、共享 Rust/Wasm 规划引擎和 Value/Policy/Truncated Policy Iteration 对比实验已完成技术实现，正在进行本次 Pages 构建与公网回归。内容仍为 draft，G1 继续进行人工译审、全站 Firefox/WebKit 覆盖和回滚演练。
+> 当前实施状态：第一章 11 对双语页面与 8 视图 Grid World 工作台已完成；第二章已有四状态 Bellman 先导切片；第三章 9 对双语页面与共享 4×4 Grid World 最优性实验已完成技术实现；第四章 9 对双语页面、共享 Rust/Wasm 规划引擎和 Value/Policy/Truncated Policy Iteration 对比实验已完成技术实现，并已通过 GitHub Actions Pages 构建及公网 Worker/Wasm/双语引导回归。内容仍为 draft，G1 继续进行人工译审、全站 Firefox/WebKit 覆盖和回滚演练。
 
 ## 1. 执行摘要
 
@@ -1167,7 +1167,7 @@ Bellman 方程、策略评估和值函数热图保留为第二章的首个算法
 
 当前出口与明确缺口：
 
-1. 完成本地 Rust、Wasm、TypeScript、单元测试、双语 parity、Pages artifact 和双语浏览器回归，并在推送后检查公网 Worker/Wasm；
+1. ✅ 已完成本地 Rust、Wasm、TypeScript、单元测试、双语 parity、Pages artifact、双语浏览器回归及公网 Worker/Wasm 检查；
 2. 继续保持 `RELEASE=1` 的 draft 审核门禁失败，直到数学与双语人工审核真实记录；
 3. 第二章仍是四状态 Bellman 先导，尚未补齐共享 4×4 Grid World 的 16 状态策略评估视图；
 4. Firefox/WebKit 全覆盖、性能预算、回滚演练、PWA 和全书第 5–10 章仍属于后续里程碑，不因第四章技术切片完成而提前宣称 v1 完成。
