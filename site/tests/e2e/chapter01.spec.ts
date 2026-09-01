@@ -78,6 +78,7 @@ test('keeps the bilingual chapter readable without JavaScript', async ({ browser
   await page.goto('zh-Hans/learn/ch01/state-action')
   await expect(page.locator('html')).toHaveAttribute('lang', 'zh-Hans')
   await expect(page.getByRole('heading', { level: 1, name: '状态与动作' })).toBeVisible()
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', /\/favicon\.svg$/)
   if (process.env.VITE_SITE_STAGE === 'preview') {
     await expect(page.locator('.preview-banner')).toContainText('Preview · 预览')
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex,nofollow')

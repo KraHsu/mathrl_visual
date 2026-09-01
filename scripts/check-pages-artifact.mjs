@@ -9,6 +9,7 @@ const preview = process.env.PAGES_STAGE === 'preview'
 const requiredFiles = [
   'index.html',
   '404.html',
+  'favicon.svg',
   'zh-Hans/index.html',
   'en/index.html',
   'zh-Hans/labs/ch01-gridworld.html',

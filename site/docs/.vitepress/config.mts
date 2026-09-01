@@ -36,6 +36,7 @@ export default defineConfig({
   head: [
     ['meta', { name: 'theme-color', content: '#0d766e' }],
     ['meta', { name: 'color-scheme', content: 'light dark' }],
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: withBase('favicon.svg') }],
     ...(isPreview
       ? ([['meta', { name: 'robots', content: 'noindex,nofollow' }]] as const)
       : []),
