@@ -46,6 +46,8 @@
     "settings": "实验设置",
     "transitionPanelTitle": "转移分布",
     "transitionPanelBody": "Rust 从当前状态枚举所有可能的实际动作及其概率。",
+    "windGuideTitle": "风扰动引导",
+    "windGuideBody": "转移分布和马尔可夫两个视图都会提供这个按钮：先查看平静基线，再开启 20% 风扰动并比较实际轨迹。",
     "transitionWindHint": "先选择一个移动动作并观察上方无风的基准概率行：计划动作只有一个确定结果。然后开启风扰动，观察并比较随机转移概率行。使用种子 5eed 重置后试试“右右下下”，并检查实际轨迹中的“右右下左”。",
     "enableWind": "开启 {probability}% 风扰动并重置",
     "inspectAction": "计划动作",

@@ -31,6 +31,14 @@ import {
   monteCarloConfigValidationError,
   type MonteCarloWorkerResponse,
 } from '../docs/.vitepress/monteCarloProtocol'
+import {
+  STOCHASTIC_APPROXIMATION_PROTOCOL_VERSION,
+  acceptsStochasticApproximationResponse,
+  canonicalStochasticApproximationMode,
+  canonicalStochasticApproximationSchedule,
+  stochasticApproximationConfigValidationError,
+  type StochasticApproximationWorkerResponse,
+} from '../docs/.vitepress/stochasticApproximationProtocol'
 
 function response(runId: string, sequence: number): WorkerResponse {
   return {
@@ -92,6 +100,21 @@ function monteCarloResponse(runId: string, sequence: number): MonteCarloWorkerRe
   }
 }
 
+function stochasticApproximationResponse(
+  runId: string,
+  sequence: number,
+): StochasticApproximationWorkerResponse {
+  return {
+    v: STOCHASTIC_APPROXIMATION_PROTOCOL_VERSION,
+    runId,
+    sequence,
+    kind: 'error',
+    code: 'test',
+    message: 'test',
+    recoverable: true,
+  }
+}
+
 describe('acceptsResponse', () => {
   it('accepts only newer messages for the current run', () => {
     expect(acceptsResponse(response('active', 4), 'active', 3)).toBe(true)
@@ -121,6 +144,30 @@ describe('acceptsResponse', () => {
     expect(acceptsMonteCarloResponse(monteCarloResponse('active', 4), 'active', 3)).toBe(true)
     expect(acceptsMonteCarloResponse(monteCarloResponse('stale', 5), 'active', 3)).toBe(false)
     expect(acceptsMonteCarloResponse(monteCarloResponse('active', 3), 'active', 3)).toBe(false)
+  })
+
+  it('applies the stale-message guard to stochastic-approximation updates', () => {
+    expect(
+      acceptsStochasticApproximationResponse(
+        stochasticApproximationResponse('active', 4),
+        'active',
+        3,
+      ),
+    ).toBe(true)
+    expect(
+      acceptsStochasticApproximationResponse(
+        stochasticApproximationResponse('stale', 5),
+        'active',
+        3,
+      ),
+    ).toBe(false)
+    expect(
+      acceptsStochasticApproximationResponse(
+        stochasticApproximationResponse('active', 3),
+        'active',
+        3,
+      ),
+    ).toBe(false)
   })
 
   it('rejects Bellman values that the Wasm ABI would otherwise coerce', () => {
@@ -217,5 +264,31 @@ describe('acceptsResponse', () => {
       'monte_carlo_max_steps_range',
     )
     expect(canonicalMonteCarloMode('epsilon-greedy')).toBe('epsilon_greedy')
+  })
+
+  it('validates and canonicalizes stochastic-approximation configuration', () => {
+    const valid = {
+      mode: 'mean',
+      schedule: 'harmonic',
+      rootFunction: 'linear',
+      target: 1,
+      initialW: 0,
+      alpha: 0.8,
+      polynomialPower: 1,
+      noiseStd: 0.25,
+      sampleCount: 200,
+      batchSize: 1,
+      tolerance: 1e-3,
+      seedHex: '5eed',
+    }
+    expect(stochasticApproximationConfigValidationError(valid)).toBeUndefined()
+    expect(
+      stochasticApproximationConfigValidationError({ ...valid, alpha: 0 })?.code,
+    ).toBe('stochastic_approximation_alpha_range')
+    expect(
+      stochasticApproximationConfigValidationError({ ...valid, batchSize: 1.5 })?.code,
+    ).toBe('stochastic_approximation_batch_size_range')
+    expect(canonicalStochasticApproximationMode('mbgd')).toBe('mini_batch')
+    expect(canonicalStochasticApproximationSchedule('1/k')).toBe('harmonic')
   })
 })

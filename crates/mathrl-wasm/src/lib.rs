@@ -19,8 +19,15 @@ use mathrl_core::{
     PlanningPhase as CorePlanningPhase, PlanningReference as CorePlanningReference,
     PlanningSnapshot as CorePlanningSnapshot, PlanningStepOutcome as CorePlanningStepOutcome,
     PlanningTransition as CorePlanningTransition, PlanningUpdate as CorePlanningUpdate, Policy,
-    Rewards, SweepOutcome as CoreSweepOutcome, Transition as CoreEvaluationTransition,
-    TransitionOutcome,
+    Rewards, StochasticApproximationAdvanceOutcome as CoreStochasticApproximationAdvanceOutcome,
+    StochasticApproximationConfig as CoreStochasticApproximationConfig,
+    StochasticApproximationEvaluator as CoreStochasticApproximationEvaluator,
+    StochasticApproximationIteration as CoreStochasticApproximationIteration,
+    StochasticApproximationMode as CoreStochasticApproximationMode,
+    StochasticApproximationOutcome as CoreStochasticApproximationOutcome,
+    StochasticApproximationRootFunction as CoreStochasticApproximationRootFunction,
+    StochasticApproximationSchedule as CoreStochasticApproximationSchedule,
+    SweepOutcome as CoreSweepOutcome, Transition as CoreEvaluationTransition, TransitionOutcome,
 };
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
@@ -544,6 +551,107 @@ struct MeanEstimationOutcomePayload {
     new_samples: Vec<f64>,
 }
 
+// Chapter 6 payloads mirror `stochasticApproximationProtocol.ts`.  The
+// scalar trace intentionally carries both the noisy observation and the
+// effective update signal so a reader can audit `w_{k+1}=w_k-a_k g_hat`.
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct StochasticApproximationIterationPayload {
+    index: u32,
+    /// Alias for consumers that label the horizontal axis `k`.
+    k: u32,
+    w_before: f64,
+    w_after: f64,
+    /// Alias for the current iterate used by compact chart code.
+    w: f64,
+    alpha: f64,
+    alpha_squared: f64,
+    observation: f64,
+    gradient: f64,
+    noise: f64,
+    target: f64,
+    error: f64,
+    absolute_error: f64,
+    objective: f64,
+    /// Alias commonly called `loss` in SGD views.
+    loss: f64,
+    update: f64,
+    batch_size: u32,
+    batch_indices: Vec<u32>,
+    projected: bool,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct StochasticApproximationSnapshotPayload {
+    mode: String,
+    schedule: String,
+    root_function: String,
+    target: f64,
+    root: f64,
+    initial_w: f64,
+    current_w: f64,
+    w: f64,
+    alpha: f64,
+    polynomial_power: f64,
+    noise_std: f64,
+    sample_count: u32,
+    batch_size: u32,
+    dataset_size: u32,
+    tolerance: f64,
+    seed_hex: String,
+    iteration_count: u32,
+    alpha_sum: f64,
+    alpha_squared_sum: f64,
+    noise_sum: f64,
+    noise_mean: f64,
+    noise_variance: f64,
+    error: f64,
+    root_residual: f64,
+    absolute_error: f64,
+    objective: f64,
+    loss: f64,
+    step_size_conditions: bool,
+    converged: bool,
+    truncated: bool,
+    exhausted: bool,
+    last_iteration: Option<StochasticApproximationIterationPayload>,
+    history: Vec<StochasticApproximationIterationPayload>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct StochasticApproximationDiagnosticsPayload {
+    alpha_sum: f64,
+    alpha_squared_sum: f64,
+    noise_sum: f64,
+    noise_mean: f64,
+    noise_variance: f64,
+    error: f64,
+    root_residual: f64,
+    objective: f64,
+    converged: bool,
+    truncated: bool,
+    exhausted: bool,
+    step_size_conditions: bool,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct StochasticApproximationOutcomePayload {
+    snapshot: StochasticApproximationSnapshotPayload,
+    iteration: StochasticApproximationIterationPayload,
+    diagnostics: StochasticApproximationDiagnosticsPayload,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct StochasticApproximationAdvancePayload {
+    snapshot: StochasticApproximationSnapshotPayload,
+    iterations: Vec<StochasticApproximationIterationPayload>,
+    diagnostics: StochasticApproximationDiagnosticsPayload,
+}
+
 fn monte_carlo_seed_hex(seed: u64) -> String {
     format!("{seed:016x}")
 }
@@ -744,6 +852,293 @@ fn mean_snapshot_payload(
         variance: snapshot.variance,
         expected_mean: snapshot.expected_mean,
         exhausted: snapshot.exhausted,
+    }
+}
+
+fn stochastic_iteration_payload(
+    iteration: &CoreStochasticApproximationIteration,
+) -> StochasticApproximationIterationPayload {
+    StochasticApproximationIterationPayload {
+        index: iteration.index,
+        k: iteration.index,
+        w_before: iteration.w_before,
+        w_after: iteration.w_after,
+        w: iteration.w_after,
+        alpha: iteration.alpha,
+        alpha_squared: iteration.alpha_squared,
+        observation: iteration.observation,
+        gradient: iteration.gradient,
+        noise: iteration.noise,
+        target: iteration.target,
+        error: iteration.error,
+        absolute_error: iteration.absolute_error,
+        objective: iteration.objective,
+        loss: iteration.objective,
+        update: iteration.update,
+        batch_size: iteration.batch_size,
+        batch_indices: iteration.batch_indices.clone(),
+        projected: iteration.projected,
+    }
+}
+
+fn stochastic_snapshot_payload(
+    snapshot: &mathrl_core::StochasticApproximationSnapshot,
+) -> StochasticApproximationSnapshotPayload {
+    StochasticApproximationSnapshotPayload {
+        mode: snapshot.mode.as_str().to_owned(),
+        schedule: snapshot.schedule.as_str().to_owned(),
+        root_function: snapshot.root_function.as_str().to_owned(),
+        target: snapshot.target,
+        root: snapshot.root,
+        initial_w: snapshot.initial_w,
+        current_w: snapshot.current_w,
+        w: snapshot.current_w,
+        alpha: snapshot.alpha,
+        polynomial_power: snapshot.polynomial_power,
+        noise_std: snapshot.noise_std,
+        sample_count: snapshot.sample_count,
+        batch_size: snapshot.batch_size,
+        dataset_size: snapshot.dataset_size,
+        tolerance: snapshot.tolerance,
+        seed_hex: monte_carlo_seed_hex(snapshot.seed),
+        iteration_count: snapshot.iteration_count,
+        alpha_sum: snapshot.alpha_sum,
+        alpha_squared_sum: snapshot.alpha_squared_sum,
+        noise_sum: snapshot.noise_sum,
+        noise_mean: snapshot.noise_mean,
+        noise_variance: snapshot.noise_variance,
+        error: snapshot.error,
+        root_residual: snapshot.root_residual,
+        absolute_error: snapshot.absolute_error,
+        objective: snapshot.objective,
+        loss: snapshot.objective,
+        step_size_conditions: snapshot.step_size_conditions,
+        converged: snapshot.converged,
+        truncated: snapshot.truncated,
+        exhausted: snapshot.exhausted,
+        last_iteration: snapshot
+            .last_iteration
+            .as_ref()
+            .map(stochastic_iteration_payload),
+        history: snapshot
+            .history
+            .iter()
+            .map(stochastic_iteration_payload)
+            .collect(),
+    }
+}
+
+fn stochastic_diagnostics_payload(
+    snapshot: &mathrl_core::StochasticApproximationSnapshot,
+) -> StochasticApproximationDiagnosticsPayload {
+    StochasticApproximationDiagnosticsPayload {
+        alpha_sum: snapshot.alpha_sum,
+        alpha_squared_sum: snapshot.alpha_squared_sum,
+        noise_sum: snapshot.noise_sum,
+        noise_mean: snapshot.noise_mean,
+        noise_variance: snapshot.noise_variance,
+        error: snapshot.error,
+        root_residual: snapshot.root_residual,
+        objective: snapshot.objective,
+        converged: snapshot.converged,
+        truncated: snapshot.truncated,
+        exhausted: snapshot.exhausted,
+        step_size_conditions: snapshot.step_size_conditions,
+    }
+}
+
+fn stochastic_outcome_payload(
+    outcome: CoreStochasticApproximationOutcome,
+) -> StochasticApproximationOutcomePayload {
+    let snapshot = outcome.snapshot;
+    StochasticApproximationOutcomePayload {
+        diagnostics: stochastic_diagnostics_payload(&snapshot),
+        snapshot: stochastic_snapshot_payload(&snapshot),
+        iteration: stochastic_iteration_payload(&outcome.iteration),
+    }
+}
+
+fn stochastic_advance_payload(
+    outcome: CoreStochasticApproximationAdvanceOutcome,
+) -> StochasticApproximationAdvancePayload {
+    let snapshot = outcome.snapshot;
+    StochasticApproximationAdvancePayload {
+        diagnostics: stochastic_diagnostics_payload(&snapshot),
+        snapshot: stochastic_snapshot_payload(&snapshot),
+        iterations: outcome
+            .iterations
+            .iter()
+            .map(stochastic_iteration_payload)
+            .collect(),
+    }
+}
+
+/// Wasm adapter for the Chapter 6 scalar stochastic-approximation laboratory.
+///
+/// The final `root_function` argument is optional so callers from the first
+/// linear-only build remain source compatible; omitted/`undefined` means
+/// `linear`.  The worker normally supplies `linear`, `tanh`, or `cubic`.
+#[wasm_bindgen]
+pub struct StochasticApproximationEvaluator {
+    inner: CoreStochasticApproximationEvaluator,
+}
+
+#[wasm_bindgen]
+impl StochasticApproximationEvaluator {
+    #[wasm_bindgen(constructor)]
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        mode: String,
+        schedule: String,
+        target: f64,
+        initial_w: f64,
+        alpha: f64,
+        polynomial_power: f64,
+        noise_std: f64,
+        sample_count: u32,
+        batch_size: u32,
+        tolerance: f64,
+        seed_hex: &str,
+        root_function: Option<String>,
+    ) -> Result<Self, JsValue> {
+        console_error_panic_hook::set_once();
+        let mode = CoreStochasticApproximationMode::try_from(mode.as_str())
+            .map_err(|error| error_value(error.code(), error.to_string()))?;
+        let schedule = CoreStochasticApproximationSchedule::try_from(schedule.as_str())
+            .map_err(|error| error_value(error.code(), error.to_string()))?;
+        let root_function = CoreStochasticApproximationRootFunction::try_from(
+            root_function.as_deref().unwrap_or("linear"),
+        )
+        .map_err(|error| error_value(error.code(), error.to_string()))?;
+        let config = CoreStochasticApproximationConfig {
+            mode,
+            schedule,
+            root_function,
+            target,
+            initial_w,
+            alpha,
+            polynomial_power,
+            noise_std,
+            sample_count,
+            batch_size,
+            tolerance,
+            seed: parse_stochastic_approximation_seed(seed_hex)?,
+        };
+        let inner = CoreStochasticApproximationEvaluator::new(config)
+            .map_err(|error| error_value(error.code(), error.to_string()))?;
+        Ok(Self { inner })
+    }
+
+    /// Explicit factory alias useful to code that wants to make the
+    /// optional root-function argument obvious.
+    #[wasm_bindgen(js_name = newWithRootFunction)]
+    #[allow(clippy::too_many_arguments)]
+    pub fn new_with_root_function(
+        mode: String,
+        schedule: String,
+        target: f64,
+        initial_w: f64,
+        alpha: f64,
+        polynomial_power: f64,
+        noise_std: f64,
+        sample_count: u32,
+        batch_size: u32,
+        tolerance: f64,
+        seed_hex: &str,
+        root_function: String,
+    ) -> Result<Self, JsValue> {
+        Self::new(
+            mode,
+            schedule,
+            target,
+            initial_w,
+            alpha,
+            polynomial_power,
+            noise_std,
+            sample_count,
+            batch_size,
+            tolerance,
+            seed_hex,
+            Some(root_function),
+        )
+    }
+
+    pub fn snapshot(&self) -> Result<JsValue, JsValue> {
+        serialize(&stochastic_snapshot_payload(&self.inner.snapshot()))
+    }
+
+    pub fn iteration(&mut self) -> Result<JsValue, JsValue> {
+        let outcome = self
+            .inner
+            .iteration()
+            .map_err(|error| error_value(error.code(), error.to_string()))?;
+        serialize(&stochastic_outcome_payload(outcome))
+    }
+
+    #[wasm_bindgen(js_name = step)]
+    pub fn step_alias(&mut self) -> Result<JsValue, JsValue> {
+        self.iteration()
+    }
+
+    #[wasm_bindgen(js_name = update)]
+    pub fn update(&mut self) -> Result<JsValue, JsValue> {
+        self.iteration()
+    }
+
+    pub fn advance(&mut self, iterations: u32) -> Result<JsValue, JsValue> {
+        let outcome = self
+            .inner
+            .advance(iterations)
+            .map_err(|error| error_value(error.code(), error.to_string()))?;
+        serialize(&stochastic_advance_payload(outcome))
+    }
+
+    #[wasm_bindgen(js_name = runIterations)]
+    pub fn run_iterations(&mut self, iterations: u32) -> Result<JsValue, JsValue> {
+        self.advance(iterations)
+    }
+
+    /// Drain the configured finite update budget.  The browser worker uses
+    /// bounded `advance` calls for normal animation and keeps this method as a
+    /// convenience for native/diagnostic callers.
+    pub fn run_to_completion(&mut self) -> Result<JsValue, JsValue> {
+        let outcome = self
+            .inner
+            .run_to_completion()
+            .map_err(|error| error_value(error.code(), error.to_string()))?;
+        serialize(&stochastic_advance_payload(outcome))
+    }
+
+    #[wasm_bindgen(js_name = runToCompletion)]
+    pub fn run_to_completion_alias(&mut self) -> Result<JsValue, JsValue> {
+        self.run_to_completion()
+    }
+
+    pub fn reset(&mut self, seed_hex: Option<String>) -> Result<JsValue, JsValue> {
+        let seed = seed_hex
+            .as_deref()
+            .map(parse_stochastic_approximation_seed)
+            .transpose()?;
+        serialize(&stochastic_snapshot_payload(&self.inner.reset(seed)))
+    }
+
+    #[wasm_bindgen(js_name = iterationCount)]
+    pub fn iteration_count(&self) -> u32 {
+        self.inner.iteration_count()
+    }
+
+    #[wasm_bindgen(js_name = lastIteration)]
+    pub fn last_iteration(&self) -> Result<JsValue, JsValue> {
+        let payload = self
+            .inner
+            .last_iteration()
+            .map(stochastic_iteration_payload);
+        serialize(&payload)
+    }
+
+    #[wasm_bindgen(js_name = stepSize)]
+    pub fn step_size(&self, index: u32) -> f64 {
+        self.inner.step_size(index)
     }
 }
 
@@ -1210,6 +1605,15 @@ fn parse_mean_seed(seed_hex: &str) -> Result<u64, JsValue> {
     parse_seed(seed_hex).map_err(|_| {
         error_value(
             "mean_seed",
+            "seed must be a hexadecimal u64, for example 5eed",
+        )
+    })
+}
+
+fn parse_stochastic_approximation_seed(seed_hex: &str) -> Result<u64, JsValue> {
+    parse_seed(seed_hex).map_err(|_| {
+        error_value(
+            "stochastic_approximation_seed",
             "seed must be a hexadecimal u64, for example 5eed",
         )
     })
@@ -1938,8 +2342,163 @@ mod tests {
         new_samples: Vec<f64>,
     }
 
+    #[allow(dead_code)]
+    #[derive(Debug, Deserialize, PartialEq)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct TestStochasticIteration {
+        index: u32,
+        k: u32,
+        w_before: f64,
+        w_after: f64,
+        w: f64,
+        alpha: f64,
+        alpha_squared: f64,
+        observation: f64,
+        gradient: f64,
+        noise: f64,
+        target: f64,
+        error: f64,
+        absolute_error: f64,
+        objective: f64,
+        loss: f64,
+        update: f64,
+        batch_size: u32,
+        batch_indices: Vec<u32>,
+        projected: bool,
+    }
+
+    #[allow(dead_code)]
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct TestStochasticSnapshot {
+        mode: String,
+        schedule: String,
+        root_function: String,
+        target: f64,
+        root: f64,
+        initial_w: f64,
+        current_w: f64,
+        w: f64,
+        alpha: f64,
+        polynomial_power: f64,
+        noise_std: f64,
+        sample_count: u32,
+        batch_size: u32,
+        dataset_size: u32,
+        tolerance: f64,
+        seed_hex: String,
+        iteration_count: u32,
+        alpha_sum: f64,
+        alpha_squared_sum: f64,
+        noise_sum: f64,
+        noise_mean: f64,
+        noise_variance: f64,
+        error: f64,
+        root_residual: f64,
+        absolute_error: f64,
+        objective: f64,
+        loss: f64,
+        step_size_conditions: bool,
+        converged: bool,
+        truncated: bool,
+        exhausted: bool,
+        last_iteration: Option<TestStochasticIteration>,
+        history: Vec<TestStochasticIteration>,
+    }
+
+    #[allow(dead_code)]
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct TestStochasticDiagnostics {
+        alpha_sum: f64,
+        alpha_squared_sum: f64,
+        noise_sum: f64,
+        noise_mean: f64,
+        noise_variance: f64,
+        error: f64,
+        root_residual: f64,
+        objective: f64,
+        converged: bool,
+        truncated: bool,
+        exhausted: bool,
+        step_size_conditions: bool,
+    }
+
+    #[allow(dead_code)]
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct TestStochasticOutcome {
+        snapshot: TestStochasticSnapshot,
+        iteration: TestStochasticIteration,
+        diagnostics: TestStochasticDiagnostics,
+    }
+
+    #[allow(dead_code)]
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct TestStochasticAdvance {
+        snapshot: TestStochasticSnapshot,
+        iterations: Vec<TestStochasticIteration>,
+        diagnostics: TestStochasticDiagnostics,
+    }
+
     fn from_js<T: for<'de> Deserialize<'de>>(value: JsValue) -> T {
         serde_wasm_bindgen::from_value(value).expect("payload follows the documented JS contract")
+    }
+
+    #[wasm_bindgen_test]
+    fn stochastic_approximation_payload_exposes_root_and_step_diagnostics() {
+        let mut evaluator = StochasticApproximationEvaluator::new(
+            "robbins-monro".to_owned(),
+            "harmonic".to_owned(),
+            1.0,
+            3.0,
+            0.5,
+            1.0,
+            0.0,
+            8,
+            5,
+            1e-8,
+            "5eed",
+            Some("tanh".to_owned()),
+        )
+        .expect("valid stochastic approximation evaluator");
+        let initial: TestStochasticSnapshot = from_js(evaluator.snapshot().expect("snapshot"));
+        assert_eq!(initial.mode, "robbins_monro");
+        assert_eq!(initial.root_function, "tanh");
+        assert_eq!(initial.iteration_count, 0);
+        assert_eq!(initial.history.len(), 0);
+        let outcome: TestStochasticOutcome = from_js(evaluator.iteration().expect("iteration"));
+        assert_eq!(outcome.snapshot.iteration_count, 1);
+        assert_eq!(outcome.iteration.index, 1);
+        assert_eq!(outcome.iteration.batch_size, 1);
+        assert!(outcome.iteration.observation < 0.0);
+        assert_eq!(outcome.diagnostics.alpha_sum, outcome.snapshot.alpha_sum);
+    }
+
+    #[wasm_bindgen_test]
+    fn stochastic_approximation_reset_replays_seeded_batch_trajectory() {
+        let mut evaluator = StochasticApproximationEvaluator::new(
+            "mini_batch".to_owned(),
+            "polynomial".to_owned(),
+            2.0,
+            -1.0,
+            0.4,
+            0.75,
+            0.3,
+            16,
+            3,
+            1e-6,
+            "1234",
+            None,
+        )
+        .expect("valid stochastic approximation evaluator");
+        let first: TestStochasticAdvance = from_js(evaluator.advance(4).expect("advance"));
+        evaluator.reset(None).expect("reset");
+        let second: TestStochasticAdvance = from_js(evaluator.advance(4).expect("replay"));
+        assert_eq!(first.snapshot.current_w, second.snapshot.current_w);
+        assert_eq!(first.snapshot.alpha_sum, second.snapshot.alpha_sum);
+        assert_eq!(first.iterations, second.iterations);
     }
 
     #[wasm_bindgen_test]

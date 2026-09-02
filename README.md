@@ -62,6 +62,16 @@ Chapter 4 is also an original technical preview. The chapter and lab use `review
 
 Chapter 5 is an original technical preview. Its pages and UI remain `review_content: draft` and `review_language: draft`; the release-only gate must remain closed until mathematics, translation, accessibility, and rights review are recorded.
 
+## Chapter 6 stochastic-approximation slice
+
+- Ten paired English and Simplified Chinese routes cover mean estimation, Robbins–Monro, Dvoretzky-style convergence, SGD, batch/mini-batch updates, summary, Q&A, a checkpoint, and the lab.
+- The Rust core and Wasm adapter expose seeded scalar mean, root-finding, SGD, mini-batch, and batch-gradient recursions with harmonic, constant, and polynomial schedules.
+- The Worker normalizes the versioned payload, bounds each advance to 2,000 updates, rejects stale runs, and reports before/after iterates, observations, residuals, noise, batch indices, step-size sums, and finite-run diagnostics.
+- The bilingual Vue laboratory keeps a numeric trace beside an SVG trajectory and explicitly distinguishes a finite tolerance hit from an almost-sure convergence theorem; no JavaScript fallback remains readable.
+- In the Chapter 1 Grid World lab, both the Transition and Markov views now show a prominent bilingual wind guide plus a static page fallback: inspect the no-wind row, then enable 20% wind and reproduce the seeded right-right-down-left realised trace.
+
+Chapter 6 is an original technical preview. Its content and translations remain `review_content: draft` and `review_language: draft`; the release-only gate must stay closed until human mathematics, bilingual, accessibility, and rights review is recorded.
+
 ## Prerequisites
 
 - Rust 1.97.1 with the `wasm32-unknown-unknown` target
@@ -80,7 +90,7 @@ corepack pnpm wasm:build
 corepack pnpm dev
 ```
 
-Open the URL printed by VitePress, then visit `/zh-Hans/learn/ch05/` or `/en/learn/ch05/` (or the Monte Carlo lab at `/en/labs/ch05-monte-carlo`).
+Open the URL printed by VitePress, then visit `/zh-Hans/learn/ch06/` or `/en/learn/ch06/` (or the stochastic-approximation lab at `/en/labs/ch06-stochastic-approximation`).
 
 ## Static build
 

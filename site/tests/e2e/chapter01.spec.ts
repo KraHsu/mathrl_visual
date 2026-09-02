@@ -49,6 +49,8 @@ test('runs the Rust/Wasm transition and restores it in the other locale', async 
   await expect(page.locator('.trajectory-panel tbody tr')).toHaveCount(1)
   await expect(page.getByRole('button', { name: '搜索站点' })).toBeVisible()
   await page.getByRole('button', { name: '转移', exact: true }).click()
+  await expect(page.locator('[data-guided-wind="banner"]')).toContainText('风扰动引导')
+  await expect(page.locator('[data-guided-wind="banner"]')).toContainText('两个视图都会提供这个按钮')
   await expect(page.locator('[data-guided-wind="hint"]')).toContainText('先选择一个移动动作并观察上方无风的基准概率行')
   await expect(page.locator('[data-guided-wind="button"]')).toHaveText('开启 20% 风扰动并重置')
 })
@@ -72,6 +74,33 @@ test('recovers from an invalid restart without reloading the worker', async ({ p
   await page.getByRole('button', { name: 'Move right' }).click()
   await expect(page.locator('.grid-cell--active .grid-cell__state')).toHaveText('s1')
   await expect(page.locator('.trajectory-panel tbody tr')).toHaveCount(1)
+})
+
+test('retries transient Worker-script and Wasm initialization failures', async ({ page }) => {
+  let workerAttempts = 0
+  let wasmAttempts = 0
+  await page.route('**/gridworld.worker-*.js', async (requestRoute) => {
+    workerAttempts += 1
+    if (workerAttempts === 1) await requestRoute.abort()
+    else await requestRoute.continue()
+  })
+  await page.route('**/mathrl_wasm_bg-*.wasm', async (requestRoute) => {
+    wasmAttempts += 1
+    if (wasmAttempts === 1) await requestRoute.abort()
+    else await requestRoute.continue()
+  })
+
+  await page.goto('en/labs/ch01-gridworld')
+  await expect(page.locator('.engine-chip')).toHaveAttribute('data-phase', 'error')
+
+  // The first retry creates a fresh Worker, but its Wasm fetch is aborted;
+  // the second retry must create another Worker and reach the ready state.
+  await page.getByRole('button', { name: 'Apply and reset' }).click()
+  await expect(page.locator('.engine-chip')).toHaveAttribute('data-phase', 'error')
+  await page.getByRole('button', { name: 'Apply and reset' }).click()
+  await expect(page.locator('.engine-chip')).toHaveAttribute('data-phase', 'ready')
+  expect(workerAttempts).toBeGreaterThanOrEqual(2)
+  expect(wasmAttempts).toBeGreaterThanOrEqual(2)
 })
 
 test('keeps the bilingual chapter readable without JavaScript', async ({ browser }) => {
@@ -108,6 +137,8 @@ test('exposes the Chapter 1 transition, policy, reward, return, and audit views'
   await expect(page.locator('input[type="range"]')).toHaveValue('0')
 
   await page.getByRole('button', { name: 'Transition' }).click()
+  await expect(page.locator('[data-guided-wind="banner"]')).toContainText('Wind perturbation guide')
+  await expect(page.locator('[data-guided-wind="banner"]')).toContainText('Both the Transition and Markov views provide')
   await expect(page.locator('.mini-table tbody tr')).toHaveCount(1)
   await expect(page.locator('.mini-table tbody tr td').nth(1)).toHaveText('1')
   await expect(page.locator('[data-guided-wind="hint"]')).toContainText('First choose a movement action and inspect its no-wind baseline row above')
@@ -175,6 +206,7 @@ test('guides the Chinese Markov view from a calm baseline to wind', async ({ pag
   await expect(page.locator('.engine-chip')).toHaveAttribute('data-phase', 'ready')
 
   await page.getByRole('button', { name: '马尔可夫', exact: true }).click()
+  await expect(page.locator('[data-guided-wind="banner"]')).toContainText('风扰动引导')
   await expect(page.locator('[data-guided-wind="hint"]')).toContainText(
     '先注意无风时平静与阵风情形的预测完全相同',
   )

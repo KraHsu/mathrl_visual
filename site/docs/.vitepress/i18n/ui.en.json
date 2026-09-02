@@ -46,6 +46,8 @@
     "settings": "Experiment settings",
     "transitionPanelTitle": "Transition distribution",
     "transitionPanelBody": "Rust enumerates every possible actual action and its probability from the current state.",
+    "windGuideTitle": "Wind perturbation guide",
+    "windGuideBody": "Both the Transition and Markov views provide the same guided button: inspect the calm baseline first, then enable 20% wind and compare the realised trace.",
     "transitionWindHint": "First choose a movement action and inspect its no-wind baseline row above: the requested action has one deterministic outcome. Then enable wind to reveal and compare the stochastic transition row. With seed 5eed, try right-right-down-down after reset and inspect the realised right-right-down-left trace.",
     "enableWind": "Enable {probability}% wind and reset",
     "inspectAction": "Requested action",

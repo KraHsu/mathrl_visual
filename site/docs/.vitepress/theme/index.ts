@@ -8,6 +8,7 @@ import MonteCarloLab from '../components/MonteCarloLab.vue'
 import OptimalityLab from '../components/OptimalityLab.vue'
 import PlanningLab from '../components/PlanningLab.vue'
 import PreviewBanner from '../components/PreviewBanner.vue'
+import StochasticApproximationLab from '../components/StochasticApproximationLab.vue'
 import './custom.css'
 
 const isPreview = import.meta.env.VITE_SITE_STAGE === 'preview'
@@ -30,5 +31,6 @@ export default {
     app.component('MonteCarloLab', MonteCarloLab)
     app.component('OptimalityLab', OptimalityLab)
     app.component('PlanningLab', PlanningLab)
+    app.component('StochasticApproximationLab', StochasticApproximationLab)
   },
 } satisfies Theme

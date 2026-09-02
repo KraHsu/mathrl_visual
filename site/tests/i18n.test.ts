@@ -10,6 +10,8 @@ import planningEn from '../docs/.vitepress/i18n/planning.en.json'
 import planningZhHans from '../docs/.vitepress/i18n/planning.zh-Hans.json'
 import monteCarloEn from '../docs/.vitepress/i18n/monteCarlo.en.json'
 import monteCarloZhHans from '../docs/.vitepress/i18n/monteCarlo.zh-Hans.json'
+import stochasticApproximationEn from '../docs/.vitepress/i18n/stochasticApproximation.en.json'
+import stochasticApproximationZhHans from '../docs/.vitepress/i18n/stochasticApproximation.zh-Hans.json'
 
 function keys(value: unknown, prefix = ''): string[] {
   if (typeof value !== 'object' || value === null) return [prefix]
@@ -49,6 +51,7 @@ describe('UI message catalogs', () => {
     expect(keys(optimalityZhHans).sort()).toEqual(keys(optimalityEn).sort())
     expect(keys(planningZhHans).sort()).toEqual(keys(planningEn).sort())
     expect(keys(monteCarloZhHans).sort()).toEqual(keys(monteCarloEn).sort())
+    expect(keys(stochasticApproximationZhHans).sort()).toEqual(keys(stochasticApproximationEn).sort())
   })
 
   it('preserve interpolation placeholders across locales', () => {
@@ -57,5 +60,6 @@ describe('UI message catalogs', () => {
     expectPlaceholderParity(optimalityZhHans, optimalityEn)
     expectPlaceholderParity(planningZhHans, planningEn)
     expectPlaceholderParity(monteCarloZhHans, monteCarloEn)
+    expectPlaceholderParity(stochasticApproximationZhHans, stochasticApproximationEn)
   })
 })

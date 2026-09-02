@@ -39,6 +39,18 @@ const chapter5Routes = [
   'learn/ch05/checkpoint',
   'labs/ch05-monte-carlo',
 ]
+const chapter6Routes = [
+  'learn/ch06/',
+  'learn/ch06/mean-estimation',
+  'learn/ch06/robbins-monro',
+  'learn/ch06/dvoretzky',
+  'learn/ch06/stochastic-gradient-descent',
+  'learn/ch06/mini-batch',
+  'learn/ch06/summary',
+  'learn/ch06/q-and-a',
+  'learn/ch06/checkpoint',
+  'labs/ch06-stochastic-approximation',
+]
 
 const requiredFiles = [
   'index.html',
@@ -67,6 +79,11 @@ const requiredFiles = [
       `${locale}/${route.endsWith('/') ? `${route}index.html` : `${route}.html`}`,
     ),
   ),
+  ...['zh-Hans', 'en'].flatMap((locale) =>
+    chapter6Routes.map((route) =>
+      `${locale}/${route.endsWith('/') ? `${route}index.html` : `${route}.html`}`,
+    ),
+  ),
 ]
 
 for (const relativePath of requiredFiles) {
@@ -87,6 +104,9 @@ if (!assetNames.some((name) => name.includes('planning.worker-') && name.endsWit
 }
 if (!assetNames.some((name) => name.includes('monte-carlo.worker-') && name.endsWith('.js'))) {
   throw new Error('GitHub Pages artifact does not contain the Chapter 5 Monte Carlo Worker')
+}
+if (!assetNames.some((name) => name.includes('stochastic-approximation.worker-') && name.endsWith('.js'))) {
+  throw new Error('GitHub Pages artifact does not contain the Chapter 6 stochastic-approximation Worker')
 }
 if (!assetNames.some((name) => name.includes('@localSearchIndexzh-Hans'))) {
   throw new Error('GitHub Pages artifact does not contain the Chinese search index')
@@ -126,6 +146,8 @@ const chapter4Source =
   'https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning/blob/0e348961c28496096d308f1066009266b3674c5a/3%20-%20Chapter%204%20Value%20Iteration%20and%20Policy%20Iteration.pdf'
 const chapter5Source =
   'https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning/blob/0e348961c28496096d308f1066009266b3674c5a/3%20-%20Chapter%205%20Monte%20Carlo%20Methods.pdf'
+const chapter6Source =
+  'https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning/blob/0e348961c28496096d308f1066009266b3674c5a/3%20-%20Chapter%206%20Stochastic%20Approximation.pdf'
 const chapter3Pages = ['zh-Hans', 'en'].flatMap((locale) =>
   chapter3Routes.map((route) => ({
     locale,
@@ -190,6 +212,28 @@ for (const page of chapter5Pages) {
   }
   if (!html.includes(`name="mathrl:source" content="${chapter5Source}"`)) {
     throw new Error(`${page.locale}/${fileRoute} is missing the pinned Chapter 5 source`)
+  }
+}
+const chapter6Pages = ['zh-Hans', 'en'].flatMap((locale) =>
+  chapter6Routes.map((route) => ({
+    locale,
+    counterpart: locale === 'zh-Hans' ? 'en' : 'zh-Hans',
+    route,
+  })),
+)
+for (const page of chapter6Pages) {
+  const fileRoute = page.route.endsWith('/') ? `${page.route}index.html` : `${page.route}.html`
+  const html = await readFile(new URL(`${page.locale}/${fileRoute}`, dist), 'utf8')
+  const canonical = publicArtifactUrl(`${page.locale}/${page.route}`)
+  const alternate = publicArtifactUrl(`${page.counterpart}/${page.route}`)
+  if (!html.includes(`rel="canonical" href="${canonical}"`)) {
+    throw new Error(`${page.locale}/${fileRoute} has an incorrect Chapter 6 canonical URL`)
+  }
+  if (!html.includes(`hreflang="${page.counterpart}" href="${alternate}"`)) {
+    throw new Error(`${page.locale}/${fileRoute} is missing its Chapter 6 locale alternate`)
+  }
+  if (!html.includes(`name="mathrl:source" content="${chapter6Source}"`)) {
+    throw new Error(`${page.locale}/${fileRoute} is missing the pinned Chapter 6 source`)
   }
 }
 

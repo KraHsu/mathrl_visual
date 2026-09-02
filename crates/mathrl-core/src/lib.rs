@@ -5,6 +5,7 @@ pub mod monte_carlo;
 pub mod optimality;
 pub mod planning;
 pub mod policy_evaluation;
+pub mod stochastic_approximation;
 
 pub use gridworld::{
     Action, ConfigError, GoalMode, GridWorldConfig, GridWorldSession, Policy, PolicyError, Rewards,
@@ -37,4 +38,17 @@ pub use policy_evaluation::{
     AdvanceOutcome, BellmanEvaluator, BellmanTerm, BellmanUpdate, EvaluationConfig,
     EvaluationConfigError, EvaluationError, EvaluationSnapshot, MAX_EVALUATION_SWEEPS,
     SweepOutcome, Transition,
+};
+pub use stochastic_approximation::{
+    MAX_STOCHASTIC_APPROXIMATION_ADVANCE, MAX_STOCHASTIC_APPROXIMATION_ALPHA,
+    MAX_STOCHASTIC_APPROXIMATION_BATCH_SIZE, MAX_STOCHASTIC_APPROXIMATION_HISTORY,
+    MAX_STOCHASTIC_APPROXIMATION_ITERATIONS, MAX_STOCHASTIC_APPROXIMATION_MAGNITUDE,
+    MAX_STOCHASTIC_APPROXIMATION_NOISE_STD, StochasticApproximationAdvanceOutcome,
+    StochasticApproximationConfig, StochasticApproximationConfigError,
+    StochasticApproximationError, StochasticApproximationEvaluator,
+    StochasticApproximationIteration, StochasticApproximationMode,
+    StochasticApproximationModeError, StochasticApproximationOutcome,
+    StochasticApproximationRootFunction, StochasticApproximationRootFunctionError,
+    StochasticApproximationSchedule, StochasticApproximationScheduleError,
+    StochasticApproximationSnapshot,
 };

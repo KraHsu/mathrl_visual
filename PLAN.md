@@ -4,7 +4,7 @@
 > 编制日期：2026-09-02
 > 项目类型：纯静态、交互式教材/伴读站点
 > 核心技术栈：Rust + WebAssembly + Vue 3 + VitePress
-> 当前实施状态：第一章 11 对双语页面与 8 视图 Grid World 工作台已完成；第二章已有四状态 Bellman 先导切片；第三章 9 对双语页面与共享 4×4 Grid World 最优性实验已完成技术实现；第四章 9 对双语页面、共享 Rust/Wasm 规划引擎和 Value/Policy/Truncated Policy Iteration 对比实验已完成技术实现；第五章 9 对双语页面、模型无关 Monte Carlo Rust/Wasm/Worker 实验和首轮/首次/每次访问账本已完成技术实现，并已通过 Pages 子路径构建、产物检查与公网 Worker/Wasm/双语风扰动引导回归。内容仍为 draft，G1 继续进行人工译审、全站 Firefox/WebKit 覆盖和回滚演练。
+> 当前实施状态：第一章 11 对双语页面与 8 视图 Grid World 工作台已完成；第二章已有四状态 Bellman 先导切片；第三章 9 对双语页面与共享 4×4 Grid World 最优性实验已完成技术实现；第四章 9 对双语页面、共享 Rust/Wasm 规划引擎和 Value/Policy/Truncated Policy Iteration 对比实验已完成技术实现；第五章 9 对双语页面、模型无关 Monte Carlo Rust/Wasm/Worker 实验和首轮/首次/每次访问账本已完成技术实现；第六章 10 对双语页面、随机逼近 Rust/Wasm/Worker 实验和有限前缀诊断已完成技术实现；第一章“转移分布/马尔可夫”视图现提供醒目的双语风扰动引导与无 JS 回退，并已通过 Pages 子路径构建、产物检查与浏览器回归。内容仍为 draft，G1 继续进行人工译审、全站 Firefox/WebKit 覆盖和回滚演练。
 
 ## 1. 执行摘要
 
@@ -1201,6 +1201,33 @@ Rust/Wasm/Worker 契约 / Rust, Wasm, and Worker contract:
 - `cargo fmt`、workspace clippy/test、Wasm 构建、TypeScript 类型检查、Vitest、locale parity、Pages artifact checker 以及 Chrome 的中英文/无 JS/窄屏 E2E 均通过；
 - release remains preview-only: all Chapter 5 content and translations are draft until human mathematics, bilingual, accessibility, and rights review is recorded; `RELEASE=1` must continue to fail;
 - 第二章仍是四状态 Bellman 先导，不因第五章接入共享 Grid World 而宣称第二章完整 16 状态策略评估已完成；Firefox/WebKit 全覆盖、性能预算、PWA、回滚演练及第 6–10 章仍属于后续里程碑。
+
+### 24.8 第六章随机逼近技术切片 / Chapter 6 stochastic-approximation slice
+
+第六章把第五章的完整回合回报推进到“样本到达即更新”的一般递推。实现仍是固定上游版本下的原创中英双语伴读，不复制原文、图表、证明、例题、问题或代码；每个页面记录同一份 commit、PDF blob、SHA-256、`rights: companion-original` 与 draft 审核状态。
+
+已实现的中英文内容与路由：
+
+- 章节导览、均值估计、Robbins–Monro、Dvoretzky 风格误差过程、随机梯度下降、批量/小批量比较、总结、问答和检查点，共 10 对页面（含实验页）；
+- `/zh-Hans/labs/ch06-stochastic-approximation` 与 `/en/labs/ch06-stochastic-approximation` 标量实验；
+- 稳定 `id`、`translation_key`、对齐锚点、双向 canonical/hreflang、本地搜索和固定上游来源元数据；
+- 中文数学公式与英文源页面保持符号、索引和语义对齐，所有实验说明都明确有限轨迹不是几乎处处收敛证明。
+
+Rust/Wasm/Worker 契约：
+
+- `mathrl-core::StochasticApproximationEvaluator` 支持增量均值、Robbins–Monro、SGD、mini-batch 和 BGD 五种模式；根函数提供 linear/tanh/centered-cubic，步长提供 harmonic、constant、polynomial；
+- Rust 持有 `ChaCha8Rng` 随机流，生成有界居中噪声，保留更新前后迭代量、观测、梯度/根残差、噪声、批索引、目标函数和投影标记；
+- Wasm ABI 提供可选根函数参数、snapshot/iteration/advance/run/reset 与稳定结构化错误；Worker 对 camel/snake 字段做兼容归一化，单次 advance 上限 2,000，丢弃旧 `runId`/序列并在初始化失败后允许重试；
+- BGD 使用 reset 时生成的一次固定有限数据集，mini-batch 显示批大小与索引；诊断同时报告 `Σ a_k`、`Σ a_k²`、噪声均值/方差、容差命中、预算耗尽和截断状态。
+
+Vue 实验与验收：
+
+- 双语控件覆盖预设、模式、调度、根函数、目标、初值、`alpha`、多项式幂、噪声、样本预算、批大小、容差和种子；
+- SVG 参数轨迹旁保留更新数值表、有限前缀审计和无 JavaScript 手算回退；`prefers-reduced-motion`、响应式窄屏、ARIA 表头、错误恢复与固定种子重放纳入测试；
+- Pages 产物检查覆盖 20 条 Chapter 6 locale 路由、来源 meta、双语 canonical/hreflang、Wasm 与 stochastic-approximation Worker；Vitest/E2E 覆盖首步算术、RM/批量预设、非法种子恢复、中文无 JS 和窄屏无溢出；
+- 第一章 Transition/Markov 视图新增顶部双语“风扰动引导”卡与页面静态提示，按钮仍在两个视图分别可用，先读无风分布再开启 20% 风并比较实际轨迹。
+
+当前边界：内容与翻译仍为 draft，`RELEASE=1` 必须继续阻断；第七章 TD 尚未实现，Firefox/WebKit 全覆盖、性能预算、PWA 和回滚演练仍属于后续 G1/G4 工作。
 
 ## 25. 主要风险与缓解
 

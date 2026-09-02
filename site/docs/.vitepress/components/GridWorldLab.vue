@@ -221,7 +221,7 @@ function post(request: WorkerRequest): void {
 }
 
 function start(commandsToReplay: ExperimentCommand[] = []): void {
-  if (!worker) return
+  if (!worker && !createWorker()) return
   const nextConfig = cloneConfig(config)
   pendingConfig = nextConfig
   currentRunId.value = newRunId()
@@ -270,9 +270,9 @@ function enableGuidedWind(): void {
   if (mode.value === 'transition' && inspectedAction.value === ACTION.stay) {
     inspectedAction.value = ACTION.right
   }
-  Object.assign(config, cloneConfig(appliedConfig.value), {
-    slipProbability: guidedWindProbability,
-  })
+  // Preserve any other edits the reader has made (seed, rewards, discount,
+  // etc.); the guided action changes only the wind parameter and then resets.
+  config.slipProbability = guidedWindProbability
   start()
 }
 
@@ -555,6 +555,40 @@ function restoreExperiment(): ExperimentCommand[] {
   }
 }
 
+function markWorkerFailed(next: Worker, message: string): void {
+  if (worker !== next) return
+  next.terminate()
+  worker = undefined
+  awaitingStep.value = false
+  replaying.value = false
+  replayQueue = []
+  pendingConfig = undefined
+  phase.value = 'error'
+  announcement.value = `${copy.value.failed} ${message}`
+}
+
+function createWorker(): boolean {
+  if (worker) return true
+  try {
+    const next = new Worker(new URL('../workers/gridworld.worker.ts', import.meta.url), {
+      type: 'module',
+    })
+    next.addEventListener('message', handleResponse)
+    next.addEventListener('error', (event) => {
+      markWorkerFailed(next, event.message || 'Worker failed to execute')
+    })
+    next.addEventListener('messageerror', () => {
+      markWorkerFailed(next, 'Worker message could not be decoded')
+    })
+    worker = next
+    return true
+  } catch (error) {
+    phase.value = 'error'
+    announcement.value = `${copy.value.failed} ${error instanceof Error ? error.message : String(error)}`
+    return false
+  }
+}
+
 watch(
   [mode, inspectedAction, policyProbabilities],
   () => {
@@ -564,14 +598,6 @@ watch(
 )
 
 onMounted(() => {
-  worker = new Worker(new URL('../workers/gridworld.worker.ts', import.meta.url), {
-    type: 'module',
-  })
-  worker.addEventListener('message', handleResponse)
-  worker.addEventListener('error', () => {
-    phase.value = 'error'
-    announcement.value = copy.value.failed
-  })
   start(restoreExperiment())
 })
 
@@ -614,6 +640,15 @@ onBeforeUnmount(() => {
       </button>
     </div>
 
+    <aside
+      v-if="showGuidedWind && (mode === 'transition' || mode === 'markov')"
+      class="concept-callout concept-callout--wind"
+      data-guided-wind="banner"
+      aria-live="polite"
+    >
+      <strong>{{ copy.windGuideTitle }}</strong>
+      <span>{{ copy.windGuideBody }}</span>
+    </aside>
     <div class="grid-lab__workspace">
       <div class="grid-lab__world-panel">
         <div

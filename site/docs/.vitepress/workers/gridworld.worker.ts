@@ -21,7 +21,14 @@ let activeRunId = ''
 let sequence = 0
 
 async function ensureEngine(): Promise<void> {
-  engineInitialization ??= init().then(() => undefined)
+  engineInitialization ??= init()
+    .then(() => undefined)
+    .catch((error) => {
+      // Do not permanently poison this Worker after a transient fetch or
+      // compile failure. A later start request can retry initialization.
+      engineInitialization = undefined
+      throw error
+    })
   await engineInitialization
 }
 

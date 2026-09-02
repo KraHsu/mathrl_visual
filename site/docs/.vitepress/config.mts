@@ -35,6 +35,8 @@ const chapterSources = {
     'https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning/blob/0e348961c28496096d308f1066009266b3674c5a/3%20-%20Chapter%204%20Value%20Iteration%20and%20Policy%20Iteration.pdf',
   ch05:
     'https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning/blob/0e348961c28496096d308f1066009266b3674c5a/3%20-%20Chapter%205%20Monte%20Carlo%20Methods.pdf',
+  ch06:
+    'https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning/blob/0e348961c28496096d308f1066009266b3674c5a/3%20-%20Chapter%206%20Stochastic%20Approximation.pdf',
 } as const
 
 export default defineConfig({
@@ -66,6 +68,7 @@ export default defineConfig({
           { text: '第三章', link: '/zh-Hans/learn/ch03/' },
           { text: '第四章', link: '/zh-Hans/learn/ch04/' },
           { text: '第五章', link: '/zh-Hans/learn/ch05/' },
+          { text: '第六章', link: '/zh-Hans/learn/ch06/' },
           { text: '实验', link: '/zh-Hans/labs/bellman-optimality-grid' },
         ],
         sidebar: {
@@ -181,6 +184,26 @@ export default defineConfig({
               items: [{ text: 'Monte Carlo 回合实验', link: '/zh-Hans/labs/ch05-monte-carlo' }],
             },
           ],
+          '/zh-Hans/learn/ch06/': [
+            {
+              text: '第六章 · 随机逼近',
+              items: [
+                { text: '章节导览', link: '/zh-Hans/learn/ch06/' },
+                { text: '均值估计', link: '/zh-Hans/learn/ch06/mean-estimation' },
+                { text: 'Robbins–Monro', link: '/zh-Hans/learn/ch06/robbins-monro' },
+                { text: 'Dvoretzky 收敛', link: '/zh-Hans/learn/ch06/dvoretzky' },
+                { text: '随机梯度下降', link: '/zh-Hans/learn/ch06/stochastic-gradient-descent' },
+                { text: '批量与小批量', link: '/zh-Hans/learn/ch06/mini-batch' },
+                { text: '总结', link: '/zh-Hans/learn/ch06/summary' },
+                { text: '问答', link: '/zh-Hans/learn/ch06/q-and-a' },
+                { text: '章节检查点', link: '/zh-Hans/learn/ch06/checkpoint' },
+              ],
+            },
+            {
+              text: '动手实验',
+              items: [{ text: '随机逼近实验', link: '/zh-Hans/labs/ch06-stochastic-approximation' }],
+            },
+          ],
           '/zh-Hans/labs/': [
             {
               text: '第一章实验',
@@ -211,6 +234,10 @@ export default defineConfig({
             {
               text: '第五章实验',
               items: [{ text: 'Monte Carlo 回合实验', link: '/zh-Hans/labs/ch05-monte-carlo' }],
+            },
+            {
+              text: '第六章实验',
+              items: [{ text: '随机逼近实验', link: '/zh-Hans/labs/ch06-stochastic-approximation' }],
             },
           ],
         },
@@ -259,6 +286,7 @@ export default defineConfig({
           { text: 'Chapter 3', link: '/en/learn/ch03/' },
           { text: 'Chapter 4', link: '/en/learn/ch04/' },
           { text: 'Chapter 5', link: '/en/learn/ch05/' },
+          { text: 'Chapter 6', link: '/en/learn/ch06/' },
           { text: 'Lab', link: '/en/labs/bellman-optimality-grid' },
         ],
         sidebar: {
@@ -374,6 +402,26 @@ export default defineConfig({
               items: [{ text: 'Monte Carlo episode lab', link: '/en/labs/ch05-monte-carlo' }],
             },
           ],
+          '/en/learn/ch06/': [
+            {
+              text: 'Chapter 6 · Stochastic Approximation',
+              items: [
+                { text: 'Chapter map', link: '/en/learn/ch06/' },
+                { text: 'Mean estimation', link: '/en/learn/ch06/mean-estimation' },
+                { text: 'Robbins–Monro', link: '/en/learn/ch06/robbins-monro' },
+                { text: 'Dvoretzky convergence', link: '/en/learn/ch06/dvoretzky' },
+                { text: 'Stochastic gradient descent', link: '/en/learn/ch06/stochastic-gradient-descent' },
+                { text: 'Batch and mini-batch', link: '/en/learn/ch06/mini-batch' },
+                { text: 'Summary', link: '/en/learn/ch06/summary' },
+                { text: 'Q&A', link: '/en/learn/ch06/q-and-a' },
+                { text: 'Chapter checkpoint', link: '/en/learn/ch06/checkpoint' },
+              ],
+            },
+            {
+              text: 'Hands-on lab',
+              items: [{ text: 'Stochastic approximation lab', link: '/en/labs/ch06-stochastic-approximation' }],
+            },
+          ],
           '/en/labs/': [
             {
               text: 'Chapter 1 labs',
@@ -404,6 +452,10 @@ export default defineConfig({
             {
               text: 'Chapter 5 labs',
               items: [{ text: 'Monte Carlo episode lab', link: '/en/labs/ch05-monte-carlo' }],
+            },
+            {
+              text: 'Chapter 6 labs',
+              items: [{ text: 'Stochastic approximation lab', link: '/en/labs/ch06-stochastic-approximation' }],
             },
           ],
         },
@@ -482,6 +534,12 @@ function absoluteRouteFor(locale: 'zh-Hans' | 'en', relativePath: string): strin
 }
 
 function sourceFor(relativePath: string): string | undefined {
+  if (
+    relativePath.includes('/learn/ch06/') ||
+    relativePath.includes('/labs/ch06-stochastic-approximation.md')
+  ) {
+    return chapterSources.ch06
+  }
   if (
     relativePath.includes('/learn/ch05/') ||
     relativePath.includes('/labs/ch05-monte-carlo.md')
