@@ -4,7 +4,7 @@
 
 An unofficial, bilingual interactive companion for *Mathematical Foundations of Reinforcement Learning*, built with Rust, WebAssembly, Vue 3, and VitePress.
 
-Chapter 1 is implemented as a draft vertical slice. Chapter 2 has a bilingual four-state policy-evaluation pilot. Chapters 3 and 4 are bilingual technical slices built on Chapter 1's shared 4×4 Grid World; the planned Chapter 2 integration with that shared model remains a follow-up. See [PLAN.md](./PLAN.md) and [RIGHTS.md](./RIGHTS.md).
+Chapter 1 is implemented as a draft vertical slice. Chapter 2 has a bilingual four-state policy-evaluation pilot. Chapters 3 and 4 are bilingual technical slices built on Chapter 1's shared 4×4 Grid World, and Chapter 5 now adds a bilingual model-free Monte Carlo slice; the planned Chapter 2 integration with that shared model remains a follow-up. See [PLAN.md](./PLAN.md) and [RIGHTS.md](./RIGHTS.md).
 
 Public draft preview: <https://krahsu.github.io/mathrl_visual/>
 
@@ -52,6 +52,16 @@ Chapter 3 is published as an original technical preview. Its mathematics and run
 
 Chapter 4 is also an original technical preview. The chapter and lab use `review_content: draft` and `review_language: draft`, so the release-only content gate must continue to fail until a human mathematics and bilingual review is recorded.
 
+## Chapter 5 Monte Carlo slice
+
+- Nine paired English and Simplified Chinese routes covering mean estimation, MC Basic, Exploring Starts, ε-greedy control, exploration/exploitation, summary, Q&A, and a checkpoint
+- A paired Monte Carlo episode laboratory with seeded replay, initial/first/every-visit return ledgers, state/action counts, running means and variances, policy probabilities, model-free audits, and a no-JavaScript explanation fallback
+- One Rust core and Wasm adapter that generate realised episodes through the shared Grid World; the learner receives sampled transitions and returns rather than a transition-probability table
+- Dedicated Worker protocol validation, stale-message protection, reset/replay, bounded episode and step budgets, optional 20% wind, and a seeded Exploring Starts permutation over the 75 legal nonterminal pairs
+- The Chapter 1 Transition and Markov views retain a bilingual guided prompt: inspect the deterministic row first, then enable 20% wind; with seed `5eed`, requested right-right-down-down can be observed as realised right-right-down-left
+
+Chapter 5 is an original technical preview. Its pages and UI remain `review_content: draft` and `review_language: draft`; the release-only gate must remain closed until mathematics, translation, accessibility, and rights review are recorded.
+
 ## Prerequisites
 
 - Rust 1.97.1 with the `wasm32-unknown-unknown` target
@@ -70,7 +80,7 @@ corepack pnpm wasm:build
 corepack pnpm dev
 ```
 
-Open the URL printed by VitePress, then visit `/zh-Hans/learn/ch04/` or `/en/learn/ch04/` (or the planning lab at `/en/labs/ch04-planning-grid`).
+Open the URL printed by VitePress, then visit `/zh-Hans/learn/ch05/` or `/en/learn/ch05/` (or the Monte Carlo lab at `/en/labs/ch05-monte-carlo`).
 
 ## Static build
 

@@ -27,6 +27,18 @@ const chapter4Routes = [
   'learn/ch04/checkpoint',
   'labs/ch04-planning-grid',
 ]
+const chapter5Routes = [
+  'learn/ch05/',
+  'learn/ch05/mean-estimation',
+  'learn/ch05/mc-basic',
+  'learn/ch05/exploring-starts',
+  'learn/ch05/epsilon-greedy',
+  'learn/ch05/exploration-exploitation',
+  'learn/ch05/summary',
+  'learn/ch05/q-and-a',
+  'learn/ch05/checkpoint',
+  'labs/ch05-monte-carlo',
+]
 
 const requiredFiles = [
   'index.html',
@@ -50,6 +62,11 @@ const requiredFiles = [
       `${locale}/${route.endsWith('/') ? `${route}index.html` : `${route}.html`}`,
     ),
   ),
+  ...['zh-Hans', 'en'].flatMap((locale) =>
+    chapter5Routes.map((route) =>
+      `${locale}/${route.endsWith('/') ? `${route}index.html` : `${route}.html`}`,
+    ),
+  ),
 ]
 
 for (const relativePath of requiredFiles) {
@@ -67,6 +84,9 @@ if (!assetNames.some((name) => name.includes('optimality.worker-') && name.endsW
 }
 if (!assetNames.some((name) => name.includes('planning.worker-') && name.endsWith('.js'))) {
   throw new Error('GitHub Pages artifact does not contain the Chapter 4 planning Worker')
+}
+if (!assetNames.some((name) => name.includes('monte-carlo.worker-') && name.endsWith('.js'))) {
+  throw new Error('GitHub Pages artifact does not contain the Chapter 5 Monte Carlo Worker')
 }
 if (!assetNames.some((name) => name.includes('@localSearchIndexzh-Hans'))) {
   throw new Error('GitHub Pages artifact does not contain the Chinese search index')
@@ -104,6 +124,8 @@ const chapter3Source =
   'https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning/blob/0e348961c28496096d308f1066009266b3674c5a/3%20-%20Chapter%203%20Optimal%20State%20Values%20and%20Bellman%20Optimality%20Equation.pdf'
 const chapter4Source =
   'https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning/blob/0e348961c28496096d308f1066009266b3674c5a/3%20-%20Chapter%204%20Value%20Iteration%20and%20Policy%20Iteration.pdf'
+const chapter5Source =
+  'https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning/blob/0e348961c28496096d308f1066009266b3674c5a/3%20-%20Chapter%205%20Monte%20Carlo%20Methods.pdf'
 const chapter3Pages = ['zh-Hans', 'en'].flatMap((locale) =>
   chapter3Routes.map((route) => ({
     locale,
@@ -146,6 +168,28 @@ for (const page of chapter4Pages) {
   }
   if (!html.includes(`name="mathrl:source" content="${chapter4Source}"`)) {
     throw new Error(`${page.locale}/${fileRoute} is missing the pinned Chapter 4 source`)
+  }
+}
+const chapter5Pages = ['zh-Hans', 'en'].flatMap((locale) =>
+  chapter5Routes.map((route) => ({
+    locale,
+    counterpart: locale === 'zh-Hans' ? 'en' : 'zh-Hans',
+    route,
+  })),
+)
+for (const page of chapter5Pages) {
+  const fileRoute = page.route.endsWith('/') ? `${page.route}index.html` : `${page.route}.html`
+  const html = await readFile(new URL(`${page.locale}/${fileRoute}`, dist), 'utf8')
+  const canonical = publicArtifactUrl(`${page.locale}/${page.route}`)
+  const alternate = publicArtifactUrl(`${page.counterpart}/${page.route}`)
+  if (!html.includes(`rel="canonical" href="${canonical}"`)) {
+    throw new Error(`${page.locale}/${fileRoute} has an incorrect Chapter 5 canonical URL`)
+  }
+  if (!html.includes(`hreflang="${page.counterpart}" href="${alternate}"`)) {
+    throw new Error(`${page.locale}/${fileRoute} is missing its Chapter 5 locale alternate`)
+  }
+  if (!html.includes(`name="mathrl:source" content="${chapter5Source}"`)) {
+    throw new Error(`${page.locale}/${fileRoute} is missing the pinned Chapter 5 source`)
   }
 }
 

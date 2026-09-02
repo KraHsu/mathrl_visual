@@ -548,6 +548,32 @@ impl GridWorldSession {
         })
     }
 
+    /// Construct a session at an arbitrary nonterminal state while retaining
+    /// the configuration's original start state.  Monte Carlo exploring
+    /// starts uses this to sample hazard and ordinary cells uniformly; the
+    /// regular [`Self::new`] constructor still rejects a configuration whose
+    /// declared start overlaps a hazard.
+    pub fn new_at_state(config: GridWorldConfig, state: u16) -> Result<Self, ConfigError> {
+        let state_count = config.state_count();
+        if state >= state_count {
+            return Err(ConfigError::StateOutOfBounds {
+                field: "state",
+                value: state,
+                state_count,
+            });
+        }
+        if state == config.goal {
+            return Err(ConfigError::StateOutOfBounds {
+                field: "state",
+                value: state,
+                state_count,
+            });
+        }
+        let mut session = Self::new(config)?;
+        session.state = state;
+        Ok(session)
+    }
+
     pub fn snapshot(&self) -> Snapshot {
         Snapshot {
             state: self.state,

@@ -33,6 +33,8 @@ const chapterSources = {
     'https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning/blob/0e348961c28496096d308f1066009266b3674c5a/3%20-%20Chapter%203%20Optimal%20State%20Values%20and%20Bellman%20Optimality%20Equation.pdf',
   ch04:
     'https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning/blob/0e348961c28496096d308f1066009266b3674c5a/3%20-%20Chapter%204%20Value%20Iteration%20and%20Policy%20Iteration.pdf',
+  ch05:
+    'https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning/blob/0e348961c28496096d308f1066009266b3674c5a/3%20-%20Chapter%205%20Monte%20Carlo%20Methods.pdf',
 } as const
 
 export default defineConfig({
@@ -63,6 +65,7 @@ export default defineConfig({
           { text: '第二章', link: '/zh-Hans/learn/ch02/' },
           { text: '第三章', link: '/zh-Hans/learn/ch03/' },
           { text: '第四章', link: '/zh-Hans/learn/ch04/' },
+          { text: '第五章', link: '/zh-Hans/learn/ch05/' },
           { text: '实验', link: '/zh-Hans/labs/bellman-optimality-grid' },
         ],
         sidebar: {
@@ -158,6 +161,26 @@ export default defineConfig({
               ],
             },
           ],
+          '/zh-Hans/learn/ch05/': [
+            {
+              text: '第五章 · Monte Carlo 方法',
+              items: [
+                { text: '章节导览', link: '/zh-Hans/learn/ch05/' },
+                { text: '均值估计', link: '/zh-Hans/learn/ch05/mean-estimation' },
+                { text: 'MC Basic', link: '/zh-Hans/learn/ch05/mc-basic' },
+                { text: 'MC Exploring Starts', link: '/zh-Hans/learn/ch05/exploring-starts' },
+                { text: 'MC ε-greedy', link: '/zh-Hans/learn/ch05/epsilon-greedy' },
+                { text: '探索与利用', link: '/zh-Hans/learn/ch05/exploration-exploitation' },
+                { text: '总结', link: '/zh-Hans/learn/ch05/summary' },
+                { text: '问答', link: '/zh-Hans/learn/ch05/q-and-a' },
+                { text: '章节检查点', link: '/zh-Hans/learn/ch05/checkpoint' },
+              ],
+            },
+            {
+              text: '动手实验',
+              items: [{ text: 'Monte Carlo 回合实验', link: '/zh-Hans/labs/ch05-monte-carlo' }],
+            },
+          ],
           '/zh-Hans/labs/': [
             {
               text: '第一章实验',
@@ -184,6 +207,10 @@ export default defineConfig({
                   link: '/zh-Hans/labs/ch04-planning-grid',
                 },
               ],
+            },
+            {
+              text: '第五章实验',
+              items: [{ text: 'Monte Carlo 回合实验', link: '/zh-Hans/labs/ch05-monte-carlo' }],
             },
           ],
         },
@@ -231,6 +258,7 @@ export default defineConfig({
           { text: 'Chapter 2', link: '/en/learn/ch02/' },
           { text: 'Chapter 3', link: '/en/learn/ch03/' },
           { text: 'Chapter 4', link: '/en/learn/ch04/' },
+          { text: 'Chapter 5', link: '/en/learn/ch05/' },
           { text: 'Lab', link: '/en/labs/bellman-optimality-grid' },
         ],
         sidebar: {
@@ -326,6 +354,26 @@ export default defineConfig({
               ],
             },
           ],
+          '/en/learn/ch05/': [
+            {
+              text: 'Chapter 5 · Monte Carlo Methods',
+              items: [
+                { text: 'Chapter map', link: '/en/learn/ch05/' },
+                { text: 'Mean estimation', link: '/en/learn/ch05/mean-estimation' },
+                { text: 'MC Basic', link: '/en/learn/ch05/mc-basic' },
+                { text: 'MC Exploring Starts', link: '/en/learn/ch05/exploring-starts' },
+                { text: 'MC ε-greedy', link: '/en/learn/ch05/epsilon-greedy' },
+                { text: 'Exploration and exploitation', link: '/en/learn/ch05/exploration-exploitation' },
+                { text: 'Summary', link: '/en/learn/ch05/summary' },
+                { text: 'Q&A', link: '/en/learn/ch05/q-and-a' },
+                { text: 'Chapter checkpoint', link: '/en/learn/ch05/checkpoint' },
+              ],
+            },
+            {
+              text: 'Hands-on lab',
+              items: [{ text: 'Monte Carlo episode lab', link: '/en/labs/ch05-monte-carlo' }],
+            },
+          ],
           '/en/labs/': [
             {
               text: 'Chapter 1 labs',
@@ -352,6 +400,10 @@ export default defineConfig({
                   link: '/en/labs/ch04-planning-grid',
                 },
               ],
+            },
+            {
+              text: 'Chapter 5 labs',
+              items: [{ text: 'Monte Carlo episode lab', link: '/en/labs/ch05-monte-carlo' }],
             },
           ],
         },
@@ -430,6 +482,12 @@ function absoluteRouteFor(locale: 'zh-Hans' | 'en', relativePath: string): strin
 }
 
 function sourceFor(relativePath: string): string | undefined {
+  if (
+    relativePath.includes('/learn/ch05/') ||
+    relativePath.includes('/labs/ch05-monte-carlo.md')
+  ) {
+    return chapterSources.ch05
+  }
   if (
     relativePath.includes('/learn/ch04/') ||
     relativePath.includes('/labs/ch04-planning-grid.md')

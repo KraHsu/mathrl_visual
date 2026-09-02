@@ -94,6 +94,11 @@ test('keeps the bilingual chapter readable without JavaScript', async ({ browser
     currentUrl.pathname.replace('/zh-Hans/', '/en/'),
   )
 
+  await page.goto('zh-Hans/labs/ch01-gridworld')
+  await expect(page.getByRole('heading', { level: 1, name: 'Grid World 概念实验' })).toBeVisible()
+  await expect(page.getByText('风扰动引导')).toBeVisible()
+  await expect(page.getByText('两个视图都会提供这个按钮')).toBeVisible()
+
   await context.close()
 })
 
@@ -115,6 +120,17 @@ test('exposes the Chapter 1 transition, policy, reward, return, and audit views'
   await expect(page.getByLabel('Requested action')).toHaveValue('1')
   await expect(page.locator('.mini-table tbody tr')).toHaveCount(4)
   await expect(page.locator('.mini-table tbody')).toContainText('0.85')
+
+  // The documented seed makes the wind lesson concrete: the requested
+  // right-right-down-down sequence contains a reproducible final slip left.
+  for (const action of ['Move right', 'Move right', 'Move down', 'Move down']) {
+    await page.getByRole('button', { name: action }).click()
+  }
+  await expect(page.locator('.trajectory-panel tbody tr')).toHaveCount(4)
+  await expect(page.locator('.trajectory-panel tbody tr').last()).toHaveAttribute(
+    'data-actual-action',
+    '3',
+  )
 
   await page.getByRole('button', { name: 'World' }).click()
   await expect(page.locator('input[type="range"]')).toHaveValue('0.2')

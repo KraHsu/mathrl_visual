@@ -25,6 +25,10 @@ This original 4×4 scenario puts several Chapter 1 concepts into one inspectable
 
 <GridWorldLab locale="en" />
 
+::: tip Guided wind comparison
+The lab starts in a deterministic, no-wind baseline. Open **Transition** or **Markov**, read the calm prediction first, and then use the highlighted **Enable 20% wind and reset** button. After the reset, return to the other view: the transition table should now expose several possible actual actions, while the Markov view explains why the hidden wind regime must be part of the state. With the documented seed `5eed`, request **right, right, down, down** after the reset and inspect the trace: the realised actions are reproducibly **right, right, down, left**. The button is intentionally shown in both views so the comparison can be started from either teaching path.
+:::
+
 <a id="how-to-read"></a>
 
 ## How to read one transition

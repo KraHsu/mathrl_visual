@@ -8,6 +8,8 @@ import optimalityEn from '../docs/.vitepress/i18n/optimality.en.json'
 import optimalityZhHans from '../docs/.vitepress/i18n/optimality.zh-Hans.json'
 import planningEn from '../docs/.vitepress/i18n/planning.en.json'
 import planningZhHans from '../docs/.vitepress/i18n/planning.zh-Hans.json'
+import monteCarloEn from '../docs/.vitepress/i18n/monteCarlo.en.json'
+import monteCarloZhHans from '../docs/.vitepress/i18n/monteCarlo.zh-Hans.json'
 
 function keys(value: unknown, prefix = ''): string[] {
   if (typeof value !== 'object' || value === null) return [prefix]
@@ -46,6 +48,7 @@ describe('UI message catalogs', () => {
     expect(keys(bellmanZhHans).sort()).toEqual(keys(bellmanEn).sort())
     expect(keys(optimalityZhHans).sort()).toEqual(keys(optimalityEn).sort())
     expect(keys(planningZhHans).sort()).toEqual(keys(planningEn).sort())
+    expect(keys(monteCarloZhHans).sort()).toEqual(keys(monteCarloEn).sort())
   })
 
   it('preserve interpolation placeholders across locales', () => {
@@ -53,5 +56,6 @@ describe('UI message catalogs', () => {
     expectPlaceholderParity(bellmanZhHans, bellmanEn)
     expectPlaceholderParity(optimalityZhHans, optimalityEn)
     expectPlaceholderParity(planningZhHans, planningEn)
+    expectPlaceholderParity(monteCarloZhHans, monteCarloEn)
   })
 })

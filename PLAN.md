@@ -4,7 +4,7 @@
 > 编制日期：2026-09-02
 > 项目类型：纯静态、交互式教材/伴读站点
 > 核心技术栈：Rust + WebAssembly + Vue 3 + VitePress
-> 当前实施状态：第一章 11 对双语页面与 8 视图 Grid World 工作台已完成；第二章已有四状态 Bellman 先导切片；第三章 9 对双语页面与共享 4×4 Grid World 最优性实验已完成技术实现；第四章 9 对双语页面、共享 Rust/Wasm 规划引擎和 Value/Policy/Truncated Policy Iteration 对比实验已完成技术实现，并已通过 GitHub Actions Pages 构建及公网 Worker/Wasm/双语引导回归。内容仍为 draft，G1 继续进行人工译审、全站 Firefox/WebKit 覆盖和回滚演练。
+> 当前实施状态：第一章 11 对双语页面与 8 视图 Grid World 工作台已完成；第二章已有四状态 Bellman 先导切片；第三章 9 对双语页面与共享 4×4 Grid World 最优性实验已完成技术实现；第四章 9 对双语页面、共享 Rust/Wasm 规划引擎和 Value/Policy/Truncated Policy Iteration 对比实验已完成技术实现；第五章 9 对双语页面、模型无关 Monte Carlo Rust/Wasm/Worker 实验和首轮/首次/每次访问账本已完成技术实现，并已通过 Pages 子路径构建、产物检查与公网 Worker/Wasm/双语风扰动引导回归。内容仍为 draft，G1 继续进行人工译审、全站 Firefox/WebKit 覆盖和回滚演练。
 
 ## 1. 执行摘要
 
@@ -1171,6 +1171,36 @@ Bellman 方程、策略评估和值函数热图保留为第二章的首个算法
 2. 继续保持 `RELEASE=1` 的 draft 审核门禁失败，直到数学与双语人工审核真实记录；
 3. 第二章仍是四状态 Bellman 先导，尚未补齐共享 4×4 Grid World 的 16 状态策略评估视图；
 4. Firefox/WebKit 全覆盖、性能预算、回滚演练、PWA 和全书第 5–10 章仍属于后续里程碑，不因第四章技术切片完成而提前宣称 v1 完成。
+
+### 24.7 第五章 Monte Carlo 模型无关技术切片 / Chapter 5 model-free Monte Carlo slice
+
+第五章把前几章的“已知模型期望”边界改成“从完整回合回报学习”。本次实现仍是项目原创的中英双语伴读，不复制上游正文、图表、例题、问题或代码；页面 frontmatter 固定上游 commit 与 PDF SHA-256，并保持 `rights: companion-original`、`review_content: draft`、`review_language: draft`。
+
+The Chapter 5 slice replaces known-model expectations with estimates from complete realised episodes. It is original bilingual companion material: no upstream prose, figures, examples, questions, or code are redistributed. Every page pins the upstream commit and PDF SHA-256 while retaining `rights: companion-original` and draft review metadata.
+
+已实现的页面与实验 / Delivered pages and lab:
+
+- 中英文各 9 对页面：章节导览、均值估计、MC Basic、MC Exploring Starts、MC ε-greedy、探索与利用、总结、问答、检查点；另有中英文 Monte Carlo 回合实验页；
+- nine paired English/Simplified Chinese learning routes plus paired lab routes, with stable IDs, reciprocal `canonical`/`hreflang`, source metadata, local search entries, and a static no-JavaScript explanation;
+- 实验公开状态—动作回报账本、折扣后缀回报、initial/first/every 访问过滤、计数、均值、方差、策略概率、覆盖度、策略变化、回合截断和种子元数据；
+- the lab exposes state–action return ledgers, discounted suffix returns, initial/first/every visit filters, counts, means, variances, policy probabilities, coverage, policy changes, truncation, and replay metadata;
+- 默认无风基线与可选 20% 风扰动保持显式；第一章“转移分布/马尔可夫”视图在读完无风结果后分别提供中英文“一键开启 20% 风扰动并重置”引导。使用默认种子 `5eed` 请求“右、右、下、下”时，轨迹可复现地显示实际动作“右、右、下、左”；
+- the calm baseline and optional 20% wind remain explicit. The Chapter 1 Transition and Markov views each guide the learner from the no-wind row to a one-click wind reset. With seed `5eed`, requesting right-right-down-down yields the reproducible realised sequence right-right-down-left.
+
+Rust/Wasm/Worker 契约 / Rust, Wasm, and Worker contract:
+
+- `mathrl-core::MonteCarloEvaluator` 通过 `GridWorldSession` 生成实际回合；学习更新只消费 `(s_t,a_t,r_{t+1},s_{t+1})` 与后缀回报，不读取或重建转移概率表；
+- `mathrl-core::MonteCarloEvaluator` generates episodes through `GridWorldSession`; updates consume realised transitions and suffix returns only, never a transition-probability table;
+- MC Basic 使用 75 个非终止状态—动作对的确定性字典序扫描；Exploring Starts 使用带种子的 75 对排列并强制起点；ε-greedy 从普通起点按五动作 ε-soft 策略采样。三种模式共享反向折扣递推，但策略与访问证据分开显示；
+- MC Basic uses a deterministic lexicographic sweep over the 75 nonterminal pairs; Exploring Starts uses a seeded permutation and forces each start; ε-greedy samples from the ordinary start under a five-action ε-soft policy. All share the backward return recurrence, while their sampling evidence remains visible separately;
+- Wasm positional ABI、版本化 Worker 消息、输入双层校验、过期 `runId`/序列丢弃、可恢复错误、固定种子 reset/replay、回合/步数上限和 reduced-motion 批处理均纳入实现；
+- the positional Wasm ABI, versioned Worker messages, two-layer validation, stale `runId`/sequence rejection, recoverable errors, seeded reset/replay, episode/step caps, and reduced-motion batching are implemented.
+
+验收与边界 / Acceptance and boundaries:
+
+- `cargo fmt`、workspace clippy/test、Wasm 构建、TypeScript 类型检查、Vitest、locale parity、Pages artifact checker 以及 Chrome 的中英文/无 JS/窄屏 E2E 均通过；
+- release remains preview-only: all Chapter 5 content and translations are draft until human mathematics, bilingual, accessibility, and rights review is recorded; `RELEASE=1` must continue to fail;
+- 第二章仍是四状态 Bellman 先导，不因第五章接入共享 Grid World 而宣称第二章完整 16 状态策略评估已完成；Firefox/WebKit 全覆盖、性能预算、PWA、回滚演练及第 6–10 章仍属于后续里程碑。
 
 ## 25. 主要风险与缓解
 

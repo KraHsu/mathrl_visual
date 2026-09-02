@@ -1861,3 +1861,17 @@
     font-size: 0.43rem;
   }
 }
+
+/* Five chapter links no longer fit beside the VitePress utility controls at
+ * tablet widths.  Switch to the native hamburger before the navbar itself
+ * creates a page-level horizontal scrollbar; the full menu remains visible
+ * at desktop widths and the default mobile drawer takes over below 760px. */
+@media (max-width: 850px) and (min-width: 761px) {
+  .VPNavBarMenu {
+    display: none !important;
+  }
+
+  .VPNavBarHamburger {
+    display: flex !important;
+  }
+}

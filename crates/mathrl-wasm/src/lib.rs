@@ -2,9 +2,16 @@ use mathrl_core::{
     Action, AdvanceOutcome as CoreAdvanceOutcome, BellmanEvaluator as CoreBellmanEvaluator,
     BellmanTerm as CoreBellmanTerm, BellmanUpdate as CoreBellmanUpdate, EvaluationConfig,
     EvaluationSnapshot as CoreEvaluationSnapshot, GoalMode, GridWorldConfig,
-    GridWorldSession as CoreSession, OptimalityAdvanceOutcome as CoreOptimalityAdvanceOutcome,
-    OptimalityConfig, OptimalityEvaluator as CoreOptimalityEvaluator,
-    OptimalityReference as CoreOptimalityReference, OptimalitySnapshot as CoreOptimalitySnapshot,
+    GridWorldSession as CoreSession, MeanEstimationConfig as CoreMeanEstimationConfig,
+    MeanEstimator as CoreMeanEstimator, MonteCarloConfig as CoreMonteCarloConfig,
+    MonteCarloEpisode as CoreMonteCarloEpisode,
+    MonteCarloEpisodeOutcome as CoreMonteCarloEpisodeOutcome,
+    MonteCarloEvaluator as CoreMonteCarloEvaluator, MonteCarloMode as CoreMonteCarloMode,
+    MonteCarloObjective as CoreMonteCarloObjective, MonteCarloSnapshot as CoreMonteCarloSnapshot,
+    MonteCarloVisitStrategy as CoreMonteCarloVisitStrategy,
+    OptimalityAdvanceOutcome as CoreOptimalityAdvanceOutcome, OptimalityConfig,
+    OptimalityEvaluator as CoreOptimalityEvaluator, OptimalityReference as CoreOptimalityReference,
+    OptimalitySnapshot as CoreOptimalitySnapshot,
     OptimalitySweepOutcome as CoreOptimalitySweepOutcome,
     OptimalityTransition as CoreOptimalityTransition, OptimalityUpdate as CoreOptimalityUpdate,
     PlanningAdvanceOutcome as CorePlanningAdvanceOutcome, PlanningConfig as CorePlanningConfig,
@@ -425,6 +432,321 @@ impl From<CorePlanningAdvanceOutcome> for PlanningAdvancePayload {
     }
 }
 
+// Chapter 5 payloads intentionally mirror `monteCarloProtocol.ts`.  The
+// adapter exposes realised trajectories and running estimates only; it does
+// not export a transition table or any other model-side rows.
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct MonteCarloStepPayload {
+    state: u16,
+    action: u8,
+    /// The action sampled by the environment after wind/slip.  `action`
+    /// remains the requested policy action used for the MC state--action key.
+    actual_action: u8,
+    next_state: u16,
+    reward: f64,
+    discount_weight: f64,
+    discounted_reward: f64,
+    done: bool,
+    truncated: bool,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct MonteCarloReturnPayload {
+    time: u32,
+    state: u16,
+    action: u8,
+    #[serde(rename = "return")]
+    r#return: f64,
+    included: bool,
+    count: u32,
+    estimate: f64,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct MonteCarloEpisodePayload {
+    number: u32,
+    start_state: u16,
+    start_action: u8,
+    steps: Vec<MonteCarloStepPayload>,
+    returns: Vec<MonteCarloReturnPayload>,
+    total_return: f64,
+    length: u32,
+    done: bool,
+    truncated: bool,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct MonteCarloSnapshotPayload {
+    mode: String,
+    visit_strategy: String,
+    epsilon: f64,
+    episode_count: u32,
+    total_steps: u64,
+    values: Vec<f64>,
+    action_values: Vec<Vec<f64>>,
+    visit_counts: Vec<Vec<u32>>,
+    return_sums: Vec<Vec<f64>>,
+    variances: Vec<Vec<f64>>,
+    policy_probabilities: Vec<Vec<f64>>,
+    policy: Vec<i16>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    last_episode: Option<MonteCarloEpisodePayload>,
+    seed_hex: String,
+    wind_probability: f64,
+    truncated: bool,
+    episode_return_mean: f64,
+    episode_return_variance: f64,
+    policy_changes: u32,
+    covered_pairs: u32,
+    exhausted: bool,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct MonteCarloAuditPayload {
+    model_free: bool,
+    model_rows: u32,
+    observed_steps: u64,
+    credited_returns: u32,
+    unvisited_pairs: u32,
+    finite: bool,
+    message: Option<String>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct MonteCarloOutcomePayload {
+    snapshot: MonteCarloSnapshotPayload,
+    episode: MonteCarloEpisodePayload,
+    audit: MonteCarloAuditPayload,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct MeanEstimationSnapshotPayload {
+    seed_hex: String,
+    sample_count: u32,
+    samples: Vec<f64>,
+    mean: f64,
+    variance: f64,
+    expected_mean: f64,
+    exhausted: bool,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct MeanEstimationOutcomePayload {
+    snapshot: MeanEstimationSnapshotPayload,
+    new_samples: Vec<f64>,
+}
+
+fn monte_carlo_seed_hex(seed: u64) -> String {
+    format!("{seed:016x}")
+}
+
+fn monte_carlo_return_rows(
+    episode: &CoreMonteCarloEpisode,
+    snapshot: &CoreMonteCarloSnapshot,
+) -> Vec<MonteCarloReturnPayload> {
+    let mut first_pair_seen = [[false; 5]; 16];
+    episode
+        .steps
+        .iter()
+        .enumerate()
+        .map(|(index, step)| {
+            let state = step.state as usize;
+            let action = step.requested_action as usize;
+            let pair_first = state < 16 && action < 5 && !first_pair_seen[state][action];
+            if state < 16 && action < 5 {
+                first_pair_seen[state][action] = true;
+            }
+            let included = match snapshot.visit_strategy {
+                CoreMonteCarloVisitStrategy::Initial => index == 0,
+                CoreMonteCarloVisitStrategy::First => pair_first,
+                CoreMonteCarloVisitStrategy::Every => true,
+            };
+            let count = snapshot
+                .visits
+                .get(state)
+                .and_then(|row| row.get(action))
+                .copied()
+                .unwrap_or(0);
+            let estimate = snapshot
+                .q_values
+                .get(state)
+                .and_then(|row| row.get(action))
+                .copied()
+                .unwrap_or(0.0);
+            MonteCarloReturnPayload {
+                time: index as u32,
+                state: step.state,
+                action: step.requested_action.code(),
+                r#return: step.return_value,
+                included,
+                count,
+                estimate,
+            }
+        })
+        .collect()
+}
+
+fn monte_carlo_episode_payload(
+    episode: &CoreMonteCarloEpisode,
+    snapshot: &CoreMonteCarloSnapshot,
+) -> MonteCarloEpisodePayload {
+    let last_index = episode.steps.len().saturating_sub(1);
+    let steps = episode
+        .steps
+        .iter()
+        .enumerate()
+        .map(|(index, step)| MonteCarloStepPayload {
+            state: step.state,
+            action: step.requested_action.code(),
+            actual_action: step.actual_action.code(),
+            next_state: step.next_state,
+            reward: step.reward,
+            discount_weight: step.discount_weight,
+            discounted_reward: step.discounted_contribution,
+            done: episode.terminated && index == last_index,
+            truncated: episode.truncated && index == last_index,
+        })
+        .collect();
+    MonteCarloEpisodePayload {
+        // Core episode indices are zero based; the public trace is numbered
+        // from one so it reads naturally in the browser.
+        number: episode.index.saturating_add(1),
+        start_state: episode.start_state,
+        start_action: episode.start_action.code(),
+        steps,
+        returns: monte_carlo_return_rows(episode, snapshot),
+        total_return: episode.discounted_return,
+        length: episode.steps.len() as u32,
+        done: episode.terminated,
+        truncated: episode.truncated,
+    }
+}
+
+fn monte_carlo_snapshot_payload(
+    snapshot: &CoreMonteCarloSnapshot,
+    last_episode: Option<&CoreMonteCarloEpisode>,
+    epsilon: f64,
+    wind_probability: f64,
+) -> MonteCarloSnapshotPayload {
+    MonteCarloSnapshotPayload {
+        mode: snapshot.mode.as_str().to_owned(),
+        visit_strategy: snapshot.visit_strategy.as_str().to_owned(),
+        epsilon,
+        episode_count: snapshot.episode_count,
+        total_steps: snapshot.total_steps,
+        values: snapshot.values.to_vec(),
+        action_values: snapshot.q_values.iter().map(|row| row.to_vec()).collect(),
+        visit_counts: snapshot.visits.iter().map(|row| row.to_vec()).collect(),
+        return_sums: snapshot.returns.iter().map(|row| row.to_vec()).collect(),
+        variances: snapshot.variances.iter().map(|row| row.to_vec()).collect(),
+        policy_probabilities: snapshot
+            .policy_probabilities
+            .iter()
+            .map(|row| row.to_vec())
+            .collect(),
+        policy: snapshot
+            .policy
+            .iter()
+            .map(|action| {
+                if *action == u8::MAX {
+                    -1
+                } else {
+                    *action as i16
+                }
+            })
+            .collect(),
+        last_episode: last_episode.map(|episode| monte_carlo_episode_payload(episode, snapshot)),
+        seed_hex: monte_carlo_seed_hex(snapshot.seed),
+        wind_probability,
+        truncated: snapshot.last_episode_truncated,
+        episode_return_mean: snapshot.episode_return_mean,
+        episode_return_variance: snapshot.episode_return_variance,
+        policy_changes: snapshot.last_policy_changes,
+        covered_pairs: snapshot.covered_state_actions,
+        exhausted: snapshot.exhausted,
+    }
+}
+
+fn monte_carlo_audit_payload(
+    snapshot: &CoreMonteCarloSnapshot,
+    episode: &CoreMonteCarloEpisode,
+) -> MonteCarloAuditPayload {
+    let finite = snapshot.values.iter().all(|value| value.is_finite())
+        && snapshot
+            .q_values
+            .iter()
+            .flatten()
+            .all(|value| value.is_finite())
+        && snapshot
+            .returns
+            .iter()
+            .flatten()
+            .all(|value| value.is_finite())
+        && snapshot
+            .variances
+            .iter()
+            .flatten()
+            .all(|value| value.is_finite())
+        && snapshot
+            .policy_probabilities
+            .iter()
+            .flatten()
+            .all(|value| value.is_finite());
+    let covered = snapshot.covered_state_actions.min(15 * 5);
+    let credited_returns = monte_carlo_return_rows(episode, snapshot)
+        .iter()
+        .filter(|row| row.included)
+        .count() as u32;
+    MonteCarloAuditPayload {
+        model_free: true,
+        model_rows: 0,
+        observed_steps: snapshot.total_steps,
+        credited_returns,
+        unvisited_pairs: 15 * 5 - covered,
+        finite,
+        message: Some(
+            "Updates use realised episodic returns; no transition model is read.".to_owned(),
+        ),
+    }
+}
+
+fn monte_carlo_empty_episode() -> CoreMonteCarloEpisode {
+    CoreMonteCarloEpisode {
+        index: 0,
+        start_state: 0,
+        start_action: Action::Stay,
+        steps: Vec::new(),
+        return_value: 0.0,
+        discounted_return: 0.0,
+        undiscounted_return: 0.0,
+        terminated: false,
+        truncated: false,
+        updates: Vec::new(),
+    }
+}
+
+fn mean_snapshot_payload(
+    snapshot: mathrl_core::MeanEstimationSnapshot,
+) -> MeanEstimationSnapshotPayload {
+    MeanEstimationSnapshotPayload {
+        seed_hex: monte_carlo_seed_hex(snapshot.seed),
+        sample_count: snapshot.sample_count,
+        samples: snapshot.samples,
+        mean: snapshot.mean,
+        variance: snapshot.variance,
+        expected_mean: snapshot.expected_mean,
+        exhausted: snapshot.exhausted,
+    }
+}
+
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 struct EvaluationSnapshotPayload {
@@ -560,6 +882,299 @@ impl From<TransitionOutcome> for TransitionPayload {
     }
 }
 
+/// Wasm adapter for the Chapter 5 episodic Monte Carlo laboratory.
+///
+/// Constructor arguments intentionally follow the worker's positional ABI:
+/// mode, visit strategy, objective, numeric controls, hexadecimal seed, then
+/// the four reward values.  All learning remains in the model-free core; the
+/// browser receives only realised episodes and estimate snapshots.
+#[wasm_bindgen]
+pub struct MonteCarloEvaluator {
+    inner: CoreMonteCarloEvaluator,
+}
+
+#[wasm_bindgen]
+impl MonteCarloEvaluator {
+    #[wasm_bindgen(constructor)]
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        mode: String,
+        visit_strategy: String,
+        objective: String,
+        discount: f64,
+        slip_probability: f64,
+        epsilon: f64,
+        episodes_per_step: u32,
+        max_episodes: u32,
+        max_steps: u32,
+        seed_hex: &str,
+        default_reward: f64,
+        boundary_reward: f64,
+        hazard_reward: f64,
+        goal_reward: f64,
+    ) -> Result<Self, JsValue> {
+        console_error_panic_hook::set_once();
+        let mode = CoreMonteCarloMode::try_from(mode.as_str())
+            .map_err(|error| error_value(error.code(), error.to_string()))?;
+        let visit_strategy = CoreMonteCarloVisitStrategy::try_from(visit_strategy.as_str())
+            .map_err(|error| error_value(error.code(), error.to_string()))?;
+        let objective = CoreMonteCarloObjective::try_from(objective.as_str())
+            .map_err(|error| error_value(error.code(), error.to_string()))?;
+        let config = CoreMonteCarloConfig {
+            mode,
+            visit_strategy,
+            objective,
+            discount,
+            slip_probability,
+            epsilon,
+            episodes_per_step,
+            max_episodes,
+            max_steps,
+            seed: parse_monte_carlo_seed(seed_hex)?,
+            rewards: Rewards {
+                default: default_reward,
+                boundary: boundary_reward,
+                hazard: hazard_reward,
+                goal: goal_reward,
+            },
+        };
+        let inner = CoreMonteCarloEvaluator::new(config)
+            .map_err(|error| error_value(error.code(), error.to_string()))?;
+        Ok(Self { inner })
+    }
+
+    pub fn snapshot(&self) -> Result<JsValue, JsValue> {
+        let snapshot = self.inner.snapshot();
+        let config = self.inner.config();
+        serialize(&monte_carlo_snapshot_payload(
+            &snapshot,
+            self.inner.last_episode(),
+            config.epsilon,
+            config.slip_probability,
+        ))
+    }
+
+    pub fn episode(&mut self) -> Result<JsValue, JsValue> {
+        let outcome = self
+            .inner
+            .episode()
+            .map_err(|error| error_value(error.code(), error.to_string()))?;
+        let config = self.inner.config();
+        serialize(&monte_carlo_outcome_payload(
+            outcome,
+            config.epsilon,
+            config.slip_probability,
+        ))
+    }
+
+    /// Compatibility aliases used by early worker builds.
+    #[wasm_bindgen(js_name = sampleEpisode)]
+    pub fn sample_episode(&mut self) -> Result<JsValue, JsValue> {
+        self.episode()
+    }
+
+    #[wasm_bindgen(js_name = sample_episode)]
+    pub fn sample_episode_snake(&mut self) -> Result<JsValue, JsValue> {
+        self.episode()
+    }
+
+    #[wasm_bindgen(js_name = startEpisode)]
+    pub fn start_episode(&mut self) -> Result<JsValue, JsValue> {
+        self.episode()
+    }
+
+    #[wasm_bindgen(js_name = stepEpisode)]
+    pub fn step_episode(&mut self) -> Result<JsValue, JsValue> {
+        self.episode()
+    }
+
+    pub fn advance(&mut self, episodes: u32) -> Result<JsValue, JsValue> {
+        let outcome = self
+            .inner
+            .advance(episodes)
+            .map_err(|error| error_value(error.code(), error.to_string()))?;
+        let config = self.inner.config();
+        serialize(&monte_carlo_advance_as_outcome(
+            outcome,
+            self.inner.last_episode(),
+            config.epsilon,
+            config.slip_probability,
+        ))
+    }
+
+    #[wasm_bindgen(js_name = runEpisodes)]
+    pub fn run_episodes(&mut self, episodes: u32) -> Result<JsValue, JsValue> {
+        self.advance(episodes)
+    }
+
+    #[wasm_bindgen(js_name = run_episodes)]
+    pub fn run_episodes_snake(&mut self, episodes: u32) -> Result<JsValue, JsValue> {
+        self.advance(episodes)
+    }
+
+    #[wasm_bindgen(js_name = run)]
+    pub fn run(&mut self, episodes: u32) -> Result<JsValue, JsValue> {
+        self.advance(episodes)
+    }
+
+    /// Advance by the configured `episodesPerStep` batch.
+    pub fn step(&mut self) -> Result<JsValue, JsValue> {
+        let outcome = self
+            .inner
+            .step()
+            .map_err(|error| error_value(error.code(), error.to_string()))?;
+        let config = self.inner.config();
+        serialize(&monte_carlo_advance_as_outcome(
+            outcome,
+            self.inner.last_episode(),
+            config.epsilon,
+            config.slip_probability,
+        ))
+    }
+
+    /// Run the complete configured episode budget and return its final trace.
+    pub fn run_to_completion(&mut self) -> Result<JsValue, JsValue> {
+        let outcome = self
+            .inner
+            .run_to_completion()
+            .map_err(|error| error_value(error.code(), error.to_string()))?;
+        let config = self.inner.config();
+        serialize(&monte_carlo_advance_as_outcome(
+            outcome,
+            self.inner.last_episode(),
+            config.epsilon,
+            config.slip_probability,
+        ))
+    }
+
+    #[wasm_bindgen(js_name = runToCompletion)]
+    pub fn run_to_completion_alias(&mut self) -> Result<JsValue, JsValue> {
+        self.run_to_completion()
+    }
+
+    pub fn reset(&mut self, seed_hex: Option<String>) -> Result<JsValue, JsValue> {
+        let seed = seed_hex
+            .as_deref()
+            .map(parse_monte_carlo_seed)
+            .transpose()?;
+        let snapshot = self.inner.reset(seed);
+        let config = self.inner.config();
+        serialize(&monte_carlo_snapshot_payload(
+            &snapshot,
+            None,
+            config.epsilon,
+            config.slip_probability,
+        ))
+    }
+
+    #[wasm_bindgen(js_name = lastEpisode)]
+    pub fn last_episode(&self) -> Result<JsValue, JsValue> {
+        let snapshot = self.inner.snapshot();
+        let payload = self
+            .inner
+            .last_episode()
+            .map(|episode| monte_carlo_episode_payload(episode, &snapshot));
+        serialize(&payload)
+    }
+
+    #[wasm_bindgen(js_name = episodeCount)]
+    pub fn episode_count(&self) -> u32 {
+        self.inner.episode_count()
+    }
+}
+
+fn monte_carlo_outcome_payload(
+    outcome: CoreMonteCarloEpisodeOutcome,
+    epsilon: f64,
+    wind_probability: f64,
+) -> MonteCarloOutcomePayload {
+    let snapshot = outcome.snapshot;
+    let episode = outcome.episode;
+    let audit = monte_carlo_audit_payload(&snapshot, &episode);
+    let snapshot_payload =
+        monte_carlo_snapshot_payload(&snapshot, Some(&episode), epsilon, wind_probability);
+    let episode_payload = monte_carlo_episode_payload(&episode, &snapshot);
+    MonteCarloOutcomePayload {
+        snapshot: snapshot_payload,
+        episode: episode_payload,
+        audit,
+    }
+}
+
+fn monte_carlo_advance_as_outcome(
+    outcome: mathrl_core::MonteCarloAdvanceOutcome,
+    previous_episode: Option<&CoreMonteCarloEpisode>,
+    epsilon: f64,
+    wind_probability: f64,
+) -> MonteCarloOutcomePayload {
+    let snapshot = outcome.snapshot;
+    let episode = outcome
+        .episodes
+        .last()
+        .cloned()
+        .or_else(|| previous_episode.cloned())
+        .unwrap_or_else(monte_carlo_empty_episode);
+    let audit = monte_carlo_audit_payload(&snapshot, &episode);
+    let snapshot_payload = monte_carlo_snapshot_payload(
+        &snapshot,
+        if episode.steps.is_empty() {
+            None
+        } else {
+            Some(&episode)
+        },
+        epsilon,
+        wind_probability,
+    );
+    let episode_payload = monte_carlo_episode_payload(&episode, &snapshot);
+    MonteCarloOutcomePayload {
+        snapshot: snapshot_payload,
+        episode: episode_payload,
+        audit,
+    }
+}
+
+/// Wasm adapter for the mean/LLN motivating example in §5.1.
+#[wasm_bindgen]
+pub struct MeanEstimator {
+    inner: CoreMeanEstimator,
+}
+
+#[wasm_bindgen]
+impl MeanEstimator {
+    #[wasm_bindgen(constructor)]
+    pub fn new(seed_hex: &str, max_samples: u32) -> Result<Self, JsValue> {
+        console_error_panic_hook::set_once();
+        let config = CoreMeanEstimationConfig {
+            seed: parse_mean_seed(seed_hex)?,
+            max_samples,
+        };
+        let inner = CoreMeanEstimator::new(config)
+            .map_err(|error| error_value(error.code(), error.to_string()))?;
+        Ok(Self { inner })
+    }
+
+    pub fn snapshot(&self) -> Result<JsValue, JsValue> {
+        serialize(&mean_snapshot_payload(self.inner.snapshot()))
+    }
+
+    pub fn advance(&mut self, samples: u32) -> Result<JsValue, JsValue> {
+        let outcome = self.inner.advance(samples);
+        serialize(&MeanEstimationOutcomePayload {
+            snapshot: mean_snapshot_payload(outcome.snapshot),
+            new_samples: outcome.new_samples,
+        })
+    }
+
+    pub fn sample(&mut self) -> Result<JsValue, JsValue> {
+        self.advance(1)
+    }
+
+    pub fn reset(&mut self, seed_hex: Option<String>) -> Result<JsValue, JsValue> {
+        let seed = seed_hex.as_deref().map(parse_mean_seed).transpose()?;
+        serialize(&mean_snapshot_payload(self.inner.reset(seed)))
+    }
+}
+
 fn serialize<T: Serialize>(value: &T) -> Result<JsValue, JsValue> {
     serde_wasm_bindgen::to_value(value).map_err(|error| JsValue::from_str(&error.to_string()))
 }
@@ -576,9 +1191,28 @@ fn parse_seed(seed_hex: &str) -> Result<u64, JsValue> {
     let normalized = seed_hex
         .trim()
         .strip_prefix("0x")
+        .or_else(|| seed_hex.trim().strip_prefix("0X"))
         .unwrap_or(seed_hex.trim());
     u64::from_str_radix(normalized, 16)
         .map_err(|_| error_value("invalid_seed", "seed must be a hexadecimal u64"))
+}
+
+fn parse_monte_carlo_seed(seed_hex: &str) -> Result<u64, JsValue> {
+    parse_seed(seed_hex).map_err(|_| {
+        error_value(
+            "monte_carlo_seed",
+            "seed must be a hexadecimal u64, for example 5eed",
+        )
+    })
+}
+
+fn parse_mean_seed(seed_hex: &str) -> Result<u64, JsValue> {
+    parse_seed(seed_hex).map_err(|_| {
+        error_value(
+            "mean_seed",
+            "seed must be a hexadecimal u64, for example 5eed",
+        )
+    })
 }
 
 fn parse_planning_mode(mode: &str) -> Result<CorePlanningMode, JsValue> {
@@ -1190,8 +1824,203 @@ mod tests {
         residual: f64,
     }
 
+    #[allow(dead_code)]
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct TestMonteCarloStep {
+        state: u16,
+        action: u8,
+        actual_action: u8,
+        next_state: u16,
+        reward: f64,
+        discount_weight: f64,
+        discounted_reward: f64,
+        done: bool,
+        truncated: bool,
+    }
+
+    #[allow(dead_code)]
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct TestMonteCarloReturn {
+        time: u32,
+        state: u16,
+        action: u8,
+        #[serde(rename = "return")]
+        r#return: f64,
+        included: bool,
+        count: u32,
+        estimate: f64,
+    }
+
+    #[allow(dead_code)]
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct TestMonteCarloEpisode {
+        number: u32,
+        start_state: u16,
+        start_action: u8,
+        steps: Vec<TestMonteCarloStep>,
+        returns: Vec<TestMonteCarloReturn>,
+        total_return: f64,
+        length: u32,
+        done: bool,
+        truncated: bool,
+    }
+
+    #[allow(dead_code)]
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct TestMonteCarloSnapshot {
+        mode: String,
+        visit_strategy: String,
+        epsilon: f64,
+        episode_count: u32,
+        total_steps: u64,
+        values: Vec<f64>,
+        action_values: Vec<Vec<f64>>,
+        visit_counts: Vec<Vec<u32>>,
+        return_sums: Vec<Vec<f64>>,
+        variances: Vec<Vec<f64>>,
+        policy_probabilities: Vec<Vec<f64>>,
+        policy: Vec<i16>,
+        last_episode: Option<TestMonteCarloEpisode>,
+        seed_hex: String,
+        wind_probability: f64,
+        truncated: bool,
+        episode_return_mean: f64,
+        episode_return_variance: f64,
+        policy_changes: u32,
+        covered_pairs: u32,
+        exhausted: bool,
+    }
+
+    #[allow(dead_code)]
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct TestMonteCarloAudit {
+        model_free: bool,
+        model_rows: u32,
+        observed_steps: u64,
+        credited_returns: u32,
+        unvisited_pairs: u32,
+        finite: bool,
+        message: Option<String>,
+    }
+
+    #[allow(dead_code)]
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct TestMonteCarloOutcome {
+        snapshot: TestMonteCarloSnapshot,
+        episode: TestMonteCarloEpisode,
+        audit: TestMonteCarloAudit,
+    }
+
+    #[allow(dead_code)]
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct TestMeanSnapshot {
+        seed_hex: String,
+        sample_count: u32,
+        samples: Vec<f64>,
+        mean: f64,
+        variance: f64,
+        expected_mean: f64,
+        exhausted: bool,
+    }
+
+    #[allow(dead_code)]
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct TestMeanOutcome {
+        snapshot: TestMeanSnapshot,
+        new_samples: Vec<f64>,
+    }
+
     fn from_js<T: for<'de> Deserialize<'de>>(value: JsValue) -> T {
         serde_wasm_bindgen::from_value(value).expect("payload follows the documented JS contract")
+    }
+
+    #[wasm_bindgen_test]
+    fn monte_carlo_payload_reports_realised_model_free_returns() {
+        let mut evaluator = MonteCarloEvaluator::new(
+            "mc-basic".to_owned(),
+            "initial-visit".to_owned(),
+            "control".to_owned(),
+            0.9,
+            0.0,
+            0.2,
+            1,
+            8,
+            20,
+            "5eed",
+            -0.04,
+            -1.0,
+            -1.0,
+            1.0,
+        )
+        .expect("valid Monte Carlo evaluator");
+        let initial: TestMonteCarloSnapshot = from_js(evaluator.snapshot().expect("snapshot"));
+        assert_eq!(initial.mode, "mc_basic");
+        assert_eq!(initial.visit_strategy, "initial");
+        assert_eq!(initial.episode_count, 0);
+        assert_eq!(initial.values.len(), 16);
+        assert_eq!(initial.action_values.len(), 16);
+        assert_eq!(initial.action_values[0].len(), 5);
+        assert_eq!(initial.policy[15], -1);
+
+        let outcome: TestMonteCarloOutcome = from_js(evaluator.episode().expect("episode"));
+        assert!(outcome.audit.model_free);
+        assert_eq!(outcome.audit.model_rows, 0);
+        assert!(outcome.audit.finite);
+        assert_eq!(outcome.snapshot.episode_count, 1);
+        assert_eq!(outcome.episode.steps.len(), outcome.episode.returns.len());
+        assert!(outcome.episode.returns.iter().any(|row| row.included));
+        assert_eq!(
+            outcome
+                .episode
+                .steps
+                .last()
+                .map(|step| step.done)
+                .unwrap_or(false),
+            outcome.episode.done,
+        );
+    }
+
+    #[wasm_bindgen_test]
+    fn monte_carlo_and_mean_reset_replay_seeded_samples() {
+        let mut evaluator = MonteCarloEvaluator::new(
+            "epsilon_greedy".to_owned(),
+            "every".to_owned(),
+            "prediction".to_owned(),
+            0.9,
+            0.1,
+            0.2,
+            2,
+            8,
+            12,
+            "1234",
+            -0.04,
+            -1.0,
+            -1.0,
+            1.0,
+        )
+        .expect("valid Monte Carlo evaluator");
+        let first: TestMonteCarloOutcome = from_js(evaluator.advance(2).expect("advance"));
+        evaluator.reset(None).expect("reset");
+        let second: TestMonteCarloOutcome = from_js(evaluator.advance(2).expect("advance"));
+        assert_eq!(first.snapshot.episode_count, second.snapshot.episode_count);
+        assert_eq!(first.snapshot.values, second.snapshot.values);
+        assert_eq!(first.episode.steps.len(), second.episode.steps.len());
+        assert_eq!(first.episode.total_return, second.episode.total_return);
+
+        let mut mean = MeanEstimator::new("1234", 8).expect("valid mean estimator");
+        let first_mean: TestMeanOutcome = from_js(mean.advance(4).expect("mean advance"));
+        mean.reset(None).expect("mean reset");
+        let second_mean: TestMeanOutcome = from_js(mean.advance(4).expect("mean advance"));
+        assert_eq!(first_mean.new_samples, second_mean.new_samples);
+        assert_eq!(first_mean.snapshot.samples, second_mean.snapshot.samples);
     }
 
     #[wasm_bindgen_test]

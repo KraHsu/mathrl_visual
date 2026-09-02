@@ -24,6 +24,13 @@ import {
   planningConfigValidationError,
   type PlanningWorkerResponse,
 } from '../docs/.vitepress/planningProtocol'
+import {
+  MONTE_CARLO_PROTOCOL_VERSION,
+  acceptsMonteCarloResponse,
+  canonicalMonteCarloMode,
+  monteCarloConfigValidationError,
+  type MonteCarloWorkerResponse,
+} from '../docs/.vitepress/monteCarloProtocol'
 
 function response(runId: string, sequence: number): WorkerResponse {
   return {
@@ -73,6 +80,18 @@ function planningResponse(runId: string, sequence: number): PlanningWorkerRespon
   }
 }
 
+function monteCarloResponse(runId: string, sequence: number): MonteCarloWorkerResponse {
+  return {
+    v: MONTE_CARLO_PROTOCOL_VERSION,
+    runId,
+    sequence,
+    kind: 'error',
+    code: 'test',
+    message: 'test',
+    recoverable: true,
+  }
+}
+
 describe('acceptsResponse', () => {
   it('accepts only newer messages for the current run', () => {
     expect(acceptsResponse(response('active', 4), 'active', 3)).toBe(true)
@@ -96,6 +115,12 @@ describe('acceptsResponse', () => {
     expect(acceptsPlanningResponse(planningResponse('active', 4), 'active', 3)).toBe(true)
     expect(acceptsPlanningResponse(planningResponse('stale', 5), 'active', 3)).toBe(false)
     expect(acceptsPlanningResponse(planningResponse('active', 3), 'active', 3)).toBe(false)
+  })
+
+  it('applies the stale-message guard to Monte Carlo episode runs', () => {
+    expect(acceptsMonteCarloResponse(monteCarloResponse('active', 4), 'active', 3)).toBe(true)
+    expect(acceptsMonteCarloResponse(monteCarloResponse('stale', 5), 'active', 3)).toBe(false)
+    expect(acceptsMonteCarloResponse(monteCarloResponse('active', 3), 'active', 3)).toBe(false)
   })
 
   it('rejects Bellman values that the Wasm ABI would otherwise coerce', () => {
@@ -167,5 +192,30 @@ describe('acceptsResponse', () => {
       'truncated_policy_iteration',
     )
     expect(canonicalPlanningMode('unknown')).toBeUndefined()
+  })
+
+  it('validates and canonicalizes Monte Carlo configuration', () => {
+    const valid = {
+      discount: 0.9,
+      slipProbability: 0,
+      epsilon: 0.2,
+      episodesPerStep: 1,
+      maxEpisodes: 100,
+      maxSteps: 64,
+      seedHex: '7e9',
+      mode: 'mc_basic',
+      visitStrategy: 'initial',
+      objective: 'control',
+      exploringStarts: false,
+      rewards: { default: -0.04, boundary: -1, hazard: -1, goal: 1 },
+    }
+    expect(monteCarloConfigValidationError(valid)).toBeUndefined()
+    expect(monteCarloConfigValidationError({ ...valid, epsilon: 1.1 })?.code).toBe(
+      'monte_carlo_epsilon_range',
+    )
+    expect(monteCarloConfigValidationError({ ...valid, maxSteps: 1.5 })?.code).toBe(
+      'monte_carlo_max_steps_range',
+    )
+    expect(canonicalMonteCarloMode('epsilon-greedy')).toBe('epsilon_greedy')
   })
 })
