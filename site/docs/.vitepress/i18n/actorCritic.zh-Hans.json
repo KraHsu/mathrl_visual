@@ -80,5 +80,16 @@
   "finiteRun": "有限轨迹让信息流可见，但不是渐近收敛证明。",
   "question": "比较 A2C 与离策略模式：改变 actor 更新的是 TD 误差本身，还是乘以重要性比率后的 TD 误差？",
   "errorPrefix": "Actor–Critic 引擎拒绝了这条命令。",
-  "unknownError": "未预期的 Actor–Critic 错误（{code}）。"
+  "unknownError": "未预期的 Actor–Critic 错误（{code}）。",
+  "errors": {
+    "actor_critic_mode": "请选择 QAC、A2C、离策略或确定性模式。",
+    "actor_critic_actor_alpha_range": "Actor 步长 αθ 必须是有限数且位于 (0, 10]。",
+    "actor_critic_critic_alpha_range": "Critic 步长 αw 必须是有限数且位于 (0, 10]。",
+    "actor_critic_discount_range": "折扣 γ 必须是有限数且位于 [0, 1]。",
+    "actor_critic_epsilon_range": "行为 ε 必须是有限数且位于 [0, 1]。",
+    "actor_critic_episodes_range": "回合预算必须是 1 到 100,000 的整数。",
+    "actor_critic_steps_range": "每回合步数上限必须是 1 到 10 的整数。",
+    "actor_critic_seed": "种子必须是十六进制 u64。",
+    "worker_error": "Actor–Critic Worker 报告了内部错误。"
+  }
 }

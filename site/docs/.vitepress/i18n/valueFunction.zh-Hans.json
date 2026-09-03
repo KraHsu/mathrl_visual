@@ -64,5 +64,24 @@
   "auditGeneralization": "一次参数更新可以影响邻近状态",
   "auditDqn": "Deep-Q 视图显示回放与目标网络节奏",
   "yes": "是",
-  "no": "否"
+  "no": "否",
+  "unknownError": "未预期的值函数错误（{code}）。",
+  "errors": {
+    "value_function_mode": "请选择有效的值函数方法。",
+    "value_function_feature_map": "请选择有效的特征映射。",
+    "value_function_discount_range": "折扣 γ 必须是有限数且位于 [0, 1]。",
+    "value_function_slip_range": "风扰动概率必须是有限数且位于 [0, 1]。",
+    "value_function_epsilon_range": "探索 ε 必须是有限数且位于 [0, 1]。",
+    "value_function_alpha_range": "学习率 α 必须是有限数且位于 (0, 1]。",
+    "value_function_replay_capacity_range": "回放容量必须是 1 到 10,000 的整数。",
+    "value_function_batch_size_range": "批大小必须是 1 到 256 的整数。",
+    "value_function_batch_larger_than_replay": "批大小不能超过回放容量。",
+    "value_function_target_interval_range": "目标同步间隔必须是 1 到 10,000 的整数。",
+    "value_function_max_episodes_range": "回合预算必须是 1 到 100,000 的整数。",
+    "value_function_max_steps_range": "每回合步数上限必须是 1 到 100 的整数。",
+    "value_function_seed": "种子必须是十六进制。",
+    "value_function_reward_range": "每个奖励必须是有限数，绝对值不超过 1,000,000。",
+    "value_function_worker": "值函数引擎报告了内部错误。",
+    "worker_error": "值函数 Worker 报告了内部错误。"
+  }
 }

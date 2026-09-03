@@ -74,5 +74,14 @@
   "modelNote": "学习器只接收采样到的上下文、动作和奖励；固定奖励表仅作为教学参考公开。",
   "question": "用同一种子比较无 baseline 与有 baseline 的运行。期望目标是否改变，还是主要改变了采样更新的方差？",
   "errorPrefix": "策略梯度引擎拒绝了这条命令。",
-  "unknownError": "未预期的策略梯度错误（{code}）。"
+  "unknownError": "未预期的策略梯度错误（{code}）。",
+  "errors": {
+    "policy_gradient_mode": "请选择 REINFORCE 或 baseline 模式。",
+    "policy_gradient_alpha_range": "策略步长 α 必须是有限数且位于 (0, 10]。",
+    "policy_gradient_discount_range": "回报折扣 γ 必须是有限数且位于 [0, 1]。",
+    "policy_gradient_noise_range": "奖励噪声 σ 必须是有限数且位于 [0, 1,000,000]。",
+    "policy_gradient_episodes_range": "回合预算必须是 1 到 100,000 的整数。",
+    "policy_gradient_seed": "种子必须是十六进制 u64。",
+    "worker_error": "策略梯度 Worker 报告了内部错误。"
+  }
 }

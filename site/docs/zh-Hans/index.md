@@ -18,11 +18,11 @@ hero:
       text: 开始第一章
       link: /zh-Hans/learn/ch01/
     - theme: alt
-      text: 探索第四章规划
-      link: /zh-Hans/learn/ch04/
+      text: 探索第七至十章
+      link: /zh-Hans/learn/ch07/
 features:
   - title: 概念同步
-    details: 从状态与策略评估走向 Bellman 最优性，再比较 Value 与 Policy Iteration 规划。
+    details: 从状态与策略评估走向 Bellman 规划，再学习时间差分、值函数、策略梯度与 Actor–Critic 方法。
   - title: 数值可复现
     details: Rust/Wasm 同时提供可复现的固定种子轨迹，以及确定性的期望与最优性计算过程。
   - title: 双语同构

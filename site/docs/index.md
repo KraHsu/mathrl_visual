@@ -11,10 +11,10 @@ hero:
 <div class="bilingual-entry">
   <a href="./zh-Hans/">
     <strong>进入简体中文版 →</strong>
-    <span>从状态与动作继续学到 Value / Policy Iteration 规划</span>
+    <span>从状态与动作一路学到 TD、策略梯度与 Actor–Critic</span>
   </a>
   <a href="./en/">
     <strong>Continue in English →</strong>
-    <span>Learn from states and actions through Value / Policy Iteration planning</span>
+    <span>Learn from states and actions through TD, policy gradients, and actor–critic</span>
   </a>
 </div>

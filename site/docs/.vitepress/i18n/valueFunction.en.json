@@ -64,5 +64,24 @@
   "auditGeneralization": "one parameter update can affect neighbouring states",
   "auditDqn": "Deep-Q view exposes replay and target-network cadence",
   "yes": "yes",
-  "no": "no"
+  "no": "no",
+  "unknownError": "Unexpected value-function error ({code}).",
+  "errors": {
+    "value_function_mode": "Choose a valid value-function method.",
+    "value_function_feature_map": "Choose a valid feature map.",
+    "value_function_discount_range": "Discount γ must be finite and in [0, 1].",
+    "value_function_slip_range": "Wind probability must be finite and in [0, 1].",
+    "value_function_epsilon_range": "Exploration ε must be finite and in [0, 1].",
+    "value_function_alpha_range": "Learning rate α must be finite and in (0, 1].",
+    "value_function_replay_capacity_range": "Replay capacity must be an integer from 1 through 10,000.",
+    "value_function_batch_size_range": "Batch size must be an integer from 1 through 256.",
+    "value_function_batch_larger_than_replay": "Batch size cannot exceed replay capacity.",
+    "value_function_target_interval_range": "Target sync interval must be an integer from 1 through 10,000.",
+    "value_function_max_episodes_range": "The episode budget must be an integer from 1 through 100,000.",
+    "value_function_max_steps_range": "The episode step cap must be an integer from 1 through 100.",
+    "value_function_seed": "The seed must be hexadecimal.",
+    "value_function_reward_range": "Each reward must be finite with magnitude at most 1,000,000.",
+    "value_function_worker": "The value-function engine reported an internal error.",
+    "worker_error": "The value-function Worker reported an internal error."
+  }
 }

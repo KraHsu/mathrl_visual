@@ -18,11 +18,11 @@ hero:
       text: Start Chapter 1
       link: /en/learn/ch01/
     - theme: alt
-      text: Explore Chapter 4 planning
-      link: /en/learn/ch04/
+      text: Explore Chapters 7–10
+      link: /en/learn/ch07/
 features:
   - title: Synchronized concepts
-    details: Move from states and policy evaluation through Bellman optimality to Value and Policy Iteration planning.
+    details: Move from states and policy evaluation through Bellman planning, temporal differences, value functions, policy gradients, and actor–critic methods.
   - title: Reproducible numbers
     details: Rust/Wasm produces seeded trajectories and deterministic expectation and optimality traces that can be checked again.
   - title: Paired languages

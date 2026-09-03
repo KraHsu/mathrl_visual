@@ -74,5 +74,14 @@
   "modelNote": "The learner sees the sampled context, action, and reward. The fixed reward table is exposed only as a teaching reference.",
   "question": "Compare the no-baseline and baseline runs with the same seed. Does the expected objective change, or mainly the variance of sampled updates?",
   "errorPrefix": "The policy-gradient engine rejected the command.",
-  "unknownError": "Unexpected policy-gradient error ({code})."
+  "unknownError": "Unexpected policy-gradient error ({code}).",
+  "errors": {
+    "policy_gradient_mode": "Choose REINFORCE or baseline mode.",
+    "policy_gradient_alpha_range": "Actor step α must be finite and in (0, 10].",
+    "policy_gradient_discount_range": "Return discount γ must be finite and in [0, 1].",
+    "policy_gradient_noise_range": "Reward noise σ must be finite and in [0, 1,000,000].",
+    "policy_gradient_episodes_range": "The episode budget must be an integer from 1 through 100,000.",
+    "policy_gradient_seed": "The seed must be a hexadecimal u64.",
+    "worker_error": "The policy-gradient Worker reported an internal error."
+  }
 }

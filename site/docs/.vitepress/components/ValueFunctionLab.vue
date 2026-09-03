@@ -20,7 +20,7 @@ import {
   type ValueFunctionWorkerResponse,
 } from '../valueFunctionProtocol'
 import { valueFunctionMessagesFor } from '../i18n/valueFunctionMessages'
-import type { Locale } from '../i18n/messages'
+import { interpolate, type Locale } from '../i18n/messages'
 
 const props = withDefaults(defineProps<{ locale?: Locale }>(), { locale: 'en' })
 const copy = computed(() => valueFunctionMessagesFor(props.locale))
@@ -65,18 +65,22 @@ function emptySnapshot(source: ValueFunctionConfig): ValueFunctionSnapshot {
 function clone(value: ValueFunctionConfig): ValueFunctionConfig { return { ...value, rewards: { ...value.rewards } } }
 function id(): string { return `ch08-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}` }
 function setStatus(message: string, announce = true): void { status.value = message; if (announce) announcement.value = message }
+function localizedError(code: string): string {
+  return (copy.value.errors as Record<string, string>)[code]
+    ?? interpolate(copy.value.unknownError, { code })
+}
 function createWorker(): boolean {
   try {
     const next = new Worker(new URL('../workers/value-function.worker.ts', import.meta.url), { type: 'module' })
     next.addEventListener('message', handleResponse)
-    const failed = () => { if (worker !== next) return; stopRun(); phase.value = 'error'; awaiting.value = false; setStatus(copy.value.failed); next.terminate(); worker = undefined }
+    const failed = () => { if (worker !== next) return; stopRun(); phase.value = 'error'; awaiting.value = false; setStatus(`${copy.value.failed}: ${localizedError('value_function_worker')}`); next.terminate(); worker = undefined }
     next.addEventListener('error', failed); next.addEventListener('messageerror', failed); worker = next; return true
-  } catch { phase.value = 'error'; setStatus(copy.value.failed); return false }
+  } catch { phase.value = 'error'; setStatus(`${copy.value.failed}: ${localizedError('value_function_worker')}`); return false }
 }
 function post(request: ValueFunctionWorkerRequest): void { worker?.postMessage(request) }
 function start(): void {
   stopRun(); const next = clone(config); const issue = valueFunctionConfigValidationError(next)
-  if (issue) { phase.value = 'error'; setStatus(`${copy.value.validation}: ${issue.message}`); return }
+  if (issue) { phase.value = 'error'; setStatus(`${copy.value.validation}: ${localizedError(issue.code)}`); return }
   if (!worker && !createWorker()) return
   appliedConfig.value = next; runKey.value = id(); lastSequence.value = -1; awaiting.value = true; phase.value = 'loading'; transitions.value = []; updates.value = []; snapshot.value = emptySnapshot(next); setStatus(copy.value.loading)
   post({ v: VALUE_FUNCTION_PROTOCOL_VERSION, runId: runKey.value, kind: 'start', config: next })
@@ -93,7 +97,7 @@ function pause(): void { stopRun(); setStatus(copy.value.paused) }
 function stopRun(): void { running.value = false; if (timer) clearTimeout(timer); timer = undefined }
 function handleResponse(event: MessageEvent<ValueFunctionWorkerResponse>): void {
   const response = event.data; if (response.v !== VALUE_FUNCTION_PROTOCOL_VERSION || response.runId !== runKey.value || response.sequence <= lastSequence.value) return; lastSequence.value = response.sequence
-  if (response.kind === 'error') { awaiting.value = false; if (!response.recoverable) { stopRun(); phase.value = 'error' }; setStatus(`${copy.value.failed}: ${response.message}`); return }
+  if (response.kind === 'error') { awaiting.value = false; if (!response.recoverable) { stopRun(); phase.value = 'error' }; setStatus(`${copy.value.failed}: ${localizedError(response.code)}`); return }
   awaiting.value = false
   if (response.kind === 'started') { snapshot.value = response.snapshot; phase.value = 'ready'; setStatus(copy.value.ready); if (running.value) schedule(); return }
   if (response.kind === 'reset') { snapshot.value = response.snapshot; transitions.value = []; updates.value = []; setStatus(copy.value.resetDone); return }
@@ -127,9 +131,9 @@ onBeforeUnmount(() => { stopRun(); worker?.terminate(); worker = undefined })
       <label>{{ copy.replayCapacity }}<input v-model.number="config.replayCapacity" type="number" min="1" max="10000" step="1" /></label>
       <label>{{ copy.maxEpisodes }}<input v-model.number="config.maxEpisodes" type="number" min="1" max="100000" step="1" /></label>
       <label>{{ copy.seed }}<input v-model="config.seedHex" spellcheck="false" /></label>
-    </div><p v-if="validation" class="validation-message" role="alert">{{ copy.validation }}: {{ validation.message }}</p><div class="control-actions"><button type="button" class="action-button action-button--primary" :disabled="phase === 'loading'" @click="start">{{ copy.apply }}</button><button type="button" class="action-button" :disabled="!canCommand" @click="dispatch('step')">{{ copy.step }}</button><button type="button" class="action-button" :disabled="!canCommand" @click="dispatch('advance', 25)">{{ copy.advance }}</button><button type="button" class="action-button" :disabled="phase !== 'ready' || (awaiting && !running)" @click="running ? pause() : run()">{{ running ? copy.pause : copy.run }}</button><button type="button" class="action-button" :disabled="!canCommand" @click="dispatch('reset')">{{ copy.reset }}</button></div></section>
+    </div><p v-if="validation" class="validation-message" role="alert">{{ copy.validation }}: {{ localizedError(validation.code) }}</p><div class="control-actions"><button type="button" class="action-button action-button--primary" :disabled="phase === 'loading'" @click="start">{{ copy.apply }}</button><button type="button" class="action-button" :disabled="!canCommand" @click="dispatch('step')">{{ copy.step }}</button><button type="button" class="action-button" :disabled="!canCommand" @click="dispatch('advance', 25)">{{ copy.advance }}</button><button type="button" class="action-button" :disabled="phase !== 'ready' || (awaiting && !running)" @click="running ? pause() : run()">{{ running ? copy.pause : copy.run }}</button><button type="button" class="action-button" :disabled="!canCommand" @click="dispatch('reset')">{{ copy.reset }}</button></div></section>
     <div class="metric-grid"><article><span>{{ copy.episodes }}</span><strong>{{ snapshot.episodeCount }}</strong></article><article><span>{{ copy.updates }}</span><strong>{{ snapshot.updateCount }}</strong></article><article><span>{{ copy.prediction }}</span><strong>{{ format(snapshot.lastPrediction) }}</strong></article><article><span>{{ copy.target }}</span><strong>{{ format(snapshot.lastTarget) }}</strong></article><article><span>{{ copy.loss }}</span><strong>{{ format(snapshot.lastLoss) }}</strong></article><article><span>{{ copy.replay }}</span><strong>{{ snapshot.replaySize }}</strong></article><article><span>{{ copy.targetSyncs }}</span><strong>{{ snapshot.targetSyncCount }}</strong></article></div>
-    <div class="vf-layout"><section class="lab-card"><div class="card-heading"><h3>{{ copy.grid }}</h3><span>{{ copy.clickCell }}</span></div><div class="vf-grid" role="grid" aria-label="4 by 4 approximated values"><button v-for="state in stateCount" :key="state - 1" type="button" :class="cellClass(state - 1)" role="gridcell" @click="selectedState = state - 1"><span>s{{ state - 1 }}</span><strong>{{ format(snapshot.values[state - 1] ?? 0) }}</strong><small>{{ action(snapshot.policy[state - 1] ?? -1) }}</small></button></div></section><section class="lab-card"><div class="card-heading"><h3>{{ copy.chart }}</h3><span>{{ appliedConfig.featureMap }}</span></div><svg viewBox="0 0 560 150" role="img" :aria-label="copy.chart"><line x1="18" y1="132" x2="542" y2="132" class="chart-axis" /><polyline :points="chart.points" class="chart-line" /><circle v-for="(value, index) in snapshot.values" :key="index" :cx="18 + index / (snapshot.values.length - 1) * 524" :cy="18 + (chart.max - value) / Math.max(chart.max - chart.min, 1e-9) * 114" r="2.5" class="chart-dot" /></svg></section></div>
+    <div class="vf-layout"><section class="lab-card"><div class="card-heading"><h3>{{ copy.grid }}</h3><span>{{ copy.clickCell }}</span></div><div class="vf-grid" role="grid" :aria-label="copy.grid"><button v-for="state in stateCount" :key="state - 1" type="button" :class="cellClass(state - 1)" role="gridcell" @click="selectedState = state - 1"><span>s{{ state - 1 }}</span><strong>{{ format(snapshot.values[state - 1] ?? 0) }}</strong><small>{{ action(snapshot.policy[state - 1] ?? -1) }}</small></button></div></section><section class="lab-card"><div class="card-heading"><h3>{{ copy.chart }}</h3><span>{{ appliedConfig.featureMap }}</span></div><svg viewBox="0 0 560 150" role="img" :aria-label="copy.chart"><line x1="18" y1="132" x2="542" y2="132" class="chart-axis" /><polyline :points="chart.points" class="chart-line" /><circle v-for="(value, index) in snapshot.values" :key="index" :cx="18 + index / (snapshot.values.length - 1) * 524" :cy="18 + (chart.max - value) / Math.max(chart.max - chart.min, 1e-9) * 114" r="2.5" class="chart-dot" /></svg></section></div>
     <section class="lab-card"><div class="card-heading"><h3>{{ copy.inspector }}</h3><span>s{{ snapshot.lastState }}, a{{ snapshot.lastAction }}</span></div><div class="inspector-grid"><div><span>{{ copy.selectedValue }}</span><strong>{{ format(selectedValue) }}</strong></div><div><span>{{ copy.featureVector }}</span><strong class="feature-vector">[{{ selectedFeatures.slice(0, snapshot.featureCount).map(format).join(', ') }}]</strong></div><div><span>{{ copy.gradient }}</span><strong>{{ format(snapshot.lastGradientNorm) }}</strong></div><div><span>{{ copy.updateNorm }}</span><strong>{{ format(snapshot.lastUpdateNorm) }}</strong></div></div><p class="equation-audit"><code>θ ← θ + α · ({{ format(snapshot.lastTarget) }} − {{ format(snapshot.lastPrediction) }}) · φ(s)</code></p></section>
     <section class="lab-card"><div class="card-heading"><h3>{{ copy.trace }}</h3><span>{{ transitions.length }} / 240</span></div><div class="table-wrap"><table><thead><tr><th>t</th><th>{{ copy.state }}</th><th>{{ copy.action }}</th><th>{{ copy.reward }}</th><th>{{ copy.nextState }}</th><th>{{ copy.target }}</th><th>{{ copy.loss }}</th></tr></thead><tbody><tr v-for="(row, index) in transitions.slice(-40)" :key="`${row.episodeStep}-${index}`"><td>{{ row.episodeStep }}</td><td>s{{ row.state }}</td><td>{{ action(row.action) }}</td><td>{{ format(row.reward) }}</td><td>s{{ row.nextState }}</td><td>{{ format(updates.at(-(transitions.length - index))?.target ?? 0) }}</td><td>{{ format(updates.at(-(transitions.length - index))?.loss ?? 0) }}</td></tr><tr v-if="transitions.length === 0"><td colspan="7">{{ copy.noTrace }}</td></tr></tbody></table></div></section>
     <div class="lab-audit"><strong>{{ copy.auditTitle }}</strong><span>✓ {{ copy.auditFeatures }}</span><span>✓ {{ copy.auditGeneralization }}</span><span>✓ {{ copy.auditDqn }}</span></div>

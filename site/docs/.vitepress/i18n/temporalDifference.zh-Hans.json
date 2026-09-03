@@ -60,5 +60,20 @@
   "auditTarget": "每次更新都显示目标和误差",
   "auditSeed": "固定种子可复现",
   "yes": "是",
-  "no": "否"
+  "no": "否",
+  "unknownError": "未预期的时间差分错误（{code}）。",
+  "errors": {
+    "temporal_difference_mode": "请选择有效的时间差分方法。",
+    "temporal_difference_discount_range": "折扣 γ 必须是有限数且位于 [0, 1]。",
+    "temporal_difference_slip_range": "风扰动概率必须是有限数且位于 [0, 1]。",
+    "temporal_difference_epsilon_range": "探索 ε 必须是有限数且位于 [0, 1]。",
+    "temporal_difference_alpha_range": "学习率 α 必须是有限数且位于 (0, 1]。",
+    "temporal_difference_n_step_range": "n-step 视野必须是 1 到 100 的整数。",
+    "temporal_difference_max_episodes_range": "回合预算必须是 1 到 100,000 的整数。",
+    "temporal_difference_max_steps_range": "每回合步数上限必须是 1 到 100 的整数。",
+    "temporal_difference_seed": "种子必须是十六进制。",
+    "temporal_difference_reward_range": "每个奖励必须是有限数，绝对值不超过 1,000,000。",
+    "temporal_difference_worker": "时间差分引擎报告了内部错误。",
+    "worker_error": "时间差分 Worker 报告了内部错误。"
+  }
 }

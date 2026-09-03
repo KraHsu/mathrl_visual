@@ -14,7 +14,7 @@ import {
   type ActorCriticWorkerResponse,
 } from '../actorCriticProtocol'
 import { actorCriticMessagesFor } from '../i18n/actorCriticMessages'
-import type { Locale } from '../i18n/messages'
+import { interpolate, type Locale } from '../i18n/messages'
 
 const props = withDefaults(defineProps<{ locale?: Locale }>(), { locale: 'en' })
 const copy = computed(() => actorCriticMessagesFor(props.locale))
@@ -35,7 +35,7 @@ const snapshot = ref<ActorCriticSnapshot>(emptySnapshot(baselineConfig))
 const phase = ref<'loading' | 'ready' | 'error'>('loading')
 const awaiting = ref(false)
 const running = ref(false)
-const errorMessage = ref('')
+const errorCode = ref('')
 const currentRunId = ref('')
 const sequence = ref(-1)
 const runRemaining = ref(0)
@@ -87,25 +87,30 @@ function id(): string {
   return `ac-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`
 }
 
+function localizedError(code: string): string {
+  return (copy.value.errors as Record<string, string>)[code]
+    ?? interpolate(copy.value.unknownError, { code })
+}
+
 function createWorker(): boolean {
   try {
     const next = new Worker(new URL('../workers/actor-critic.worker.ts', import.meta.url), { type: 'module' })
     next.addEventListener('message', handle)
-    next.addEventListener('error', (event) => fail(event.message || copy.value.failed))
-    next.addEventListener('messageerror', () => fail('Worker message could not be decoded'))
+    next.addEventListener('error', () => fail('worker_error'))
+    next.addEventListener('messageerror', () => fail('worker_error'))
     worker = next
     return true
-  } catch (error) {
-    fail(error instanceof Error ? error.message : String(error))
+  } catch {
+    fail('worker_error')
     return false
   }
 }
 
-function fail(message: string): void {
+function fail(code: string): void {
   stop()
   awaiting.value = false
   phase.value = 'error'
-  errorMessage.value = message
+  errorCode.value = code
 }
 
 function post(kind: ActorCriticWorkerRequest['kind'], payload: Record<string, unknown> = {}): void {
@@ -125,7 +130,7 @@ function start(): void {
   const issue = actorCriticConfigValidationError(next)
   if (issue) {
     phase.value = 'error'
-    errorMessage.value = issue.message
+    errorCode.value = issue.code
     return
   }
   if (!worker && !createWorker()) return
@@ -135,7 +140,7 @@ function start(): void {
   sequence.value = -1
   phase.value = 'loading'
   awaiting.value = true
-  errorMessage.value = ''
+  errorCode.value = ''
   post('start', { config: next })
 }
 
@@ -147,17 +152,19 @@ function handle(event: MessageEvent<ActorCriticWorkerResponse>): void {
   awaiting.value = false
   if (response.kind === 'error') {
     stop()
-    errorMessage.value = response.message
+    errorCode.value = response.code
     phase.value = 'error'
     return
   }
   if (response.kind === 'ready' || response.kind === 'reset') {
     snapshot.value = response.snapshot
     phase.value = 'ready'
+    errorCode.value = ''
     return
   }
   snapshot.value = response.outcome.snapshot
   phase.value = 'ready'
+  errorCode.value = ''
   if (running.value && response.kind === 'advance') {
     const consumed = response.outcome.episodes.length
     runRemaining.value = Math.max(0, runRemaining.value - consumed)
@@ -271,7 +278,7 @@ onBeforeUnmount(() => {
         <label><span>{{ copy.maxSteps }}</span><input v-model.number="config.maxSteps" type="number" min="1" max="10" step="1" :aria-label="copy.maxSteps" /></label>
         <label><span>{{ copy.seed }}</span><input v-model.trim="config.seedHex" type="text" :aria-label="copy.seed" /></label>
         <div class="lab-actions"><button class="lab-button lab-button--primary" data-testid="ac-apply" type="button" :disabled="phase === 'loading' || awaiting || running" @click="start">{{ copy.apply }}</button><button class="lab-button" data-testid="ac-step" type="button" :disabled="phase !== 'ready' || awaiting || running" @click="oneEpisode">{{ copy.step }}</button><button class="lab-button" data-testid="ac-advance" type="button" :disabled="phase !== 'ready' || awaiting || running" @click="advance">{{ copy.advance }}</button><button class="lab-button" data-testid="ac-run" type="button" :disabled="phase !== 'ready' || (awaiting && !running)" @click="running ? stop() : run()">{{ running ? copy.pause : copy.run }}</button><button class="lab-button" data-testid="ac-reset" type="button" :disabled="phase !== 'ready' || awaiting || running" @click="reset">{{ copy.reset }}</button></div>
-        <p v-if="validation" class="lab-error" role="alert">{{ copy.validation }}: {{ validation.message }}</p><p v-if="errorMessage && !validation" class="lab-error" role="alert">{{ copy.errorPrefix }} {{ errorMessage }}</p>
+        <p v-if="validation" class="lab-error" role="alert">{{ copy.validation }}: {{ localizedError(validation.code) }}</p><p v-if="errorCode && !validation" class="lab-error" role="alert">{{ copy.errorPrefix }} {{ localizedError(errorCode) }}</p>
       </aside>
       <div class="lab-panel">
         <h2>{{ copy.metrics }}</h2>

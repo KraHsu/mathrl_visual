@@ -17,7 +17,7 @@ import {
   type TemporalDifferenceUpdate,
 } from '../temporalDifferenceProtocol'
 import { temporalDifferenceMessagesFor } from '../i18n/temporalDifferenceMessages'
-import type { Locale } from '../i18n/messages'
+import { interpolate, type Locale } from '../i18n/messages'
 
 const props = withDefaults(defineProps<{ locale?: Locale }>(), { locale: 'en' })
 const copy = computed(() => temporalDifferenceMessagesFor(props.locale))
@@ -72,22 +72,27 @@ function emptySnapshot(source: TemporalDifferenceConfig): TemporalDifferenceSnap
 function cloneConfig(value: TemporalDifferenceConfig): TemporalDifferenceConfig { return { ...value, rewards: { ...value.rewards } } }
 function runId(): string { return `ch07-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}` }
 function setStatus(message: string, announce = true): void { status.value = message; if (announce) announcement.value = message }
+function localizedError(code: string): string {
+  return (copy.value.errors as Record<string, string>)[code]
+    ?? interpolate(copy.value.unknownError, { code })
+}
 function createWorker(): boolean {
   try {
     const next = new Worker(new URL('../workers/temporal-difference.worker.ts', import.meta.url), { type: 'module' })
     next.addEventListener('message', handleResponse)
-    next.addEventListener('error', () => { if (worker !== next) return; stopRun(); phase.value = 'error'; awaiting.value = false; setStatus(copy.value.failed); next.terminate(); worker = undefined })
-    next.addEventListener('messageerror', () => { if (worker !== next) return; stopRun(); phase.value = 'error'; awaiting.value = false; setStatus(copy.value.failed); next.terminate(); worker = undefined })
+    const failed = () => { if (worker !== next) return; stopRun(); phase.value = 'error'; awaiting.value = false; setStatus(`${copy.value.failed}: ${localizedError('temporal_difference_worker')}`); next.terminate(); worker = undefined }
+    next.addEventListener('error', failed)
+    next.addEventListener('messageerror', failed)
     worker = next
     return true
-  } catch { phase.value = 'error'; setStatus(copy.value.failed); return false }
+  } catch { phase.value = 'error'; setStatus(`${copy.value.failed}: ${localizedError('temporal_difference_worker')}`); return false }
 }
 function post(request: TemporalDifferenceWorkerRequest): void { worker?.postMessage(request) }
 function start(): void {
   stopRun()
   const next = cloneConfig(config)
   const issue = temporalDifferenceConfigValidationError(next)
-  if (issue) { phase.value = 'error'; setStatus(`${copy.value.validation}: ${issue.message}`); return }
+  if (issue) { phase.value = 'error'; setStatus(`${copy.value.validation}: ${localizedError(issue.code)}`); return }
   if (!worker && !createWorker()) return
   appliedConfig.value = next
   currentRunId.value = runId(); sequence.value = -1; awaiting.value = true; phase.value = 'loading'; trace.value = []; updates.value = []; snapshot.value = emptySnapshot(next); setStatus(copy.value.loading)
@@ -112,7 +117,7 @@ function handleResponse(event: MessageEvent<TemporalDifferenceWorkerResponse>): 
   const response = event.data
   if (response.v !== TEMPORAL_DIFFERENCE_PROTOCOL_VERSION || response.runId !== currentRunId.value || response.sequence <= sequence.value) return
   sequence.value = response.sequence
-  if (response.kind === 'error') { awaiting.value = false; if (!response.recoverable) { stopRun(); phase.value = 'error' }; setStatus(`${copy.value.failed}: ${response.message}`); return }
+  if (response.kind === 'error') { awaiting.value = false; if (!response.recoverable) { stopRun(); phase.value = 'error' }; setStatus(`${copy.value.failed}: ${localizedError(response.code)}`); return }
   awaiting.value = false
   if (response.kind === 'started') { snapshot.value = response.snapshot; phase.value = 'ready'; setStatus(copy.value.ready); if (running.value) schedule(); return }
   if (response.kind === 'reset') { snapshot.value = response.snapshot; trace.value = []; updates.value = []; setStatus(copy.value.resetDone); return }
@@ -148,7 +153,7 @@ onBeforeUnmount(() => { stopRun(); worker?.terminate(); worker = undefined })
 
     <section class="lab-controls" :aria-label="copy.controls">
       <div class="control-grid">
-        <label>{{ copy.mode }}<select v-model="config.mode" data-td-mode aria-label="TD mode"><option v-for="mode in TEMPORAL_DIFFERENCE_MODES" :key="mode" :value="mode">{{ modeLabel(mode) }}</option></select></label>
+        <label>{{ copy.mode }}<select v-model="config.mode" data-td-mode :aria-label="copy.mode"><option v-for="mode in TEMPORAL_DIFFERENCE_MODES" :key="mode" :value="mode">{{ modeLabel(mode) }}</option></select></label>
         <label>{{ copy.discount }}<input v-model.number="config.discount" type="number" min="0" max="1" step="0.05" /></label>
         <label>{{ copy.alpha }}<input v-model.number="config.alpha" type="number" min="0.001" max="1" step="0.01" /></label>
         <label>{{ copy.epsilon }}<input v-model.number="config.epsilon" type="range" min="0" max="1" step="0.05" /><output>{{ config.epsilon.toFixed(2) }}</output></label>
@@ -158,7 +163,7 @@ onBeforeUnmount(() => { stopRun(); worker?.terminate(); worker = undefined })
         <label>{{ copy.maxSteps }}<input v-model.number="config.maxSteps" type="number" min="1" max="100" step="1" /></label>
         <label>{{ copy.seed }}<input v-model="config.seedHex" spellcheck="false" inputmode="text" /></label>
       </div>
-      <p v-if="validation" class="validation-message" role="alert">{{ copy.validation }}: {{ validation.message }}</p>
+      <p v-if="validation" class="validation-message" role="alert">{{ copy.validation }}: {{ localizedError(validation.code) }}</p>
       <div class="control-actions">
         <button type="button" class="action-button action-button--primary" :disabled="phase === 'loading'" @click="start">{{ copy.apply }}</button>
         <button type="button" class="action-button" :disabled="!canCommand" @click="step">{{ copy.step }}</button>
@@ -180,7 +185,7 @@ onBeforeUnmount(() => { stopRun(); worker?.terminate(); worker = undefined })
     <div class="td-grid-layout">
       <section class="lab-card">
         <div class="card-heading"><h3>{{ copy.grid }}</h3><span>{{ copy.clickCell }}</span></div>
-        <div class="td-grid" role="grid" aria-label="4 by 4 value grid">
+        <div class="td-grid" role="grid" :aria-label="copy.grid">
           <button v-for="state in stateCount" :key="state - 1" type="button" :class="cellClass(state - 1)" role="gridcell" :aria-label="`${stateLabel(state - 1)}: ${format(snapshot.values[state - 1] ?? 0)}`" @click="selectedState = state - 1"><span>{{ stateLabel(state - 1) }}</span><strong>{{ format(snapshot.values[state - 1] ?? 0) }}</strong><small>{{ actionName(snapshot.policy[state - 1] ?? -1) }}</small></button>
         </div>
       </section>

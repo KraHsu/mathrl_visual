@@ -14,7 +14,7 @@ import {
   type PolicyGradientWorkerResponse,
 } from '../policyGradientProtocol'
 import { policyGradientMessagesFor } from '../i18n/policyGradientMessages'
-import type { Locale } from '../i18n/messages'
+import { interpolate, type Locale } from '../i18n/messages'
 
 const props = withDefaults(defineProps<{ locale?: Locale }>(), { locale: 'en' })
 const copy = computed(() => policyGradientMessagesFor(props.locale))
@@ -34,7 +34,7 @@ const snapshot = ref<PolicyGradientSnapshot>(emptySnapshot(baselineConfig))
 const phase = ref<'loading' | 'ready' | 'error'>('loading')
 const awaiting = ref(false)
 const running = ref(false)
-const errorMessage = ref('')
+const errorCode = ref('')
 const status = ref('')
 const currentRunId = ref('')
 const sequence = ref(-1)
@@ -84,25 +84,30 @@ function id(): string {
   return `pg-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`
 }
 
+function localizedError(code: string): string {
+  return (copy.value.errors as Record<string, string>)[code]
+    ?? interpolate(copy.value.unknownError, { code })
+}
+
 function createWorker(): boolean {
   try {
     const next = new Worker(new URL('../workers/policy-gradient.worker.ts', import.meta.url), { type: 'module' })
     next.addEventListener('message', handle)
-    next.addEventListener('error', (event) => fail(event.message || copy.value.failed))
-    next.addEventListener('messageerror', () => fail('Worker message could not be decoded'))
+    next.addEventListener('error', () => fail('worker_error'))
+    next.addEventListener('messageerror', () => fail('worker_error'))
     worker = next
     return true
-  } catch (error) {
-    fail(error instanceof Error ? error.message : String(error))
+  } catch {
+    fail('worker_error')
     return false
   }
 }
 
-function fail(message: string): void {
+function fail(code: string): void {
   stop()
   awaiting.value = false
   phase.value = 'error'
-  errorMessage.value = message
+  errorCode.value = code
 }
 
 function post(kind: PolicyGradientWorkerRequest['kind'], payload: Record<string, unknown> = {}): void {
@@ -122,7 +127,7 @@ function start(): void {
   const issue = policyGradientConfigValidationError(next)
   if (issue) {
     phase.value = 'error'
-    errorMessage.value = issue.message
+    errorCode.value = issue.code
     return
   }
   if (!worker && !createWorker()) return
@@ -132,7 +137,7 @@ function start(): void {
   sequence.value = -1
   phase.value = 'loading'
   awaiting.value = true
-  errorMessage.value = ''
+  errorCode.value = ''
   post('start', { config: next })
 }
 
@@ -144,19 +149,19 @@ function handle(event: MessageEvent<PolicyGradientWorkerResponse>): void {
   awaiting.value = false
   if (response.kind === 'error') {
     stop()
-    errorMessage.value = response.message
+    errorCode.value = response.code
     phase.value = 'error'
     return
   }
   if (response.kind === 'ready' || response.kind === 'reset') {
     snapshot.value = response.snapshot
     phase.value = 'ready'
-    errorMessage.value = ''
+    errorCode.value = ''
     return
   }
   snapshot.value = response.outcome.snapshot
   phase.value = 'ready'
-  errorMessage.value = ''
+  errorCode.value = ''
   if (running.value && response.kind === 'advance') {
     runRemaining.value = Math.max(0, runRemaining.value - response.outcome.steps.length)
     if (runRemaining.value === 0 || snapshot.value.exhausted) stop()
@@ -279,8 +284,8 @@ onBeforeUnmount(() => {
           <button class="lab-button" data-testid="pg-run" type="button" :disabled="phase !== 'ready' || (awaiting && !running)" @click="running ? pause() : run()">{{ running ? copy.pause : copy.run }}</button>
           <button class="lab-button" data-testid="pg-reset" type="button" :disabled="phase !== 'ready' || awaiting || running" @click="reset">{{ copy.reset }}</button>
         </div>
-        <p v-if="validation" class="lab-error" role="alert">{{ copy.validation }}: {{ validation.message }}</p>
-        <p v-if="errorMessage && !validation" class="lab-error" role="alert">{{ copy.errorPrefix }} {{ errorMessage }}</p>
+        <p v-if="validation" class="lab-error" role="alert">{{ copy.validation }}: {{ localizedError(validation.code) }}</p>
+        <p v-if="errorCode && !validation" class="lab-error" role="alert">{{ copy.errorPrefix }} {{ localizedError(errorCode) }}</p>
       </aside>
 
       <div class="lab-panel">

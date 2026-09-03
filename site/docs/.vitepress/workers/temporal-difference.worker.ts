@@ -182,16 +182,23 @@ function audit(snapshot: TemporalDifferenceSnapshot, outcome?: TemporalDifferenc
 }
 
 function post(response: TemporalDifferenceWorkerResponse): void { scope.postMessage(response) }
-function errorResponse(error: unknown, recoverable = true): void { const message = error instanceof Error ? error.message : String(error); post({ v: TEMPORAL_DIFFERENCE_PROTOCOL_VERSION, runId: activeRunId || undefined, kind: 'error', sequence: ++sequence, code: 'temporal_difference_worker', message, recoverable }) }
+function errorResponse(error: unknown, recoverable = true): void {
+  const source = record(error)
+  const code = typeof source?.code === 'string' ? source.code : 'temporal_difference_worker'
+  const message = error instanceof Error
+    ? error.message
+    : typeof source?.message === 'string' ? source.message : String(error)
+  post({ v: TEMPORAL_DIFFERENCE_PROTOCOL_VERSION, runId: activeRunId || undefined, kind: 'error', sequence: ++sequence, code, message, recoverable })
+}
 
 async function start(request: Extract<TemporalDifferenceWorkerRequest, { kind: 'start' }>): Promise<void> {
+  activeRunId = request.runId
   const validation = temporalDifferenceConfigValidationError(request.config)
-  if (validation) { errorResponse(new Error(validation.message)); return }
+  if (validation) { errorResponse(validation); return }
   await ensureInit()
   evaluator?.free?.()
   config = { ...request.config, mode: canonicalTemporalDifferenceMode(request.config.mode) ?? request.config.mode }
   evaluator = instantiate(config)
-  activeRunId = request.runId
   sequence = 0
   if (request.restoreEpisodes && request.restoreEpisodes > 0) {
     const amount = Math.min(Math.trunc(request.restoreEpisodes), config.maxEpisodes)

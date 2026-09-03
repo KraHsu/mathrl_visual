@@ -60,5 +60,20 @@
   "auditTarget": "target and error are visible for each update",
   "auditSeed": "seeded replay is deterministic",
   "yes": "yes",
-  "no": "no"
+  "no": "no",
+  "unknownError": "Unexpected temporal-difference error ({code}).",
+  "errors": {
+    "temporal_difference_mode": "Choose a valid temporal-difference method.",
+    "temporal_difference_discount_range": "Discount γ must be finite and in [0, 1].",
+    "temporal_difference_slip_range": "Wind probability must be finite and in [0, 1].",
+    "temporal_difference_epsilon_range": "Exploration ε must be finite and in [0, 1].",
+    "temporal_difference_alpha_range": "Learning rate α must be finite and in (0, 1].",
+    "temporal_difference_n_step_range": "The n-step horizon must be an integer from 1 through 100.",
+    "temporal_difference_max_episodes_range": "The episode budget must be an integer from 1 through 100,000.",
+    "temporal_difference_max_steps_range": "The episode step cap must be an integer from 1 through 100.",
+    "temporal_difference_seed": "The seed must be hexadecimal.",
+    "temporal_difference_reward_range": "Each reward must be finite with magnitude at most 1,000,000.",
+    "temporal_difference_worker": "The temporal-difference engine reported an internal error.",
+    "worker_error": "The temporal-difference Worker reported an internal error."
+  }
 }
