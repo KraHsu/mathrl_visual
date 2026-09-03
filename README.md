@@ -4,7 +4,7 @@
 
 An unofficial, bilingual interactive companion for *Mathematical Foundations of Reinforcement Learning*, built with Rust, WebAssembly, Vue 3, and VitePress.
 
-Chapter 1 is implemented as a draft vertical slice. Chapter 2 has a bilingual four-state policy-evaluation pilot. Chapters 3 and 4 are bilingual technical slices built on Chapter 1's shared 4×4 Grid World, and Chapter 5 now adds a bilingual model-free Monte Carlo slice; the planned Chapter 2 integration with that shared model remains a follow-up. See [PLAN.md](./PLAN.md) and [RIGHTS.md](./RIGHTS.md).
+Chapter 1 is implemented as a draft vertical slice. Chapter 2 has a bilingual four-state policy-evaluation pilot. Chapters 3 and 4 are bilingual technical slices built on Chapter 1's shared 4×4 Grid World, and Chapters 5–10 now add bilingual model-free, stochastic-approximation, temporal-difference, value-function, policy-gradient, and actor–critic slices. Chapter 2's integration with the shared model remains a follow-up. See [PLAN.md](./PLAN.md) and [RIGHTS.md](./RIGHTS.md).
 
 Public draft preview: <https://krahsu.github.io/mathrl_visual/>
 
@@ -72,6 +72,15 @@ Chapter 5 is an original technical preview. Its pages and UI remain `review_cont
 
 Chapter 6 is an original technical preview. Its content and translations remain `review_content: draft` and `review_language: draft`; the release-only gate must stay closed until human mathematics, bilingual, accessibility, and rights review is recorded.
 
+## Chapters 7–10 learning slices
+
+- Paired English and Simplified Chinese learning paths cover temporal-difference methods (Chapter 7), value-function methods and function approximation (Chapter 8), policy-gradient methods (Chapter 9), and actor–critic methods (Chapter 10), with chapter summaries, Q&A, checkpoints, stable anchors, and source metadata.
+- Four dedicated Rust/Wasm evaluators run behind versioned Dedicated Workers. The labs expose tabular TD(0)/SARSA/n-step SARSA/Q-learning, linear features and DQN-style replay/target updates, seeded REINFORCE with an optional baseline, and QAC/A2C/off-policy/deterministic actor–critic updates.
+- Each lab keeps formulas and a no-JavaScript explanation beside numeric tables, traces, finite-value audits, deterministic reset/replay, input validation, stale-message protection, and responsive bilingual controls.
+- The Pages artifact checker and browser matrix cover all 76 Chapter 7–10 locale routes, four Worker bundles, the Wasm exports, Chinese no-JavaScript fallback, language metadata, and 1024/400/320px overflow checks.
+
+These four chapters are original technical previews. Their pages and translations remain `review_content: draft` and `review_language: draft`; `RELEASE=1` must remain blocked until mathematics, bilingual, accessibility, and rights review is recorded.
+
 ## Prerequisites
 
 - Rust 1.97.1 with the `wasm32-unknown-unknown` target
@@ -90,7 +99,7 @@ corepack pnpm wasm:build
 corepack pnpm dev
 ```
 
-Open the URL printed by VitePress, then visit `/zh-Hans/learn/ch06/` or `/en/learn/ch06/` (or the stochastic-approximation lab at `/en/labs/ch06-stochastic-approximation`).
+Open the URL printed by VitePress, then visit `/zh-Hans/learn/ch07/` or `/en/learn/ch07/` (or any of the Chapter 7–10 labs under `/en/labs/`).
 
 ## Static build
 

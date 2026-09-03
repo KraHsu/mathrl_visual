@@ -32,6 +32,12 @@ use mathrl_core::{
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
 
+// Chapter 7–10 adapters live in a separate module so the long-running
+// chapter contracts remain isolated from the original Grid World bindings.
+// The module exports wasm-bindgen classes from this crate, therefore the
+// generated glue still exposes one flat `mathrl_wasm` API to the Workers.
+mod chapter_adapters;
+
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 struct ErrorPayload<'a> {

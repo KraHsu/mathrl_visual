@@ -1,5 +1,7 @@
 import { defineConfig } from 'vitepress'
 
+import { CHAPTERS_07_10 } from '../../../scripts/chapter-manifest.mjs'
+
 const base = normalizeBase(process.env.SITE_BASE ?? '/')
 const siteOrigin = (process.env.SITE_ORIGIN ?? '').replace(/\/$/, '')
 const isPreview = process.env.VITE_SITE_STAGE === 'preview'
@@ -39,6 +41,57 @@ const chapterSources = {
     'https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning/blob/0e348961c28496096d308f1066009266b3674c5a/3%20-%20Chapter%206%20Stochastic%20Approximation.pdf',
 } as const
 
+type SiteLocale = 'zh-Hans' | 'en'
+
+type ChapterManifestEntry = {
+  number: number
+  title: Record<SiteLocale, string>
+  labTitle: Record<SiteLocale, string>
+  learningRoutes: readonly string[]
+  learningLabels: Record<SiteLocale, readonly string[]>
+  labRoute: string
+  source: string
+}
+
+const chapterManifest = CHAPTERS_07_10 as unknown as readonly ChapterManifestEntry[]
+
+function chapterLearningSidebar(locale: SiteLocale, chapter: ChapterManifestEntry) {
+  const prefix = `/` + `${locale}/learn/ch${String(chapter.number).padStart(2, '0')}`
+  return [
+    {
+      text: chapter.title[locale],
+      items: chapter.learningRoutes.map((route, index) => ({
+        text: chapter.learningLabels[locale][index] ?? (route || 'Chapter map'),
+        link: route ? `${prefix}/${route}` : `${prefix}/`,
+      })),
+    },
+    {
+      text: locale === 'zh-Hans' ? '动手实验' : 'Hands-on lab',
+      items: [{
+        text: chapter.labTitle[locale],
+        link: `/${locale}/${chapter.labRoute}`,
+      }],
+    },
+  ]
+}
+
+function chapterLabSidebar(locale: SiteLocale) {
+  return chapterManifest.map((chapter) => ({
+    // Reuse the localized chapter title so Chinese navigation keeps its
+    // native numerals (第七章) instead of interpolating an Arabic number.
+    text: `${chapter.title[locale].split(' · ')[0]}${locale === 'zh-Hans' ? '实验' : ' labs'}`,
+    items: [{ text: chapter.labTitle[locale], link: `/${locale}/${chapter.labRoute}` }],
+  }))
+}
+
+function chapterSource(relativePath: string): string | undefined {
+  return chapterManifest.find((chapter) => {
+    const normalized = `/${relativePath.replace(/^\/+/, '')}`
+    const chapterPrefix = `/learn/ch${String(chapter.number).padStart(2, '0')}/`
+    return normalized.includes(chapterPrefix) || normalized.includes(`/${chapter.labRoute}.md`)
+  })?.source
+}
+
 export default defineConfig({
   base,
   cleanUrls: true,
@@ -69,6 +122,13 @@ export default defineConfig({
           { text: '第四章', link: '/zh-Hans/learn/ch04/' },
           { text: '第五章', link: '/zh-Hans/learn/ch05/' },
           { text: '第六章', link: '/zh-Hans/learn/ch06/' },
+          {
+            text: '第七至十章',
+            items: chapterManifest.map((chapter) => ({
+              text: chapter.title['zh-Hans'].split(' · ')[0],
+              link: `/zh-Hans/learn/ch${String(chapter.number).padStart(2, '0')}/`,
+            })),
+          },
           { text: '实验', link: '/zh-Hans/labs/bellman-optimality-grid' },
         ],
         sidebar: {
@@ -204,6 +264,10 @@ export default defineConfig({
               items: [{ text: '随机逼近实验', link: '/zh-Hans/labs/ch06-stochastic-approximation' }],
             },
           ],
+          '/zh-Hans/learn/ch07/': chapterLearningSidebar('zh-Hans', chapterManifest[0]),
+          '/zh-Hans/learn/ch08/': chapterLearningSidebar('zh-Hans', chapterManifest[1]),
+          '/zh-Hans/learn/ch09/': chapterLearningSidebar('zh-Hans', chapterManifest[2]),
+          '/zh-Hans/learn/ch10/': chapterLearningSidebar('zh-Hans', chapterManifest[3]),
           '/zh-Hans/labs/': [
             {
               text: '第一章实验',
@@ -239,6 +303,7 @@ export default defineConfig({
               text: '第六章实验',
               items: [{ text: '随机逼近实验', link: '/zh-Hans/labs/ch06-stochastic-approximation' }],
             },
+            ...chapterLabSidebar('zh-Hans'),
           ],
         },
         outline: { label: '本页目录' },
@@ -287,6 +352,13 @@ export default defineConfig({
           { text: 'Chapter 4', link: '/en/learn/ch04/' },
           { text: 'Chapter 5', link: '/en/learn/ch05/' },
           { text: 'Chapter 6', link: '/en/learn/ch06/' },
+          {
+            text: 'Chapters 7–10',
+            items: chapterManifest.map((chapter) => ({
+              text: chapter.title.en.split(' · ')[0],
+              link: `/en/learn/ch${String(chapter.number).padStart(2, '0')}/`,
+            })),
+          },
           { text: 'Lab', link: '/en/labs/bellman-optimality-grid' },
         ],
         sidebar: {
@@ -422,6 +494,10 @@ export default defineConfig({
               items: [{ text: 'Stochastic approximation lab', link: '/en/labs/ch06-stochastic-approximation' }],
             },
           ],
+          '/en/learn/ch07/': chapterLearningSidebar('en', chapterManifest[0]),
+          '/en/learn/ch08/': chapterLearningSidebar('en', chapterManifest[1]),
+          '/en/learn/ch09/': chapterLearningSidebar('en', chapterManifest[2]),
+          '/en/learn/ch10/': chapterLearningSidebar('en', chapterManifest[3]),
           '/en/labs/': [
             {
               text: 'Chapter 1 labs',
@@ -457,6 +533,7 @@ export default defineConfig({
               text: 'Chapter 6 labs',
               items: [{ text: 'Stochastic approximation lab', link: '/en/labs/ch06-stochastic-approximation' }],
             },
+            ...chapterLabSidebar('en'),
           ],
         },
         outline: { label: 'On this page' },
@@ -534,6 +611,8 @@ function absoluteRouteFor(locale: 'zh-Hans' | 'en', relativePath: string): strin
 }
 
 function sourceFor(relativePath: string): string | undefined {
+  const manifestSource = chapterSource(relativePath)
+  if (manifestSource) return manifestSource
   if (
     relativePath.includes('/learn/ch06/') ||
     relativePath.includes('/labs/ch06-stochastic-approximation.md')

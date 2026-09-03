@@ -4,7 +4,7 @@
 > 编制日期：2026-09-02
 > 项目类型：纯静态、交互式教材/伴读站点
 > 核心技术栈：Rust + WebAssembly + Vue 3 + VitePress
-> 当前实施状态：第一章 11 对双语页面与 8 视图 Grid World 工作台已完成；第二章已有四状态 Bellman 先导切片；第三章 9 对双语页面与共享 4×4 Grid World 最优性实验已完成技术实现；第四章 9 对双语页面、共享 Rust/Wasm 规划引擎和 Value/Policy/Truncated Policy Iteration 对比实验已完成技术实现；第五章 9 对双语页面、模型无关 Monte Carlo Rust/Wasm/Worker 实验和首轮/首次/每次访问账本已完成技术实现；第六章 10 对双语页面、随机逼近 Rust/Wasm/Worker 实验和有限前缀诊断已完成技术实现；第一章“转移分布/马尔可夫”视图现提供醒目的双语风扰动引导与无 JS 回退，并已通过 Pages 子路径构建、产物检查与浏览器回归。内容仍为 draft，G1 继续进行人工译审、全站 Firefox/WebKit 覆盖和回滚演练。
+> 当前实施状态：第一章 11 对双语页面与 8 视图 Grid World 工作台已完成；第二章已有四状态 Bellman 先导切片；第三章 9 对双语页面与共享 4×4 Grid World 最优性实验已完成技术实现；第四章 9 对双语页面、共享 Rust/Wasm 规划引擎和 Value/Policy/Truncated Policy Iteration 对比实验已完成技术实现；第五章 9 对双语页面、模型无关 Monte Carlo Rust/Wasm/Worker 实验和首轮/首次/每次访问账本已完成技术实现；第六章 10 对双语页面、随机逼近 Rust/Wasm/Worker 实验和有限前缀诊断已完成技术实现；第七至十章已完成双语学习路径、四个 Rust/Wasm/Worker 实验和 Pages 产物门禁；第一章“转移分布/马尔可夫”视图现提供醒目的双语风扰动引导与无 JS 回退，并已通过 Pages 子路径构建、产物检查与浏览器回归。内容仍为 draft，G1 继续进行人工译审、全站 Firefox/WebKit 覆盖和回滚演练。
 
 ## 1. 执行摘要
 
@@ -1170,7 +1170,7 @@ Bellman 方程、策略评估和值函数热图保留为第二章的首个算法
 1. ✅ 已完成本地 Rust、Wasm、TypeScript、单元测试、双语 parity、Pages artifact、双语浏览器回归及公网 Worker/Wasm 检查；
 2. 继续保持 `RELEASE=1` 的 draft 审核门禁失败，直到数学与双语人工审核真实记录；
 3. 第二章仍是四状态 Bellman 先导，尚未补齐共享 4×4 Grid World 的 16 状态策略评估视图；
-4. Firefox/WebKit 全覆盖、性能预算、回滚演练、PWA 和全书第 5–10 章仍属于后续里程碑，不因第四章技术切片完成而提前宣称 v1 完成。
+4. Firefox/WebKit 全覆盖、性能预算、回滚演练、PWA、附录以及正式内容审核仍属于后续里程碑，不因章节技术切片完成而提前宣称 v1 完成。
 
 ### 24.7 第五章 Monte Carlo 模型无关技术切片 / Chapter 5 model-free Monte Carlo slice
 
@@ -1200,7 +1200,7 @@ Rust/Wasm/Worker 契约 / Rust, Wasm, and Worker contract:
 
 - `cargo fmt`、workspace clippy/test、Wasm 构建、TypeScript 类型检查、Vitest、locale parity、Pages artifact checker 以及 Chrome 的中英文/无 JS/窄屏 E2E 均通过；
 - release remains preview-only: all Chapter 5 content and translations are draft until human mathematics, bilingual, accessibility, and rights review is recorded; `RELEASE=1` must continue to fail;
-- 第二章仍是四状态 Bellman 先导，不因第五章接入共享 Grid World 而宣称第二章完整 16 状态策略评估已完成；Firefox/WebKit 全覆盖、性能预算、PWA、回滚演练及第 6–10 章仍属于后续里程碑。
+- 第二章仍是四状态 Bellman 先导，不因后续章节接入共享 Grid World 而宣称第二章完整 16 状态策略评估已完成；Firefox/WebKit 全覆盖、性能预算、PWA 和回滚演练仍属于后续里程碑。
 
 ### 24.8 第六章随机逼近技术切片 / Chapter 6 stochastic-approximation slice
 
@@ -1227,7 +1227,54 @@ Vue 实验与验收：
 - Pages 产物检查覆盖 20 条 Chapter 6 locale 路由、来源 meta、双语 canonical/hreflang、Wasm 与 stochastic-approximation Worker；Vitest/E2E 覆盖首步算术、RM/批量预设、非法种子恢复、中文无 JS 和窄屏无溢出；
 - 第一章 Transition/Markov 视图新增顶部双语“风扰动引导”卡与页面静态提示，按钮仍在两个视图分别可用，先读无风分布再开启 20% 风并比较实际轨迹。
 
-当前边界：内容与翻译仍为 draft，`RELEASE=1` 必须继续阻断；第七章 TD 尚未实现，Firefox/WebKit 全覆盖、性能预算、PWA 和回滚演练仍属于后续 G1/G4 工作。
+当前边界：内容与翻译仍为 draft，`RELEASE=1` 必须继续阻断；Firefox/WebKit 全覆盖、性能预算、PWA 和回滚演练仍属于后续 G1/G4 工作。
+
+### 24.9 第七章时间差分技术切片 / Chapter 7 temporal-difference slice
+
+第七章将完整回合回报推进为样本到达即更新的 TD 目标。实现是固定上游版本下的原创中英双语伴读，页面只引用章节主题与来源元数据，不复制上游正文、图表、例题或代码；所有页面保留 `rights: companion-original`、来源 commit/blob/SHA-256 和 draft 审核状态。
+
+已实现：
+
+- 中英文各 9 条学习路由（章节导览、TD 学习、SARSA、n-step SARSA、Q-learning、统一视角、总结、问答、检查点）及双语时间差分实验；
+- `mathrl-core::TemporalDifferenceEvaluator` 的 TD(0)、SARSA、n-step SARSA 与 Q-learning，共享 4×4 Grid World、滑移风扰动、ε-greedy、折扣、步长、奖励和固定种子；
+- Rust/Wasm positional ABI、版本化 Worker、快照/单步/批量/完成/重置接口，明确输出 TD target、TD error、动作价值、状态价值、轨迹和终止/截断原因；
+- Vue 数值地图、动作选择、更新账本和轨迹表，并提供公式、有限值审计、输入校验、过期消息丢弃、重放与无 JavaScript 回退；
+- Pages 产物和浏览器检查覆盖中英路由、canonical/hreflang、来源 hash、Worker/Wasm 资产、中文无 JS 和窄屏布局。
+
+边界：实验用于有限教学轨迹与算法对照，不把一次运行当作收敛证明；内容、翻译、无障碍和权利审核仍为 draft。
+
+### 24.10 第八章值函数方法技术切片 / Chapter 8 value-function slice
+
+第八章展示从表格值到参数化值函数的过渡，并将线性近似与 DQN 风格的经验回放/目标网络放在同一可审计实验中。
+
+- 中英文各 9 条学习路由（值表示、TD 函数近似、逼近器、Q-learning、深度 Q-learning、总结、问答、检查点等）及双语值函数实验；
+- `mathrl-core::ValueFunctionEvaluator` 支持状态 TD、SARSA 线性近似、Q-learning 线性近似和 Deep Q 模式；特征映射包含坐标、偏置坐标、多项式、Fourier 与 one-hot；
+- 快照公开特征向量、权重、预测/目标/TD 误差、梯度与更新范数、回放容量、目标网络同步、状态—动作表和有限轨迹；
+- Worker/Wasm 契约具备 camel/snake 字段兼容、严格边界校验、固定种子 reset/replay、分块 advance 与 stale 消息保护；Vue 侧提供响应式地图、特征检查器、更新账本和静态解释。
+
+边界：Deep Q 是小规模教学网络/线性权重演示，不是生产级深度学习训练器；性能预算和正式审核仍待完成。
+
+### 24.11 第九章策略梯度技术切片 / Chapter 9 policy-gradient slice
+
+第九章以有限上下文 bandit 展示策略参数化、softmax、REINFORCE 和基线降低方差。实验输出可直接检查的 log-policy 梯度、目标、熵、优势和方差，而不是只显示一条奖励曲线。
+
+- 中英文各 8 条学习路由（策略表示、策略指标、策略梯度定理、REINFORCE、总结、问答、检查点等）及双语策略梯度实验；
+- `mathrl-core::PolicyGradientEvaluator` 支持 REINFORCE 与 baseline 模式，使用固定种子、有限噪声和三上下文/三动作 bandit；
+- Wasm/Worker 提供版本化配置与快照 ABI，报告策略概率、采样动作、回报、基线、优势、梯度范数、熵和运行统计；
+- Vue 侧提供概率表、梯度向量、更新轨迹、数值审计、可恢复错误、语言恢复和无 JS 公式回退。
+
+边界：bandit 是解释策略梯度记账的最小模型，不替代完整长时域策略优化或收敛定理；正式数学和语言审核仍待完成。
+
+### 24.12 第十章 Actor–Critic 技术切片 / Chapter 10 actor–critic slice
+
+第十章把策略更新与 TD critic 放回一个小型链式环境，显式比较 QAC、A2C、离策略修正和确定性 actor–critic。
+
+- 中英文各 8 条学习路由（QAC、A2C、离策略、确定性、总结、问答、检查点等）及双语 Actor–Critic 实验；
+- `mathrl-core::ActorCriticEvaluator` 支持四种模式，公开 actor/critic 参数、Q 表、TD error、advantage、importance ratio、动作概率和更新账本；
+- Rust/Wasm 负责环境、随机流、更新和有限值约束，Dedicated Worker 负责协议版本、输入二次校验、分块运行、重置和过期消息保护；
+- Vue 侧提供 actor/critic 对照表、链状态、轨迹和公式解释，并通过 Chrome 中文无 JS、语言元数据和 1024/400/320px 窄屏检查。
+
+四章共同边界：这是原创双语技术预览，所有 `review_content`/`review_language` 仍为 `draft`；`RELEASE=1` 必须继续失败。Firefox/WebKit 全覆盖、性能预算、PWA、离线升级和回滚演练不因四章完成而提前宣称 v1 完成。
 
 ## 25. 主要风险与缓解
 
@@ -1272,6 +1319,8 @@ Vue 实验与验收：
 - 维护者拥有内容、算法、发布和故障处理手册。
 
 ## 27. 下一步行动
+
+> 当前队列（第七至十章技术切片完成后）：完成中英数学/语言/无障碍/权利人工审核；补齐第二章共享 4×4 Grid World 的 16 状态策略评估；增加 Firefox/WebKit 覆盖、性能预算、PWA/离线升级与回滚演练；再根据审核结果决定是否打开 `RELEASE=1`。以下清单保留为项目启动阶段的完整发现与授权记录。
 
 1. 联系作者和权利方确认完整在线版、中文翻译、英文再发布及书稿源文件的授权范围；
 2. 决定每类内容的源 locale，以及中英文分别原创或“源语言定稿后翻译”的工作方式；

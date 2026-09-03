@@ -1,5 +1,12 @@
 import { readdir, readFile } from 'node:fs/promises'
 
+import {
+  CHAPTERS_07_10,
+  CHAPTER_LOCALES,
+  chapterAllRoutes,
+  htmlRoute,
+} from './chapter-manifest.mjs'
+
 const projectRoot = new URL('../', import.meta.url)
 const dist = new URL('site/docs/.vitepress/dist/', projectRoot)
 const base = normalizeBase(process.env.PAGES_BASE ?? '/mathrl_visual/')
@@ -52,6 +59,8 @@ const chapter6Routes = [
   'labs/ch06-stochastic-approximation',
 ]
 
+const chapter7To10Routes = CHAPTERS_07_10.flatMap((chapter) => chapterAllRoutes(chapter))
+
 const requiredFiles = [
   'index.html',
   '404.html',
@@ -84,6 +93,9 @@ const requiredFiles = [
       `${locale}/${route.endsWith('/') ? `${route}index.html` : `${route}.html`}`,
     ),
   ),
+  ...CHAPTER_LOCALES.flatMap((locale) =>
+    chapter7To10Routes.map((route) => htmlRoute(locale, route)),
+  ),
 ]
 
 for (const relativePath of requiredFiles) {
@@ -107,6 +119,13 @@ if (!assetNames.some((name) => name.includes('monte-carlo.worker-') && name.ends
 }
 if (!assetNames.some((name) => name.includes('stochastic-approximation.worker-') && name.endsWith('.js'))) {
   throw new Error('GitHub Pages artifact does not contain the Chapter 6 stochastic-approximation Worker')
+}
+for (const chapter of CHAPTERS_07_10) {
+  if (!assetNames.some((name) => name.includes(chapter.workerAsset) && name.endsWith('.js'))) {
+    throw new Error(
+      `GitHub Pages artifact does not contain the Chapter ${chapter.number} ${chapter.workerAsset} Worker`,
+    )
+  }
 }
 if (!assetNames.some((name) => name.includes('@localSearchIndexzh-Hans'))) {
   throw new Error('GitHub Pages artifact does not contain the Chinese search index')
@@ -234,6 +253,37 @@ for (const page of chapter6Pages) {
   }
   if (!html.includes(`name="mathrl:source" content="${chapter6Source}"`)) {
     throw new Error(`${page.locale}/${fileRoute} is missing the pinned Chapter 6 source`)
+  }
+}
+
+for (const chapter of CHAPTERS_07_10) {
+  const pages = CHAPTER_LOCALES.flatMap((locale) =>
+    chapterAllRoutes(chapter).map((route) => ({
+      locale,
+      counterpart: locale === 'zh-Hans' ? 'en' : 'zh-Hans',
+      route,
+    })),
+  )
+  for (const page of pages) {
+    const fileRoute = htmlRoute(page.locale, page.route).replace(`${page.locale}/`, '')
+    const html = await readFile(new URL(`${page.locale}/${fileRoute}`, dist), 'utf8')
+    const canonical = publicArtifactUrl(`${page.locale}/${page.route}`)
+    const alternate = publicArtifactUrl(`${page.counterpart}/${page.route}`)
+    if (!html.includes(`rel="canonical" href="${canonical}"`)) {
+      throw new Error(
+        `${page.locale}/${fileRoute} has an incorrect Chapter ${chapter.number} canonical URL`,
+      )
+    }
+    if (!html.includes(`hreflang="${page.counterpart}" href="${alternate}"`)) {
+      throw new Error(
+        `${page.locale}/${fileRoute} is missing its Chapter ${chapter.number} locale alternate`,
+      )
+    }
+    if (!html.includes(`name="mathrl:source" content="${chapter.source}"`)) {
+      throw new Error(
+        `${page.locale}/${fileRoute} is missing the pinned Chapter ${chapter.number} source`,
+      )
+    }
   }
 }
 

@@ -39,6 +39,35 @@ import {
   stochasticApproximationConfigValidationError,
   type StochasticApproximationWorkerResponse,
 } from '../docs/.vitepress/stochasticApproximationProtocol'
+import {
+  TEMPORAL_DIFFERENCE_PROTOCOL_VERSION,
+  acceptsTemporalDifferenceResponse,
+  canonicalTemporalDifferenceMode,
+  temporalDifferenceConfigValidationError,
+  type TemporalDifferenceWorkerResponse,
+} from '../docs/.vitepress/temporalDifferenceProtocol'
+import {
+  VALUE_FUNCTION_PROTOCOL_VERSION,
+  acceptsValueFunctionResponse,
+  canonicalValueFunctionFeatureMap,
+  canonicalValueFunctionMode,
+  valueFunctionConfigValidationError,
+  type ValueFunctionWorkerResponse,
+} from '../docs/.vitepress/valueFunctionProtocol'
+import {
+  POLICY_GRADIENT_PROTOCOL_VERSION,
+  acceptsPolicyGradientResponse,
+  canonicalPolicyGradientMode,
+  policyGradientConfigValidationError,
+  type PolicyGradientWorkerResponse,
+} from '../docs/.vitepress/policyGradientProtocol'
+import {
+  ACTOR_CRITIC_PROTOCOL_VERSION,
+  acceptsActorCriticResponse,
+  canonicalActorCriticMode,
+  actorCriticConfigValidationError,
+  type ActorCriticWorkerResponse,
+} from '../docs/.vitepress/actorCriticProtocol'
 
 function response(runId: string, sequence: number): WorkerResponse {
   return {
@@ -115,6 +144,52 @@ function stochasticApproximationResponse(
   }
 }
 
+function temporalDifferenceResponse(runId: string, sequence: number): TemporalDifferenceWorkerResponse {
+  return {
+    v: TEMPORAL_DIFFERENCE_PROTOCOL_VERSION,
+    runId,
+    sequence,
+    kind: 'error',
+    code: 'test',
+    message: 'test',
+    recoverable: true,
+  }
+}
+
+function valueFunctionResponse(runId: string, sequence: number): ValueFunctionWorkerResponse {
+  return {
+    v: VALUE_FUNCTION_PROTOCOL_VERSION,
+    runId,
+    sequence,
+    kind: 'error',
+    code: 'test',
+    message: 'test',
+    recoverable: true,
+  }
+}
+
+function policyGradientResponse(runId: string, sequence: number): PolicyGradientWorkerResponse {
+  return {
+    v: POLICY_GRADIENT_PROTOCOL_VERSION,
+    runId,
+    sequence,
+    kind: 'error',
+    code: 'test',
+    message: 'test',
+  }
+}
+
+function actorCriticResponse(runId: string, sequence: number): ActorCriticWorkerResponse {
+  return {
+    v: ACTOR_CRITIC_PROTOCOL_VERSION,
+    runId,
+    sequence,
+    kind: 'error',
+    code: 'test',
+    message: 'test',
+  }
+}
+
 describe('acceptsResponse', () => {
   it('accepts only newer messages for the current run', () => {
     expect(acceptsResponse(response('active', 4), 'active', 3)).toBe(true)
@@ -167,6 +242,50 @@ describe('acceptsResponse', () => {
         'active',
         3,
       ),
+    ).toBe(false)
+  })
+
+  it('applies the stale-message guard to temporal-difference updates', () => {
+    expect(acceptsTemporalDifferenceResponse(temporalDifferenceResponse('active', 4), 'active', 3)).toBe(true)
+    expect(acceptsTemporalDifferenceResponse(temporalDifferenceResponse('stale', 5), 'active', 3)).toBe(false)
+    expect(acceptsTemporalDifferenceResponse(temporalDifferenceResponse('active', 3), 'active', 3)).toBe(false)
+  })
+
+  it('applies the stale-message guard to value-function updates', () => {
+    expect(acceptsValueFunctionResponse(valueFunctionResponse('active', 4), 'active', 3)).toBe(true)
+    expect(acceptsValueFunctionResponse(valueFunctionResponse('stale', 5), 'active', 3)).toBe(false)
+    expect(acceptsValueFunctionResponse(valueFunctionResponse('active', 3), 'active', 3)).toBe(false)
+  })
+
+  it('validates the lightweight policy-gradient response envelope', () => {
+    expect(acceptsPolicyGradientResponse(policyGradientResponse('active', 4))).toBe(true)
+    expect(
+      acceptsPolicyGradientResponse({ ...policyGradientResponse('active', 4), v: 2 }),
+    ).toBe(false)
+    expect(
+      acceptsPolicyGradientResponse({ ...policyGradientResponse('active', 4), sequence: '4' }),
+    ).toBe(false)
+    expect(
+      acceptsPolicyGradientResponse({ ...policyGradientResponse('active', 4), sequence: Number.NaN }),
+    ).toBe(false)
+    expect(
+      acceptsPolicyGradientResponse({ ...policyGradientResponse('active', 4), kind: 'unknown' }),
+    ).toBe(false)
+  })
+
+  it('validates the lightweight actor-critic response envelope', () => {
+    expect(acceptsActorCriticResponse(actorCriticResponse('active', 4))).toBe(true)
+    expect(
+      acceptsActorCriticResponse({ ...actorCriticResponse('active', 4), v: 2 }),
+    ).toBe(false)
+    expect(
+      acceptsActorCriticResponse({ ...actorCriticResponse('active', 4), runId: 7 }),
+    ).toBe(false)
+    expect(
+      acceptsActorCriticResponse({ ...actorCriticResponse('active', 4), sequence: Number.POSITIVE_INFINITY }),
+    ).toBe(false)
+    expect(
+      acceptsActorCriticResponse({ ...actorCriticResponse('active', 4), kind: 'unknown' }),
     ).toBe(false)
   })
 
@@ -290,5 +409,86 @@ describe('acceptsResponse', () => {
     ).toBe('stochastic_approximation_batch_size_range')
     expect(canonicalStochasticApproximationMode('mbgd')).toBe('mini_batch')
     expect(canonicalStochasticApproximationSchedule('1/k')).toBe('harmonic')
+  })
+
+  it('validates and canonicalizes temporal-difference configuration', () => {
+    const valid = {
+      mode: 'td_zero',
+      discount: 0.9,
+      slipProbability: 0,
+      epsilon: 0.1,
+      alpha: 0.5,
+      nStep: 1,
+      maxEpisodes: 100,
+      maxSteps: 64,
+      seedHex: '5eed',
+      rewards: { default: -0.04, boundary: -1, hazard: -1, goal: 1 },
+    }
+    expect(temporalDifferenceConfigValidationError(valid)).toBeUndefined()
+    expect(temporalDifferenceConfigValidationError({ ...valid, alpha: 0 })?.code).toBe(
+      'temporal_difference_alpha_range',
+    )
+    expect(temporalDifferenceConfigValidationError({ ...valid, nStep: 0 })?.code).toBe(
+      'temporal_difference_n_step_range',
+    )
+    expect(canonicalTemporalDifferenceMode('q-learning')).toBe('q_learning')
+  })
+
+  it('validates and canonicalizes value-function configuration', () => {
+    const valid = {
+      mode: 'td_linear',
+      featureMap: 'coordinates',
+      discount: 0.9,
+      slipProbability: 0,
+      epsilon: 0.1,
+      alpha: 0.1,
+      replayCapacity: 128,
+      batchSize: 16,
+      targetUpdateInterval: 10,
+      maxEpisodes: 100,
+      maxSteps: 64,
+      seedHex: '5eed',
+      rewards: { default: -0.04, boundary: -1, hazard: -1, goal: 1 },
+    }
+    expect(valueFunctionConfigValidationError(valid)).toBeUndefined()
+    expect(valueFunctionConfigValidationError({ ...valid, batchSize: 256 })?.code).toBe(
+      'value_function_batch_larger_than_replay',
+    )
+    expect(canonicalValueFunctionMode('dqn')).toBe('deep_q')
+    expect(canonicalValueFunctionFeatureMap('one-hot')).toBe('one_hot')
+  })
+
+  it('validates and canonicalizes policy-gradient configuration', () => {
+    const valid = {
+      mode: 'reinforce',
+      alpha: 0.1,
+      discount: 0.9,
+      noiseStd: 0.1,
+      maxEpisodes: 100,
+      seedHex: '5eed',
+    }
+    expect(policyGradientConfigValidationError(valid)).toBeUndefined()
+    expect(policyGradientConfigValidationError({ ...valid, alpha: 0 })?.code).toBe(
+      'policy_gradient_alpha_range',
+    )
+    expect(canonicalPolicyGradientMode('state-baseline')).toBe('baseline')
+  })
+
+  it('validates and canonicalizes actor-critic configuration', () => {
+    const valid = {
+      mode: 'a2c',
+      actorAlpha: 0.1,
+      criticAlpha: 0.2,
+      discount: 0.9,
+      epsilon: 0.1,
+      maxEpisodes: 100,
+      maxSteps: 10,
+      seedHex: '5eed',
+    }
+    expect(actorCriticConfigValidationError(valid)).toBeUndefined()
+    expect(actorCriticConfigValidationError({ ...valid, criticAlpha: 0 })?.code).toBe(
+      'actor_critic_critic_alpha_range',
+    )
+    expect(canonicalActorCriticMode('dpg')).toBe('deterministic')
   })
 })

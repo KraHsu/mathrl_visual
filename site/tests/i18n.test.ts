@@ -1,17 +1,34 @@
 import { describe, expect, it } from 'vitest'
+import { readdirSync, readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 
-import en from '../docs/.vitepress/i18n/ui.en.json'
-import zhHans from '../docs/.vitepress/i18n/ui.zh-Hans.json'
-import bellmanEn from '../docs/.vitepress/i18n/bellman.en.json'
-import bellmanZhHans from '../docs/.vitepress/i18n/bellman.zh-Hans.json'
-import optimalityEn from '../docs/.vitepress/i18n/optimality.en.json'
-import optimalityZhHans from '../docs/.vitepress/i18n/optimality.zh-Hans.json'
-import planningEn from '../docs/.vitepress/i18n/planning.en.json'
-import planningZhHans from '../docs/.vitepress/i18n/planning.zh-Hans.json'
-import monteCarloEn from '../docs/.vitepress/i18n/monteCarlo.en.json'
-import monteCarloZhHans from '../docs/.vitepress/i18n/monteCarlo.zh-Hans.json'
-import stochasticApproximationEn from '../docs/.vitepress/i18n/stochasticApproximation.en.json'
-import stochasticApproximationZhHans from '../docs/.vitepress/i18n/stochasticApproximation.zh-Hans.json'
+/**
+ * Discover every component catalog instead of maintaining a second list when
+ * a new chapter adds a lab.  A missing counterpart is intentionally reported
+ * here (rather than silently omitted from the parity comparison).
+ */
+const catalogDirectory = fileURLToPath(new URL('../docs/.vitepress/i18n/', import.meta.url))
+const catalogFiles = readdirSync(catalogDirectory).filter((file) => /\.(?:en|zh-Hans)\.json$/.test(file))
+
+function readCatalog(file: string): unknown {
+  return JSON.parse(readFileSync(`${catalogDirectory}/${file}`, 'utf8')) as unknown
+}
+
+const catalogs = new Map(catalogFiles.map((file) => [file, readCatalog(file)]))
+const catalogPairs = [...new Set(catalogFiles.map((file) => file.replace(/\.(?:en|zh-Hans)\.json$/, '')))]
+  .sort()
+  .map((base) => ({
+    base,
+    enFile: `${base}.en.json`,
+    zhFile: `${base}.zh-Hans.json`,
+  }))
+
+const interactiveChapterCatalogs = [
+  'temporalDifference',
+  'valueFunction',
+  'policyGradient',
+  'actorCritic',
+]
 
 function keys(value: unknown, prefix = ''): string[] {
   if (typeof value !== 'object' || value === null) return [prefix]
@@ -45,21 +62,39 @@ function expectPlaceholderParity(left: unknown, right: unknown): void {
 }
 
 describe('UI message catalogs', () => {
-  it('have identical key sets', () => {
-    expect(keys(zhHans).sort()).toEqual(keys(en).sort())
-    expect(keys(bellmanZhHans).sort()).toEqual(keys(bellmanEn).sort())
-    expect(keys(optimalityZhHans).sort()).toEqual(keys(optimalityEn).sort())
-    expect(keys(planningZhHans).sort()).toEqual(keys(planningEn).sort())
-    expect(keys(monteCarloZhHans).sort()).toEqual(keys(monteCarloEn).sort())
-    expect(keys(stochasticApproximationZhHans).sort()).toEqual(keys(stochasticApproximationEn).sort())
+  it('has a counterpart for every locale catalog', () => {
+    for (const pair of catalogPairs) {
+      expect(catalogs.has(pair.enFile), `${pair.base}: missing English catalog`).toBe(true)
+      expect(catalogs.has(pair.zhFile), `${pair.base}: missing Simplified Chinese catalog`).toBe(true)
+    }
+  })
+
+  it('ships paired catalogs for Chapters 7–10 labs', () => {
+    for (const base of interactiveChapterCatalogs) {
+      expect(catalogs.has(`${base}.en.json`), `${base}: missing English catalog`).toBe(true)
+      expect(catalogs.has(`${base}.zh-Hans.json`), `${base}: missing Simplified Chinese catalog`).toBe(true)
+    }
+  })
+
+  it('has identical key sets across every locale pair', () => {
+    for (const pair of catalogPairs) {
+      const en = catalogs.get(pair.enFile)
+      const zhHans = catalogs.get(pair.zhFile)
+      expect(keys(zhHans).sort(), `${pair.base}: key set mismatch`).toEqual(keys(en).sort())
+    }
+  })
+
+  it('does not leave locale catalog files outside the paired naming scheme', () => {
+    for (const file of catalogFiles) {
+      expect(file, `${file}: catalog filename must end in .en.json or .zh-Hans.json`).toMatch(
+        /^.+\.(?:en|zh-Hans)\.json$/,
+      )
+    }
   })
 
   it('preserve interpolation placeholders across locales', () => {
-    expectPlaceholderParity(zhHans, en)
-    expectPlaceholderParity(bellmanZhHans, bellmanEn)
-    expectPlaceholderParity(optimalityZhHans, optimalityEn)
-    expectPlaceholderParity(planningZhHans, planningEn)
-    expectPlaceholderParity(monteCarloZhHans, monteCarloEn)
-    expectPlaceholderParity(stochasticApproximationZhHans, stochasticApproximationEn)
+    for (const pair of catalogPairs) {
+      expectPlaceholderParity(catalogs.get(pair.zhFile), catalogs.get(pair.enFile))
+    }
   })
 })

@@ -2,6 +2,8 @@ import { readdir, readFile } from 'node:fs/promises'
 import { relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import { CHAPTER_SOURCE_COMMIT, chapterForPath } from './chapter-manifest.mjs'
+
 const projectRoot = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const docsRoot = resolve(projectRoot, 'site/docs')
 const locales = ['zh-Hans', 'en']
@@ -77,6 +79,7 @@ for (const path of referenceFiles) {
       languageReview: scalar(metadata, 'review_language', `${locale}/${path}`),
       sourceCommit: optionalScalar(metadata, 'source_commit'),
       sourcePdfBlob: optionalScalar(metadata, 'source_pdf_blob'),
+      sourcePdfSha256: optionalScalar(metadata, 'source_pdf_sha256'),
       sourceSections: optionalScalar(metadata, 'source_sections'),
       anchors: explicitAnchors(source, `${locale}/${path}`),
     }
@@ -99,12 +102,34 @@ for (const path of referenceFiles) {
     if (
       record.sourceCommit !== first.sourceCommit ||
       record.sourcePdfBlob !== first.sourcePdfBlob ||
+      record.sourcePdfSha256 !== first.sourcePdfSha256 ||
       record.sourceSections !== first.sourceSections
     ) {
       throw new Error(`${path}: bilingual source metadata does not match`)
     }
     if (JSON.stringify(record.anchors) !== JSON.stringify(first.anchors)) {
       throw new Error(`${path}: bilingual explicit anchors do not match`)
+    }
+  }
+
+  const chapter = chapterForPath(path)
+  if (chapter) {
+    for (const record of records) {
+      if (record.sourceCommit !== CHAPTER_SOURCE_COMMIT) {
+        throw new Error(
+          `${record.locale}/${path}: Chapter ${chapter.number} source_commit is not pinned to ${CHAPTER_SOURCE_COMMIT}`,
+        )
+      }
+      if (record.sourcePdfBlob !== chapter.sourcePdfBlob) {
+        throw new Error(
+          `${record.locale}/${path}: Chapter ${chapter.number} source_pdf_blob does not match the manifest`,
+        )
+      }
+      if (record.sourcePdfSha256 !== chapter.sourcePdfSha256) {
+        throw new Error(
+          `${record.locale}/${path}: Chapter ${chapter.number} source_pdf_sha256 does not match the manifest`,
+        )
+      }
     }
   }
 
