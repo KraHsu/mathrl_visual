@@ -26,8 +26,8 @@ outline: deep
 
 强化学习研究的是一个持续闭环：智能体观察当前情形，选择动作，环境产生下一状态与奖励，智能体再据此继续决策。第一章的任务不是求出“最佳动作”，而是先把这个闭环描述清楚。
 
-::: info 内容边界
-本站是非官方原创伴读。本章仅参照原书第一章的主题顺序，不复制原书正文、图、表、问答或代码。主题定位基于[固定上游版本](https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning/blob/0e348961c28496096d308f1066009266b3674c5a/3%20-%20Chapter%201%20Basic%20Concepts.pdf)。
+::: info 教材身份与内容边界
+这是一个非官方原创双语交互教材，无需先阅读上游原书即可完成本章学习。本章的学习目标、讲解、例子、图示、练习与代码均由本站独立创作；上游书籍仅用于主题参考和链接对照。本站不代表原作者或出版社，也不转载原书正文、图、表、问答或代码。主题对齐依据[固定上游版本](https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning/blob/0e348961c28496096d308f1066009266b3674c5a/3%20-%20Chapter%201%20Basic%20Concepts.pdf)。
 :::
 
 <a id="learning-goals"></a>

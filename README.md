@@ -2,7 +2,7 @@
 
 [![Deploy GitHub Pages](https://github.com/KraHsu/mathrl_visual/actions/workflows/pages.yml/badge.svg)](https://github.com/KraHsu/mathrl_visual/actions/workflows/pages.yml)
 
-An unofficial, bilingual interactive companion for *Mathematical Foundations of Reinforcement Learning*, built with Rust, WebAssembly, Vue 3, and VitePress.
+An unofficial, independent original bilingual interactive textbook for *Mathematical Foundations of Reinforcement Learning*, built with Rust, WebAssembly, Vue 3, and VitePress.
 
 Chapter 1 is implemented as a draft vertical slice. Chapter 2 now includes a shared 4×4 Grid World, all-16-state fixed-policy evaluation lab, and the retained four-state Bellman scaffold. Chapters 3 and 4 are bilingual technical slices built on the same shared model, and Chapters 5–10 add bilingual model-free, stochastic-approximation, temporal-difference, value-function, policy-gradient, and actor–critic slices. The original bilingual appendix pages, local progress, offline/PWA packages, release manifest, readiness audit, and performance budget are also in the repository. See [PLAN.md](./PLAN.md) and [RIGHTS.md](./RIGHTS.md).
 
@@ -10,8 +10,8 @@ Public Pages preview: <https://krahsu.github.io/mathrl_visual/>
 
 The normal goal of this repository is a static learning website, not a formal
 publication workflow. A successful build can be deployed to GitHub Pages
-without an approval step. The companion pages, Rust/Wasm code, and diagrams
-are written for this project and link back to the upstream book as a reference.
+without an approval step. The textbook pages, Rust/Wasm code, and diagrams
+are independently written for this project and link back to the upstream book as a reference.
 If the scope later changes to redistribute the book's verbatim prose, PDF,
 figures, or other upstream material, review that separate permission question
 before adding those assets; it is not a prerequisite for the original
@@ -28,7 +28,7 @@ interactive site.
 - Same-page locale switching with experiment replay across languages
 - Separate local search indexes, canonical URLs, and reciprocal `hreflang` links
 
-The content metadata remains `draft` because this is an evolving companion.
+The content metadata remains `draft` because this is an evolving textbook.
 `RELEASE=1` is an optional, stricter formal-release audit; it does not block
 the ordinary Pages preview.
 
@@ -95,7 +95,7 @@ These four chapters are original technical previews. Their pages and translation
 
 ## Appendix, progress, offline, and release infrastructure
 
-- Six paired original companion pages cover probability, convergence, linear algebra, optimization, and a bilingual glossary; each page records its source reference, content origin, and review status.
+- Six paired original textbook pages cover probability, convergence, linear algebra, optimization, and a bilingual glossary; each page records its source reference, content origin, and review status.
 - A bilingual learning map, Markov-property concept page, symbols index, search guide, and offline guide make the complete route graph discoverable without requiring a JavaScript-only entry point.
 - A global progress panel stores completion and bookmarks by stable content ID, works across locales, and supports JSON export/import and shareable links. IndexedDB is preferred, with a bounded local-storage fallback.
 - The build generates localized single-language and bilingual offline packs, manifests, a versioned service worker, and schema-2 progress migration. Updates require explicit user confirmation so an active experiment is not interrupted.
@@ -105,7 +105,7 @@ These facilities make the repository ready for an interactive static preview. Th
 
 The strict release gate is intentionally fail-closed for that optional formal
 profile. Its pending records do not prevent the clearly labelled original
-companion preview from being built, viewed, or deployed.
+textbook preview from being built, viewed, or deployed.
 
 To hand the remaining page work to reviewers, run `corepack pnpm review:packet`.
 The command writes an ignored `release-evidence/` packet in JSON, Markdown, and

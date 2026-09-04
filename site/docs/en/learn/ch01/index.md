@@ -26,8 +26,8 @@ outline: deep
 
 Reinforcement learning studies a continuing loop: an agent observes its current situation, selects an action, receives a next state and reward from the environment, and then decides again. Chapter 1 is not yet about finding the “best” action. Its job is to make every part of that loop precise.
 
-::: info Content boundary
-This is an unofficial original companion. The chapter follows only the topic order of the book; it does not reproduce book prose, figures, tables, questions, or code. Topic locations refer to a [fixed upstream version](https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning/blob/0e348961c28496096d308f1066009266b3674c5a/3%20-%20Chapter%201%20Basic%20Concepts.pdf).
+::: info Course identity and content boundary
+This is an unofficial, independent original bilingual interactive textbook. You do not need to read the upstream book first to complete this chapter. Its learning goals, explanations, examples, figures, exercises, and code are independently authored here; the upstream book is used only for topic reference and link alignment. This site is not affiliated with or endorsed by the authors or publisher and does not redistribute book prose, figures, tables, questions, or code. Topic alignment points to a [fixed upstream version](https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning/blob/0e348961c28496096d308f1066009266b3674c5a/3%20-%20Chapter%201%20Basic%20Concepts.pdf).
 :::
 
 <a id="learning-goals"></a>
