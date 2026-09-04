@@ -1,11 +1,11 @@
 ---
 layout: home
 title: MathRL Visual
-description: A bilingual interactive companion for reinforcement learning foundations.
+description: An independent original bilingual interactive textbook for reinforcement learning foundations.
 hero:
   name: MathRL Visual
   text: Reinforcement learning, made inspectable
-  tagline: 强化学习数学基础 · 中英双语交互伴读
+  tagline: 强化学习数学基础 · 非官方原创双语交互教材
 ---
 
 <div class="bilingual-entry">

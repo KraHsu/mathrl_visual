@@ -9,12 +9,12 @@ review_content: draft
 review_language: draft
 review_math: not_applicable
 review_accessibility: draft
-title: Search the companion
+title: Search the textbook
 description: Search the current language's pre-rendered learning pages and experiments.
 outline: deep
 ---
 
-# Search the companion
+# Search the textbook
 
 The navigation bar's local search indexes are generated separately for English
 and Simplified Chinese. Search results stay in the current locale, so a query

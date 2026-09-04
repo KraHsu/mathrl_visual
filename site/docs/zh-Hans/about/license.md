@@ -14,7 +14,7 @@ review_language: draft
 review_math: not_applicable
 review_accessibility: draft
 title: 许可证与权利
-description: MathRL Visual 的代码、原创伴读内容和上游权利边界。
+description: MathRL Visual 的代码、原创教材内容和上游权利边界。
 ---
 
 # 许可证与权利
@@ -23,13 +23,13 @@ description: MathRL Visual 的代码、原创伴读内容和上游权利边界�
 
 ## 当前发布状态
 
-MathRL Visual 是非官方原创中英双语伴读。公开预览就是一个普通的纯静态学习网站，不需要审批流程即可构建和部署。预览网址不等于获得再分发原书的许可；如果未来加入原书逐字内容，再单独核对相应范围即可。
+MathRL Visual 是非官方原创双语交互教材。学习者无需先阅读上游原书即可使用本站完成学习；公开预览就是一个普通的纯静态学习网站，不需要审批流程即可构建和部署。预览网址不等于获得再分发原书的许可；如果未来加入原书逐字内容，再单独核对相应范围即可。
 
 上游仓库目前没有仓库级开源许可证。章节和附录 PDF 只作为固定提交与校验和对应的参考链接；本站不复制其中的正文、图表或排版。
 
 <a id="code"></a>
 
-## 代码与原创伴读内容
+## 代码与原创教材内容
 
 Rust、WebAssembly、Vue、TypeScript、构建脚本和原创图示属于本项目工作，可以与任何上游素材分开记录许可证。若未来需要正式再现版本，再补充 `LICENSE-CODE`、`LICENSE-CONTENT` 和 `NOTICE`；这些不是普通预览的前置条件。
 

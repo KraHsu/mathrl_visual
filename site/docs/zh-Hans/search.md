@@ -9,12 +9,12 @@ review_content: draft
 review_language: draft
 review_math: not_applicable
 review_accessibility: draft
-title: 搜索伴读内容
+title: 搜索教材内容
 description: 搜索当前语言的预渲染课程页面与实验。
 outline: deep
 ---
 
-# 搜索伴读内容
+# 搜索教材内容
 
 顶部导航中的本地搜索索引分别为 English 和简体中文生成。结果只来自当前
 语言，不会静默混合两个译文。

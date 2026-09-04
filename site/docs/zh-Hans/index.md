@@ -9,13 +9,13 @@ review_content: draft
 review_language: draft
 review_math: not_applicable
 review_accessibility: draft
-title: 强化学习数学基础 · 可视化伴读
+title: 强化学习数学基础 · 原创交互教材
 description: 用可复现的 Rust/Wasm 实验理解强化学习的数学基础。
 layout: home
 hero:
   name: 强化学习数学基础
   text: 看见公式背后的动态过程
-  tagline: 非官方原创中英双语伴读 · Rust + WebAssembly + Vue
+  tagline: 非官方原创双语交互教材 · Rust + WebAssembly + Vue
   actions:
     - theme: brand
       text: 开始第一章

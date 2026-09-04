@@ -10,7 +10,7 @@ review_language: draft
 review_math: not_applicable
 review_accessibility: draft
 title: 离线阅读
-description: 了解静态离线包和需要确认的 PWA 更新流程。
+description: 了解原创交互教材的静态离线包和需要确认的 PWA 更新流程。
 outline: deep
 ---
 

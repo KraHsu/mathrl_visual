@@ -7,7 +7,7 @@ version = "0.1.0"
 edition = "2024"
 rust-version = "1.97"
 publish = false
-description = "Bilingual interactive reinforcement-learning foundations companion"
+description = "Independent original bilingual interactive textbook for reinforcement-learning foundations"
 repository = "https://github.com/KraHsu/mathrl_visual"
 
 [workspace.dependencies]

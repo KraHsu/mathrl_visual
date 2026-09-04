@@ -14,7 +14,7 @@ review_language: draft
 review_math: not_applicable
 review_accessibility: draft
 title: 无障碍
-description: 伴读站点的键盘、减弱动画、数据表和无 JavaScript 保证。
+description: 原创交互教材的键盘、减弱动画、数据表和无 JavaScript 保证。
 ---
 
 # 无障碍

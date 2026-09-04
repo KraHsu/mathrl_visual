@@ -18,7 +18,9 @@ outline: deep
 
 The chapters form a dependency graph rather than a list of isolated recipes.
 The map below is a compact orientation tool; each node links to a full chapter
-path in the navigation sidebar.
+path in the navigation sidebar. This is an independently authored textbook path:
+you do not need to read the upstream book first, which is used only as a topic
+reference.
 
 <a id="graph"></a>
 

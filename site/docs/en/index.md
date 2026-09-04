@@ -9,13 +9,13 @@ review_content: draft
 review_language: draft
 review_math: not_applicable
 review_accessibility: draft
-title: Mathematical Foundations of RL · Visual Companion
+title: Mathematical Foundations of RL · Interactive Textbook
 description: Understand reinforcement learning foundations with reproducible Rust/Wasm experiments.
 layout: home
 hero:
   name: Mathematical Foundations of RL
   text: Make the dynamics behind the equations visible
-  tagline: An unofficial original bilingual companion · Rust + WebAssembly + Vue
+  tagline: An unofficial independent original bilingual textbook · Rust + WebAssembly + Vue
   actions:
     - theme: brand
       text: Start Chapter 1

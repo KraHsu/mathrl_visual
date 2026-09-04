@@ -14,7 +14,7 @@ review_language: draft
 review_math: not_applicable
 review_accessibility: draft
 title: Accessibility
-description: Keyboard, reduced-motion, data-table, and no-JavaScript guarantees for the companion.
+description: Keyboard, reduced-motion, data-table, and no-JavaScript guarantees for the original interactive textbook.
 ---
 
 # Accessibility

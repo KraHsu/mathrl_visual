@@ -10,7 +10,7 @@ review_language: draft
 review_math: not_applicable
 review_accessibility: draft
 title: Offline reading
-description: Understand the static offline packs and explicit PWA update flow.
+description: Understand the static offline packs for the independent original textbook and its explicit PWA update flow.
 outline: deep
 ---
 

@@ -385,8 +385,8 @@ function routePacks(records, allFiles) {
 function manifestFor(locale, identity) {
   const chinese = locale === 'zh-Hans'
   const title = chinese
-    ? '强化学习数学基础 · 可视化伴读'
-    : 'Mathematical Foundations of RL · Visual Companion'
+    ? '强化学习数学基础 · 原创交互教材'
+    : 'Mathematical Foundations of RL · Interactive Textbook'
   const shortName = chinese ? 'MathRL 中文' : 'MathRL Visual'
   const description = chinese
     ? '用交互实验学习强化学习的数学基础。'
