@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "第六章总结"
 description: 将均值估计、Robbins–Monro、Dvoretzky 型收敛与随机梯度下降放进一张可审计的图中。
 outline: deep

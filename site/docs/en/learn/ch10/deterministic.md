@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "Deterministic actor–critic"
 description: Mark the boundary between a probability policy and a deterministic policy gradient.
 outline: deep

@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "Q actor–critic（QAC）"
 description: 将 softmax actor 与动作价值 critic 配对，并检查耦合更新。
 outline: deep

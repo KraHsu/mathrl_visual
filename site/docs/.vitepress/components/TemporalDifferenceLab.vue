@@ -185,8 +185,8 @@ onBeforeUnmount(() => { stopRun(); worker?.terminate(); worker = undefined })
     <div class="td-grid-layout">
       <section class="lab-card">
         <div class="card-heading"><h3>{{ copy.grid }}</h3><span>{{ copy.clickCell }}</span></div>
-        <div class="td-grid" role="grid" :aria-label="copy.grid">
-          <button v-for="state in stateCount" :key="state - 1" type="button" :class="cellClass(state - 1)" role="gridcell" :aria-label="`${stateLabel(state - 1)}: ${format(snapshot.values[state - 1] ?? 0)}`" @click="selectedState = state - 1"><span>{{ stateLabel(state - 1) }}</span><strong>{{ format(snapshot.values[state - 1] ?? 0) }}</strong><small>{{ actionName(snapshot.policy[state - 1] ?? -1) }}</small></button>
+        <div class="td-grid" role="group" :aria-label="copy.grid">
+          <button v-for="state in stateCount" :key="state - 1" type="button" :class="cellClass(state - 1)" :aria-label="`${stateLabel(state - 1)}: ${format(snapshot.values[state - 1] ?? 0)}`" @click="selectedState = state - 1"><span>{{ stateLabel(state - 1) }}</span><strong>{{ format(snapshot.values[state - 1] ?? 0) }}</strong><small>{{ actionName(snapshot.policy[state - 1] ?? -1) }}</small></button>
         </div>
       </section>
       <section class="lab-card">
@@ -216,10 +216,10 @@ onBeforeUnmount(() => { stopRun(); worker?.terminate(); worker = undefined })
 .td-state { min-height: 5rem; border: 1px solid var(--vp-c-divider); border-radius: .7rem; background: var(--vp-c-bg-soft); color: inherit; text-align: left; padding: .5rem; cursor: pointer; display: flex; flex-direction: column; gap: .2rem; }
 .td-state:hover, .td-state.is-selected { border-color: var(--lab-accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--lab-accent) 20%, transparent); }
 .td-state.is-goal { background: color-mix(in srgb, #e5b94e 20%, var(--vp-c-bg-soft)); }.td-state.is-hazard { background: color-mix(in srgb, #e76f51 14%, var(--vp-c-bg-soft)); }
-.td-state span, .td-state small { font-size: .75rem; opacity: .7; }.td-state strong { font-size: 1rem; }.td-state small { margin-top: auto; font-size: 1.1rem; }
+.td-state span, .td-state small { color: var(--vp-c-text-2); font-size: .75rem; opacity: 1; }.td-state strong { font-size: 1rem; }.td-state small { margin-top: auto; font-size: 1.1rem; }
 .td-grid-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 1rem; margin: 1rem 0; }
 .td-inspector .inspector-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; }.inspector-grid div { padding: .7rem; background: var(--vp-c-bg-soft); border-radius: .6rem; }.inspector-grid span { display:block; font-size:.78rem; opacity:.72; }.inspector-grid strong { display:block; margin-top:.3rem; overflow-wrap:anywhere; }
-.equation-audit { margin: .9rem 0 0; padding: .7rem; background: color-mix(in srgb, var(--lab-accent) 8%, var(--vp-c-bg-soft)); border-radius: .5rem; overflow:auto; }
+.equation-audit { margin: .9rem 0 0; padding: .7rem; background: color-mix(in srgb, var(--lab-accent) 8%, var(--vp-c-bg-soft)); border-radius: .5rem; overflow:auto; }.equation-audit code { color: var(--vp-c-text-1); }
 .chart-axis { stroke: var(--vp-c-divider); stroke-width: 1; }.chart-line { fill:none; stroke:var(--lab-accent); stroke-width:2.5; }.chart-dot { fill:var(--lab-accent); }
 @media (max-width: 760px) { .td-grid-layout { grid-template-columns: 1fr; }.td-inspector .inspector-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
 </style>

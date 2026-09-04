@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "Chapter 6 summary"
 description: Keep mean estimation, Robbins–Monro, Dvoretzky-style convergence, and stochastic gradient descent in one auditable map.
 outline: deep

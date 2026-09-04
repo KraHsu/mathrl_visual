@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "第九章检查点"
 description: 在打开实验前练习一次 softmax 得分更新并解释 baseline 不变性。
 outline: deep

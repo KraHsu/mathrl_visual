@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: 策略梯度实验
 description: 重放带种子的 softmax 策略梯度更新，并比较状态 baseline。
 aside: false

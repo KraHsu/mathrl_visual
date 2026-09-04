@@ -14,6 +14,8 @@ copied_assets: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: Chapter 7 Q&A
 description: Short prompts for checking the target and policy distinction.
 outline: deep

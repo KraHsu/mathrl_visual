@@ -14,6 +14,8 @@ copied_assets: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: 时间差分实验
 description: 用固定种子比较 TD(0)、SARSA、n 步 SARSA 与 Q-learning。
 aside: false

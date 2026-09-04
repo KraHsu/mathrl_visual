@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "Chapter 6 checkpoint"
 description: Practice incremental means, noisy root updates, step-size conditions, and batch-gradient reasoning before opening the lab.
 outline: deep

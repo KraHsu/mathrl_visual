@@ -14,6 +14,8 @@ copied_assets: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: Chapter 8 Q&A
 description: Short prompts for checking the approximation boundary.
 outline: deep

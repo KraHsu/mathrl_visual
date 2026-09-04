@@ -8,6 +8,16 @@
   --mathrl-coral: #df6b55;
 }
 
+/* MathJax marks inline equations as `mjx-container` elements.  VitePress's
+ * default `overflow-x: auto` is useful for display equations but makes every
+ * inline formula look like an unfocusable scroll region to axe (especially in
+ * Firefox, where its client width is reported as zero).  Inline math should
+ * flow with its paragraph; keep horizontal scrolling for display equations.
+ */
+.vp-doc mjx-container:not([display='true']) {
+  overflow-x: visible;
+}
+
 .preview-banner {
   align-items: center;
   background: color-mix(in srgb, var(--mathrl-gold) 22%, var(--vp-c-bg));
@@ -23,8 +33,48 @@
 }
 
 .preview-banner strong {
-  color: color-mix(in srgb, var(--mathrl-gold) 72%, var(--vp-c-text-1));
+  /* Keep the status badge readable in both themes (the previous gold blend
+   * fell below the WCAG AA 4.5:1 text contrast threshold). */
+  color: var(--vp-c-text-1);
+  font-weight: 800;
   text-transform: uppercase;
+}
+
+/* VitePress resets native form controls to `appearance: none`; explicitly
+ * paint the lab selects so dark-mode user-agent colours cannot produce a
+ * low-contrast grey control. */
+.lab-shell select {
+  appearance: none;
+  background-color: var(--vp-c-bg);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--vp-c-text-2) 50%),
+    linear-gradient(135deg, var(--vp-c-text-2) 50%, transparent 50%);
+  background-position:
+    calc(100% - 13px) 50%,
+    calc(100% - 8px) 50%;
+  background-repeat: no-repeat;
+  background-size: 5px 5px, 5px 5px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+  color: var(--vp-c-text-1);
+  min-height: 2.25rem;
+  padding: 0.42rem 2rem 0.42rem 0.55rem;
+  width: 100%;
+}
+
+.lab-shell select:focus-visible {
+  border-color: var(--vp-c-brand-1);
+  outline: 3px solid color-mix(in srgb, var(--vp-c-brand-1) 38%, transparent);
+  outline-offset: 1px;
+}
+
+.VPHomeHero .VPButton.brand {
+  background: var(--vp-c-brand-1);
+  border-color: var(--vp-c-brand-1);
+}
+
+.dark .VPHomeHero .VPButton.brand {
+  color: #062b28;
 }
 
 @media (min-width: 960px) {
@@ -272,7 +322,7 @@
 }
 
 .grid-cell__state {
-  color: var(--vp-c-text-3);
+  color: var(--vp-c-text-1);
   font-family: var(--vp-font-family-mono);
   font-size: 0.65rem;
   left: 0.35rem;
@@ -725,12 +775,20 @@
 }
 
 .stochastic-approximation-lab .mini-table {
-  display: block;
+  /* Keep the semantic table as a table.  Scrolling belongs to the labelled
+   * `.mini-table-wrap` region so keyboard users get one predictable focus
+   * target instead of an unlabelled table with its own overflow context. */
+  display: table;
   font-size: 0.67rem;
   margin: 0;
+  min-width: 760px;
+  width: max-content;
+  white-space: nowrap;
+}
+
+.stochastic-approximation-lab .mini-table-wrap {
   max-width: 100%;
   overflow-x: auto;
-  white-space: nowrap;
 }
 
 .stochastic-approximation-lab .mini-table caption {
@@ -817,6 +875,26 @@
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Inline explanatory diagrams are part of the no-JavaScript reading path.
+ * Let their viewBox scale with the article column instead of introducing a
+ * page-level scrollbar on phones or narrow split panes. */
+.learning-map,
+.markov-diagram {
+  display: block;
+  height: auto;
+  max-width: 100%;
+  overflow: visible;
+  width: 100%;
+}
+
+.learning-map {
+  margin: 1.25rem 0;
+}
+
+.markov-diagram {
+  margin: 1rem 0;
 }
 
 .audit-list {
@@ -1794,11 +1872,55 @@
 .planning-selected-chip {
   background: var(--vp-c-brand-soft);
   border-radius: 999px;
-  color: var(--vp-c-brand-1);
-  font-size: 0.58rem;
+  color: var(--vp-c-text-1);
+  font-size: 0.68rem;
   font-weight: 800;
   padding: 0.2rem 0.38rem;
   white-space: nowrap;
+}
+
+/* Numeric maps and compact labels must remain readable on the tinted start,
+ * hazard, and goal cells; do not rely on opacity to convey hierarchy. */
+.grid-cell__state {
+  opacity: 1;
+}
+
+.grid-lab code,
+.lab-shell .equation-audit code {
+  color: var(--vp-c-text-1);
+}
+
+/* Inline code inherits VitePress' brand tint, which is too light against the
+ * tinted tip/callout background at normal (12px) text sizes. */
+.vp-doc :not(pre) > code {
+  color: var(--vp-c-text-1);
+}
+
+/* Custom-block variants set a more specific brand/tip colour in the default
+ * VitePress stylesheet; raise specificity so the readable text colour wins
+ * without changing link colours outside code samples. */
+body .vp-doc .custom-block code {
+  color: var(--vp-c-text-1);
+}
+
+/* The language badge on fenced blocks is visible text, not decoration; the
+ * default text-3/opacity treatment falls below 4.5:1 in the light theme. */
+.vp-doc [class*="language-"] > .lang,
+.vp-doc [class*="language-"] > .lang code {
+  color: var(--vp-c-text-2);
+  opacity: 1;
+}
+
+.vp-doc div[class*="language-"] > span.lang {
+  color: var(--vp-c-text-2);
+  opacity: 1;
+}
+
+.monte-carlo-lab .lang,
+.monte-carlo-lab .state-id,
+.monte-carlo-lab .state-visits {
+  color: var(--vp-c-text-2);
+  opacity: 1;
 }
 
 .planning-card-equation {
@@ -2169,5 +2291,224 @@
 
   .VPNavBarHamburger {
     display: flex !important;
+  }
+}
+
+/* Explicit PWA update confirmation.  The prompt is rendered in the layout
+ * top slot but stays out of the document flow until a waiting worker exists,
+ * so it never shifts a reader's page unexpectedly. */
+.pwa-update-prompt {
+  align-items: center;
+  background: color-mix(in srgb, var(--vp-c-brand-1) 10%, var(--vp-c-bg));
+  border-bottom: 1px solid color-mix(in srgb, var(--vp-c-brand-1) 35%, var(--vp-c-divider));
+  color: var(--vp-c-text-1);
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 0.65rem max(1rem, calc((100vw - 1152px) / 2));
+  /* VitePress keeps its navigation fixed above the layout-top slot.  Raise
+   * the prompt above that layer while it is visible so keyboard/mouse users
+   * can explicitly confirm an update instead of hitting an invisible nav
+   * element underneath the banner. */
+  position: relative;
+  z-index: 45;
+}
+
+.pwa-update-prompt__copy {
+  display: grid;
+  gap: 0.12rem;
+  min-width: 0;
+}
+
+.pwa-update-prompt__copy strong {
+  color: var(--vp-c-brand-1);
+  font-size: 0.86rem;
+}
+
+.pwa-update-prompt__copy span {
+  color: var(--vp-c-text-2);
+  font-size: 0.78rem;
+}
+
+.pwa-update-prompt__actions {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.pwa-update-prompt__button,
+.pwa-update-prompt__dismiss {
+  border: 1px solid var(--vp-c-brand-1);
+  border-radius: 0.45rem;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+  min-height: 2rem;
+  padding: 0.35rem 0.65rem;
+}
+
+.pwa-update-prompt__button {
+  background: var(--vp-c-brand-1);
+  color: var(--vp-c-white);
+}
+
+.pwa-update-prompt__dismiss {
+  background: transparent;
+  color: var(--vp-c-brand-1);
+}
+
+.pwa-update-prompt__button:hover,
+.pwa-update-prompt__dismiss:hover {
+  filter: brightness(0.96);
+}
+
+.pwa-update-prompt__button:focus-visible,
+.pwa-update-prompt__dismiss:focus-visible {
+  outline: 2px solid var(--vp-c-brand-1);
+  outline-offset: 2px;
+}
+
+.pwa-update-prompt__button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.page-evidence {
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 0.65rem;
+  color: var(--vp-c-text-2);
+  display: grid;
+  font-size: 0.76rem;
+  gap: 0.55rem;
+  margin: 0 auto 1.25rem;
+  max-width: 1152px;
+  padding: 0.7rem 1rem;
+}
+
+.page-evidence__summary {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.9rem;
+}
+
+.page-evidence__summary > span,
+.page-evidence__pair {
+  overflow-wrap: anywhere;
+}
+
+.page-evidence__label {
+  /* text-3 is intentionally muted, but falls below 4.5:1 at this size. */
+  color: var(--vp-c-text-2);
+  margin-right: 0.2rem;
+}
+
+.page-evidence code {
+  font-size: 0.7rem;
+}
+
+.page-evidence__pair {
+  color: var(--vp-c-brand-1);
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.page-evidence__reviews {
+  display: grid;
+  gap: 0.45rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.page-evidence__review {
+  align-items: center;
+  background: var(--vp-c-bg-soft);
+  border-radius: 0.45rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.65rem;
+  padding: 0.4rem 0.55rem;
+}
+
+.page-evidence__review > strong {
+  color: var(--vp-c-text-1);
+  margin-right: auto;
+}
+
+.page-evidence__status {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.2rem;
+}
+
+.page-evidence__status code {
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 999px;
+  color: var(--vp-c-text-1);
+  padding: 0.08rem 0.32rem;
+}
+
+.page-evidence__details summary {
+  color: var(--vp-c-brand-1);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.page-evidence__details dl {
+  display: grid;
+  gap: 0.25rem 0.8rem;
+  grid-template-columns: minmax(8rem, max-content) minmax(0, 1fr);
+  margin: 0.65rem 0 0;
+}
+
+.page-evidence__details dt {
+  color: var(--vp-c-text-2);
+}
+
+.page-evidence__details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.page-evidence__note {
+  margin: 0.65rem 0 0;
+}
+
+@media (max-width: 640px) {
+  .page-evidence {
+    margin-inline: 1rem;
+  }
+
+  .page-evidence__pair {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .page-evidence__reviews {
+    grid-template-columns: 1fr;
+  }
+
+  .pwa-update-prompt {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.55rem;
+    padding: 0.65rem 1rem;
+  }
+
+  .pwa-update-prompt__actions {
+    width: 100%;
+  }
+
+  .pwa-update-prompt__button,
+  .pwa-update-prompt__dismiss {
+    flex: 1 1 8rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pwa-update-prompt__button,
+  .pwa-update-prompt__dismiss {
+    transition: none !important;
   }
 }

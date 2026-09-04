@@ -14,6 +14,8 @@ copied_assets: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: n-step SARSA
 description: See how delayed backups interpolate between one-step SARSA and Monte Carlo returns.
 outline: deep

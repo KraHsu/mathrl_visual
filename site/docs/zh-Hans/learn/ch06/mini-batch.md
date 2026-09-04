@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "批量、随机与小批量更新"
 description: 比较单样本和平均梯度，澄清有放回采样，并把批大小变成可见的统计与计算权衡。
 outline: deep

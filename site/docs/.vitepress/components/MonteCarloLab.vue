@@ -721,7 +721,7 @@ onBeforeUnmount(() => {
         <span class="run-meta">{{ interpolate(copy.modeMeta, { mode: config.mode, visit: config.visitStrategy }) }} · {{ interpolate(copy.seedMeta, { seed: appliedConfig.seedHex }) }} · {{ interpolate(copy.windMeta, { wind: `${Math.round(appliedConfig.slipProbability * 100)}%` }) }}</span>
       </div>
       <div class="monte-carlo-map-layout">
-        <div class="monte-carlo-grid" role="grid" :aria-label="copy.mapTitle">
+        <div class="monte-carlo-grid" role="group" :aria-label="copy.mapTitle">
           <button
             v-for="state in stateCount"
             :key="state - 1"

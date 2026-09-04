@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "Value representation: table to function"
 description: Understand the storage and generalization trade-off introduced by features.
 outline: deep

@@ -14,6 +14,8 @@ copied_assets: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: 第八章总结
 description: 值函数逼近检查清单。
 outline: deep

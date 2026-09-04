@@ -1,5 +1,17 @@
 import { expect, test } from '@playwright/test'
 
+async function openLanguageMenu(page: import('@playwright/test').Page): Promise<void> {
+  // Target VitePress' stable desktop translation control while its
+  // hide-on-scroll transition settles after the experiment. Keyboard opening
+  // avoids VPFlyout's WebKit pointer-leave race during the nav transition.
+  await page.evaluate(() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' }))
+  const switcher = page.locator('.VPNavBarTranslations > button[aria-label="Change language"]')
+  await expect(switcher).toBeVisible()
+  await switcher.focus()
+  await switcher.press('Enter')
+  await expect(switcher).toHaveAttribute('aria-expanded', 'true')
+}
+
 test('runs Rust Bellman sweeps from the hand-worked first update to convergence', async ({ page }) => {
   await page.goto('en/labs/bellman-grid')
   const lab = page.locator('.bellman-lab')
@@ -166,31 +178,83 @@ test('uses one batched Worker run when reduced motion is requested', async ({ pa
   expect(Number(await lab.getAttribute('data-sweep-count'))).toBeGreaterThan(1)
 })
 
-test('retries after transient Worker-script and Wasm initialization failures', async ({ page }) => {
-  let workerAttempts = 0
-  let wasmAttempts = 0
-  await page.route('**/bellman.worker-*.js', async (route) => {
-    workerAttempts += 1
-    if (workerAttempts === 1) await route.abort()
-    else await route.continue()
-  })
-  await page.route('**/mathrl_wasm_bg-*.wasm', async (route) => {
-    wasmAttempts += 1
-    if (wasmAttempts === 1) await route.abort()
-    else await route.continue()
+test('retries a transient Wasm initialization failure in the real Worker', async ({ page }) => {
+  let workerBundles = 0
+  let faultInjected = false
+  // Context routing is required for requests initiated inside a Dedicated
+  // Worker (page routing is not applied to WebKit worker fetches).
+  await page.context().route('**/bellman.worker-*.js', async (route) => {
+    workerBundles += 1
+    const response = await route.fetch()
+    // Preview serves hashed assets with Brotli and entity validators. Strip
+    // headers describing the original bytes before fulfilling either a
+    // rewritten or pass-through response.
+    const headers = Object.fromEntries(
+      Object.entries(response.headers()).filter(
+        ([name]) =>
+          !['content-encoding', 'content-length', 'transfer-encoding', 'etag'].includes(name),
+      ),
+    )
+    // Keep the injected failure one-shot across all bundle requests in this
+    // browser context; retrying the lab must receive the original bundle.
+    if (faultInjected) {
+      await route.fulfill({
+        response,
+        headers: { ...headers, 'cache-control': 'no-store' },
+      })
+      return
+    }
+    const source = await response.text()
+    if (!source.includes('fetch(t)')) {
+      throw new Error('generated Worker bundle no longer exposes the wasm fetch marker')
+    }
+    const patchedSource = source.replace('fetch(t)', 'globalThis.__mathrlFetch(t)')
+    const fault = `
+      (() => {
+        // Rewrite the generated glue's bare fetch call to an explicit hook.
+        // WebKit keeps the Worker-global fetch binding separate from the
+        // mutable globalThis property, so this remains deterministic there.
+        const originalFetch = fetch
+        let failNextWasm = true
+        globalThis.__mathrlFetch = (input, init) => {
+          const url = typeof input === 'string'
+            ? input
+            : input && typeof input === 'object' && 'url' in input
+              ? input.url
+              : String(input)
+          if (failNextWasm && url.includes('mathrl_wasm_bg-')) {
+            failNextWasm = false
+            return Promise.resolve(new Response('', {
+              status: 503,
+              statusText: 'Transient test failure',
+              headers: {
+                'cache-control': 'no-store',
+                'content-type': 'application/wasm',
+              },
+            }))
+          }
+          return Reflect.apply(originalFetch, globalThis, [input, init])
+        }
+      })();
+    `
+    faultInjected = true
+    await route.fulfill({
+      response,
+      headers: { ...headers, 'cache-control': 'no-store' },
+      body: `${fault}\n${patchedSource}`,
+    })
   })
 
   await page.goto('en/labs/bellman-grid')
   await expect(page.locator('.engine-chip')).toHaveAttribute('data-phase', 'error')
 
-  await page.getByRole('button', { name: 'Apply and start from V₀' }).click()
-  await expect(page.locator('.engine-chip')).toHaveAttribute('data-phase', 'error')
-
+  // The worker itself stays alive after an initialization error. The next
+  // visible Apply action must therefore retry the failed Wasm fetch in the
+  // same worker, rather than requiring a page reload.
+  expect(workerBundles).toBeGreaterThanOrEqual(1)
   await page.getByRole('button', { name: 'Apply and start from V₀' }).click()
   await expect(page.locator('.engine-chip')).toHaveAttribute('data-phase', 'ready')
   await expect(page.locator('.bellman-lab')).toHaveAttribute('data-sweep-count', '0')
-  expect(workerAttempts).toBeGreaterThanOrEqual(2)
-  expect(wasmAttempts).toBeGreaterThanOrEqual(2)
 })
 
 test('recovers when the browser rejects Worker construction synchronously', async ({ page }) => {
@@ -221,7 +285,7 @@ test('restores the deterministic value vector after switching to Chinese', async
   await page.getByRole('button', { name: 'Run one sweep' }).click()
   await expect(page.locator('.bellman-lab')).toHaveAttribute('data-sweep-count', '1')
 
-  await page.getByRole('button', { name: 'Change language' }).click()
+  await openLanguageMenu(page)
   await page.getByRole('link', { name: '简体中文' }).click()
   await expect(page).toHaveURL(/\/zh-Hans\/labs\/bellman-grid$/)
   await expect(page.locator('.engine-chip')).toHaveAttribute('data-phase', 'ready')
@@ -247,7 +311,7 @@ test('keeps paired Chapter 2 Bellman content readable without JavaScript', async
   expect(new URL(alternateHref ?? '', currentUrl).pathname).toBe(
     currentUrl.pathname.replace('/zh-Hans/', '/en/'),
   )
-  await expect(page.getByRole('link', { name: 'Bellman 策略评估实验' })).toBeVisible()
+  await expect(page.locator('#VPContent').getByRole('link', { name: '共享 4×4 策略评估实验' })).toBeVisible()
 
   await context.close()
 })

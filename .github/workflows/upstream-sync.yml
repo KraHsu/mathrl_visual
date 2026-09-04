@@ -1,0 +1,42 @@
+name: Check upstream source pin
+
+on:
+  schedule:
+    - cron: '17 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: upstream-source-check
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Verify immutable upstream reference
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout companion
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 22
+
+      - name: Check upstream branch pin
+        env:
+          UPSTREAM_SYNC_REPORT: release-evidence/upstream-sync.json
+        run: node scripts/check-upstream-sync.mjs
+
+      - name: Upload sync report
+        if: always()
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4
+        with:
+          name: mathrl-upstream-sync-${{ github.run_id }}
+          if-no-files-found: error
+          retention-days: 90
+          path: release-evidence/upstream-sync.json

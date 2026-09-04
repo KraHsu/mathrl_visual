@@ -7,6 +7,7 @@ source_locale: en
 source_kind: topic-reference
 source_commit: 0e348961c28496096d308f1066009266b3674c5a
 source_pdf_blob: 9806707397947da8e8d46be903d9ddb02c000211
+source_pdf_sha256: 669cd4a4ba12b80b22bc702b8b71373fbcc2fa1b7c2ca848e06ed2949bb99c3c
 source_sections: "3.3-3.3.2"
 copied_text: false
 copied_assets: false
@@ -14,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: Bellman 最优方程
 description: 先计算每个请求动作的期望备份，再逐状态最大化，得到非线性的 Bellman 最优算子。
 outline: deep

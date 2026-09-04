@@ -14,6 +14,8 @@ copied_assets: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "REINFORCE: sampled policy gradients"
 description: Audit a complete sampled update and understand why a baseline changes variance rather than the expected direction.
 outline: deep

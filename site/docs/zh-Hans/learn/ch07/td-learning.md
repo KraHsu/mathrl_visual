@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: TD 状态价值学习
 description: 将一步 TD 备份看作随机逼近更新。
 outline: deep

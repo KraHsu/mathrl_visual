@@ -1,16 +1,26 @@
 {
   "name": "mathrl-visual-workspace",
+  "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@10.34.5",
   "scripts": {
     "build": "bash scripts/build-site.sh",
     "check": "bash scripts/check.sh",
     "content:check": "node scripts/check-locale-parity.mjs",
+    "upstream:check": "node scripts/check-upstream-sync.mjs",
+    "review:packet": "node scripts/generate-review-packet.mjs",
+    "release:readiness": "node scripts/check-release-readiness.mjs",
+    "pwa:check": "node scripts/check-pwa-artifact.mjs",
+    "sbom:generate": "node scripts/generate-sbom.mjs",
+    "sbom:check": "node scripts/check-sbom.mjs",
+    "security:check": "node scripts/check-dependency-audit.mjs",
+    "perf:check": "node scripts/check-performance-budget.mjs",
     "dev": "corepack pnpm --filter @mathrl/site dev",
     "site:build": "corepack pnpm --filter @mathrl/site build",
     "site:test": "corepack pnpm --filter @mathrl/site test",
     "site:test:e2e": "corepack pnpm --filter @mathrl/site test:e2e",
     "site:typecheck": "corepack pnpm --filter @mathrl/site typecheck",
-    "wasm:build": "bash scripts/build-wasm.sh"
+    "wasm:build": "bash scripts/build-wasm.sh",
+    "wasm:test:browser": "bash scripts/test-wasm-browser.sh"
   }
 }

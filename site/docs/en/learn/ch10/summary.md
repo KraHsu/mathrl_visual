@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "Chapter 10 summary"
 description: Keep actor, critic, advantage, and policy-distribution choices in one map.
 outline: deep

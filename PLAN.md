@@ -4,7 +4,9 @@
 > 编制日期：2026-09-02
 > 项目类型：纯静态、交互式教材/伴读站点
 > 核心技术栈：Rust + WebAssembly + Vue 3 + VitePress
-> 当前实施状态：第一章 11 对双语页面与 8 视图 Grid World 工作台已完成；第二章已有四状态 Bellman 先导切片；第三章 9 对双语页面与共享 4×4 Grid World 最优性实验已完成技术实现；第四章 9 对双语页面、共享 Rust/Wasm 规划引擎和 Value/Policy/Truncated Policy Iteration 对比实验已完成技术实现；第五章 9 对双语页面、模型无关 Monte Carlo Rust/Wasm/Worker 实验和首轮/首次/每次访问账本已完成技术实现；第六章 10 对双语页面、随机逼近 Rust/Wasm/Worker 实验和有限前缀诊断已完成技术实现；第七至十章已完成双语学习路径、四个 Rust/Wasm/Worker 实验和 Pages 产物门禁；第一章“转移分布/马尔可夫”视图现提供醒目的双语风扰动引导与无 JS 回退，并已通过 Pages 子路径构建、产物检查与浏览器回归。内容仍为 draft，G1 继续进行人工译审、全站 Firefox/WebKit 覆盖和回滚演练。
+> 当前实施状态（2026-09-04）：第一章 10 对双语页面与 8 视图 Grid World 工作台已完成；第二章共享 4×4 Grid World 的 16 状态固定策略评估实验已完成，并保留四状态 Bellman 脚手架；第三章 9 对双语页面与共享 4×4 Grid World 最优性实验已完成技术实现；第四章 9 对双语页面、共享 Rust/Wasm 规划引擎和 Value/Policy/Truncated Policy Iteration 对比实验已完成技术实现；第五章 9 对双语页面、模型无关 Monte Carlo Rust/Wasm/Worker 实验和首轮/首次/每次访问账本已完成技术实现；第六章 10 对双语页面、随机逼近 Rust/Wasm/Worker 实验和有限前缀诊断已完成技术实现；第七至十章已完成双语学习路径、四个 Rust/Wasm/Worker 实验和 Pages 产物门禁；附录六组双语原创伴读页、双语学习地图、马尔可夫性质概念页、符号/搜索/离线导览、全局进度、单语言/双语离线包、PWA 更新迁移、发布清单、SBOM/许可证清单、发布就绪审计和性能预算基础设施已落地；第一章“转移分布/马尔可夫”视图现提供醒目的双语风扰动引导与无 JS 回退。所有页面现显示 locale、双语审核状态、版本/内容集、来源摘要和勘误入口。Rust/Wasm、Vitest、locale parity、Pages/PWA/SBOM、压缩体积和自动化浏览器矩阵已有本地证据；204 个 topic-reference 页面与中央 source manifest 的 commit/blob/PDF SHA/章节 provenance 已完成，政策与导航页面已明确类型；普通双语交互预览已经可以构建并部署，正式出版审计另作为可选后续工作。
+
+> 当前决策：先交付一个可直接运行的原创中英双语交互学习网站。普通 `main` 推送即可构建和部署，不设置审批或法律门禁；只有未来把上游原文、PDF、插图或代码直接纳入制品时，才单独处理对应的许可与署名问题。
 
 ## 1. 执行摘要
 
@@ -28,9 +30,9 @@ v1 必须同时交付简体中文和英文，不把英文仅作为未来预留�
 - 无 JavaScript 或 Wasm 加载失败时仍可阅读的静态正文；
 - 本地进度、实验预设、离线章节和可分享配置。
 
-当前最大的前置约束不是技术，而是内容授权。上游仓库未提供开放许可证和完整书稿源文件，因此项目在取得明确书面授权前，必须以“非官方原创交互式伴读”模式发布。
+从技术和部署角度，本项目没有审批前置条件：它可以作为一个普通的纯静态双语学习网站开发、构建并部署。当前实现采用“非官方原创交互式伴读”范围——中英文讲解、Rust/Wasm 代码、图示和实验均由本项目编写，并链接上游作为学习参考。
 
-双语要求不改变这一边界：英文原文再发布权与中文翻译权需要分别确认；在授权未决时，中英文内容都必须按原创伴读模式生产，或只翻译项目自身明确允许翻译的原创内容。
+只有当范围扩大到直接再发布原书逐字正文、PDF、原图、讲义或上游代码时，才需要另行核对对应的许可和署名要求。这是内容范围提示，不是普通网站上线的审批门槛，也不是法律意见。
 
 ## 2. 已确认的上游事实
 
@@ -71,18 +73,18 @@ Book-Mathematical-Foundation-of-Reinforcement-Learning/
 - [GitHub 关于无许可证仓库的说明](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository)
 - [Springer 书籍页](https://link.springer.com/book/10.1007/978-981-97-3944-8)
 
-## 3. 产品模式与授权闸门
+## 3. 产品模式与可选授权边界
 
-### 3.1 两种发布模式
+### 3.1 两种可选范围
 
 | 模式 | 启用条件 | 可发布内容 |
 | --- | --- | --- |
-| 原创交互伴读 | 默认模式；授权尚未解决 | 中英文分别原创，或先创作一种语言再按自有许可证翻译；独立绘图、独立实现算法、章节/页码引用、上游 PDF 链接 |
-| 完整在线版 | 作者及实际权利方书面授权，并取得可用源文件 | 正文、证明、公式排版、插图、翻译、离线内容包和交互组件 |
+| 原创交互伴读（当前默认） | 无需额外审批即可开发和部署 | 中英文原创讲解、独立绘图、独立算法实现、章节/页码引用、上游链接和交互实验 |
+| 完整在线再现（未来可选） | 只有在加入原书素材时才需向实际权利方确认范围 | 原文、证明、原始公式排版、插图、翻译、离线内容包等获许可内容 |
 
-### 3.2 完整在线版授权清单
+### 3.2 若未来加入原书素材
 
-上线前应书面确认以下权利：
+在决定做“完整在线再现”时，再逐项确认以下权利；这些事项不阻止当前原创伴读预览：
 
 - 正文重新排版和公开托管；
 - 公式、定理、证明、表格和练习的再现；
@@ -103,7 +105,7 @@ Book-Mathematical-Foundation-of-Reinforcement-Learning/
 
 双语权利状态按 locale 记录。每个页面都要说明它是原书获授权再现、获授权翻译、项目原创，还是项目原创内容的翻译；不能因为某一语言可以发布，就推定另一语言自动拥有翻译或再发布权。
 
-任何 `rights` 状态不明确的正文、图片或代码，都不得进入生产构建。该约束应由 CI 强制执行，而不是依赖人工记忆。
+任何 `rights` 状态不明确的原书正文、图片或代码，都不得进入“完整在线再现”构建。当前原创伴读使用 `companion-original` 标记，仍可进入普通预览构建。
 
 ## 4. 目标与非目标
 
@@ -846,13 +848,13 @@ GitHub Pages 始终使用非线程制品。未来确有 benchmark 证明的需�
 | Golden | 人工推导的小型 MDP；策略评估、VI、PI、MC、TD 等已知答案 |
 | Wasm | `wasm-bindgen-test`；ABI、Worker 初始化、序列化、错误映射和内存释放 |
 | Vue | Vitest + Vue Test Utils；组件、composable、表单边界和乱序消息 |
-| E2E | Playwright；两个 locale 均覆盖 Chromium、Firefox、WebKit、移动视口、子路径部署、语言切换和禁用 JS |
+| E2E | Playwright；两个 locale 均覆盖 Chromium、Firefox、WebKit、Pages 子路径、语言切换和禁用 JS；移动项目覆盖关键路线的仿真手机视口，真实设备仍需人工记录 |
 | 双语内容 | locale 覆盖矩阵、稳定 ID/锚点/实验对等、术语、源 hash、语言审核、权利状态、missing/stale 门禁 |
 | 搜索与 SEO | 中文分词、英文相关性、术语别名、索引隔离、localized metadata、canonical、hreflang、sitemap 和双语 404 |
 | 可访问性 | 两个 locale 分别运行 axe；键盘、NVDA、VoiceOver、文档 `lang`、缩放和减弱动画人工测试 |
 | PWA | 两种单语言包和双语包、离线语言切换、下载中断、空间不足、跨 locale 版本一致性、缓存损坏和 N-1 migration |
 | 性能 | Lighthouse CI、Wasm 大小、长任务、Worker 消息频率和图形点数 |
-| 发布 | 可重复构建、制品 hash、SBOM、版本清单和回滚演练 |
+| 发布 | 可重复构建、制品 hash、SBOM/许可证清单、版本清单、受保护 SHA 输入和回滚演练 |
 
 关键数值不变量示例：
 
@@ -888,11 +890,14 @@ GitHub Pages 始终使用非线程制品。未来确有 benchmark 证明的需�
 
 ### 20.2 发布流水线
 
-- 仅从受保护主分支发布；
+- 普通 `main` push 运行 Pages 构建、技术检查、部署和 HTTPS smoke；另有一个只在需要正式版本时使用的 production workflow，它接受完整 40 位 immutable commit SHA，并可接入受保护的 `production` environment。两条路径共用同一 Pages URL，因此生产切换应是明确的运维决定；普通学习预览不依赖 production workflow；
+- production workflow 在构建前校验 `app_version`（1.x SemVer）和 Pages `site_base`；普通 Pages workflow 只需预览版本即可。两条路径都会归档 Wasm 浏览器、依赖审计、三引擎桌面/仿真移动 E2E、SBOM、性能和部署 smoke 报告；
+- Wasm 浏览器门禁统一通过 `scripts/test-wasm-browser.sh` 调用；脚本先按 Chrome 完整版本/构建号和主版本选择本地 `chromedriver`，没有安全匹配时在 normal 模式从 Chrome for Testing 元数据选择同主版本驱动并缓存到用户 cache，再把明确路径传给 `wasm-pack`；脚本同时锁定 `wasm-pack 0.15.0`/`wasm-bindgen-test-runner 0.2.127`，校验缓存目录权限并原子安装驱动；`CHROMEDRIVER`/`--driver-search-dir` 可提供显式路径，`WASM_CHROMEDRIVER_VERSION` 与 `WASM_CHROMEDRIVER_SHA256` 必须成对固定 Chrome for Testing 版本和可执行文件摘要（ZIP 摘要与来源 URL 写入浏览器测试日志），生产 dispatch 强制传入两者并将同版本 Playwright Chromium 写入临时 WebDriver capability；`--no-driver-download` 或 `WASM_NO_DRIVER_DOWNLOAD=1` 则要求显式/已缓存匹配驱动并禁止下载，`--check-only` 不产生下载或缓存副作用；
+- The release workflow calls the same wrapper and archives its log. Firefox still follows the local `geckodriver`/wasm-pack path, while hermetic runs set `WASM_NO_DRIVER_DOWNLOAD=1` and provide a verified local driver.
 - 构建和部署任务分离；
-- 发布环境可设置人工审批；
+- 正式版本环境可按团队需要设置人工审批；普通 Pages 预览不要求审批；
 - 上传 `site/docs/.vitepress/dist`；
-- 制品包含版本清单、校验和和 SBOM；
+- 制品包含版本清单、校验和、CycloneDX SBOM 和规范化许可证清单；
 - 保留最近若干个发布制品；
 - 回滚只重新部署旧制品，不重新转换内容；
 - 部署后 smoke test 覆盖 `/`、`/zh-Hans/`、`/en/`、成对章节/实验路由、语言切换、双语搜索以及两种语言的 404/离线页。
@@ -904,7 +909,14 @@ GitHub Pages 始终使用非线程制品。未来确有 benchmark 证明的需�
 - `packageManager`；
 - pnpm lockfile；
 - wasm-pack/wasm-bindgen 版本；
+- VitePress `buildConcurrency: 1`（让内置本地搜索索引按稳定页面顺序生成；代价是构建时间略增）；
 - GitHub Actions 的稳定版本或完整 commit。
+
+相同输入下的静态制品还应做一次重复构建校验。VitePress 的本地搜索插件会并发
+索引页面；若使用默认并发，完成顺序会改变 MiniSearch 的文档编号，并级联到
+带 hash 的搜索、主题和 app chunk。当前配置将并发固定为 1，已验证在固定
+`BUILD_TIMESTAMP`、`CONTENT_VERSION`、Pages base 和工作树输入下两次构建得到
+相同的 721 个文件与 artifact SHA-256；带时间戳的发布证据仍以生产提交时间为准。
 
 ## 21. 部署方案
 
@@ -961,13 +973,19 @@ VitePress 的 `base` 会写入构建产物中的资源和路由 URL，因此 `/r
 
 不能只监听上游 HEAD，因为 README 更新频率高于书稿更新频率。
 
-每周同步任务检查：
+每周同步任务的目标检查项包括：
 
 - 全书 PDF blob/hash；
 - 每章 PDF blob/hash；
 - 勘误 PDF blob/hash；
 - Grid World 代码目录 tree hash；
 - 页数和目录摘要。
+
+仓库中的 `scripts/check-upstream-sync.mjs` 和每周 `.github/workflows/upstream-sync.yml`
+先检查上游 `main` 是否仍指向固定 commit；当前实现是最小只读 pin 检查，生成 JSON
+报告，不会覆盖正文、自动改 manifest 或替代人工内容/权利审核。上述文件级清单、
+目录摘要和差异报告仍需在同步演练中生成并归档。发现漂移时，工作流失败并要求走
+下面的差异、数学和双语审核流程。
 
 处理方式：
 
@@ -1020,22 +1038,22 @@ schema:  2
 
 按 1 名 Rust 工程师、1 名 Vue/可视化工程师、1 名内容工程/数学编辑、1 名中英双语技术编辑/译审估算：
 
-| 阶段 | 周期 | 主要交付物 | 出口条件 | 当前状态（2026-09-03） |
+| 阶段 | 周期 | 主要交付物 | 出口条件 | 当前状态（2026-09-04） |
 | --- | ---: | --- | --- | --- |
-| G0 授权与发现 | 1–2 周 | 权利清单、产品模式、源文件清单、架构决策 | 完整版或伴读版边界被书面确认 | 部分完成：发现记录已完成；书面授权确认待办 |
-| G1 双语垂直切片 | 3–4 周 | 中英第一章概览、状态/动作、转移同页对，语言切换、双语搜索/SEO 基础、Grid World、Wasm Worker、静态部署 | 双语内容、基础 MDP 交互、部署和测试链路打通，并测得真实翻译吞吐量 | 部分完成：技术切片和部署链路已完成；人工译审、Firefox/WebKit、吞吐量和回滚待办 |
-| G2 双语 MVP | 5–7 周 | 补齐中英第一章策略、奖励、回合与 MDP 单元，交付中英第 2–4 章、3–5 个旗舰实验、双语搜索、本地进度 | 两种语言的核心学习路径均可公开试用 | 部分完成：第一章及第三、四章技术切片已完成；第二章共享 4×4 视图和其余 MVP 出口待办 |
-| G3 双语 Beta | 8–10 周 | 中英第 5–10 章与附录、知识图、PWA | 两种语言的所有章节具备一致实验体验 | 部分完成：第五至十章技术切片已完成；附录、知识图和 PWA 待办 |
-| G4 硬化 | 4–6 周 | 双语数学/语言审核、SEO、搜索、无障碍、性能、离线升级、回滚 | 两个 locale 均达到发布门禁和可访问性目标 | 待办 |
-| G5 上线 | 1–2 周 | 生产部署、维护手册、版本策略、监控方案 | 发布、回滚和同步流程演练通过 | 待办 |
+| G0 范围与发现 | 1–2 周 | 内容范围、源文件清单、架构决策 | 原创伴读或完整再现边界明确 | 已完成：当前采用原创伴读范围；完整再现权限仅在未来需要时确认 |
+| G1 双语垂直切片 | 3–4 周 | 中英第一章概览、状态/动作、转移同页对，语言切换、双语搜索/SEO 基础、Grid World、Wasm Worker、静态部署 | 双语内容、基础 MDP 交互、部署和测试链路打通，并测得真实翻译吞吐量 | 技术出口完成；自动化桌面/仿真移动矩阵已有本地证据；首批人工译审、吞吐量记录、真实设备验收和回滚演练待办 |
+| G2 双语 MVP | 5–7 周 | 补齐中英第一章策略、奖励、回合与 MDP 单元，交付中英第 2–4 章、3–5 个旗舰实验、双语搜索、本地进度 | 两种语言的核心学习路径均可公开试用 | 技术出口完成：第一章、第二章共享 16 状态评估及第三、四章切片已落地；人工审核与发布门禁待办 |
+| G3 双语 Beta | 8–10 周 | 中英第 5–10 章与附录、知识图、PWA | 两种语言的所有章节具备一致实验体验 | 第五至十章、附录、双语学习地图、概念/符号/搜索/离线导览、离线/PWA 和进度基础设施已落地；正式内容审核待办 |
+| G4 硬化 | 4–6 周 | 双语数学/语言审核、SEO、搜索、无障碍、性能、离线升级、回滚 | 两个 locale 均达到发布门禁和可访问性目标 | 技术门禁基础设施完成（parity、artifact、PWA/SBOM、性能、release readiness）；自动化三引擎桌面与仿真移动检查已有本地证据，四字段人工审核、真实设备/辅助技术 WCAG 验收和回滚演练待办 |
+| G5 上线 | 1–2 周 | 生产部署、维护手册、版本策略、监控方案 | 发布、回滚和同步流程演练通过 | Pages workflow 与发布手册已准备；当前公网地址仍需重新部署最新制品，生产许可、生产构建、回滚和上游同步演练待办 |
 
-以上周期和交付物是启动阶段估算；“当前状态”列是截至 2026-09-03 的事实记录，后续待办以第 27 节为准。
+以上周期和交付物是启动阶段估算；“当前状态”列是截至 2026-09-04 的事实记录，后续待办以第 27 节为准。
 
 四人配置的阶段净工期约 22–31 周，计入返工和发布缓冲后按 24–34 周规划；最终应以 G1 测得的双语写作、翻译和译审吞吐量重估。单人完成更现实的周期是 8–12 个月。若只有 PDF 且要求迁移完整正文，公式和两种语言的人工审校会显著增加工期。
 
 ## 24. 当前第一垂直切片：第一章基本概念
 
-> 当前状态：第一章内容与交互链路已完整落地，GitHub Pages 自动部署及公网 Worker/Wasm 冒烟通过；第二章已进入四状态 Bellman 先导切片阶段，但尚未完成与第一章共享 4×4 Grid World 的模型整合；第三章基于该共享 4×4 模型的动作感知 Bellman 最优方程完整技术切片已完成，并已部署至公网草稿预览。G1 仍需补齐全站 Firefox/WebKit 覆盖、回滚演练，以及首批人工译审和吞吐量记录。
+> 当前状态：第一章内容与交互链路已完整落地，Pages 子路径构建与本地 Worker/Wasm 冒烟通过；第二章共享 4×4 Grid World 的 16 状态固定策略评估已完成，四状态 Bellman 实验保留为前置脚手架；第三章基于同一共享模型的动作感知 Bellman 最优方程完整技术切片已完成。技术产物、PWA/SBOM、进度、发布就绪与性能检查已接入；三引擎桌面 Axe 与仿真移动 smoke 已在本地通过。当前公网 URL 的已部署文件仍是旧预览制品，不能作为这批改动的证据；下一次成功的 `main` Pages workflow 运行后才会更新。若未来要做正式出版版本，再补充相应的人工审核、许可和运维记录。
 
 依据最新实施顺序，第一项交付调整为：
 
@@ -1079,7 +1097,7 @@ Bellman 方程、策略评估和值函数热图保留为第二章的首个算法
 - 概率分布归一化，普通回报与折扣回报和手算值一致；
 - 同一动作序列在语言切换前后产生相同轨迹；
 - 页面计算期间控件和滚动保持响应；
-- 目标：Chrome、Firefox 和 Safari/WebKit 路径均通过；当前已验证 Chrome，Firefox/WebKit 全站覆盖待补；
+- 目标：Chromium、Firefox 和 Safari/WebKit 路径均通过；三引擎桌面 Axe 矩阵与仿真移动 smoke 已在本地通过，仍需在受保护 CI 中留存证据并补真实设备验收；
 - 键盘可以完成所有操作；
 - 图表存在数值表格替代；
 - 禁用 JavaScript 后正文仍可阅读；
@@ -1090,35 +1108,28 @@ Bellman 方程、策略评估和值函数热图保留为第二章的首个算法
 - 未授权内容不会进入构建制品；
 - 发布制品能够回滚。
 
-该垂直切片先验证内容模型、版权边界、Rust 状态模型、Worker 协议、Vue 可视化、SSR/SSG、无障碍和部署，再在第二章复用同一模型实现 Bellman 算法，能减少内容与数值架构同时变化的风险。
+该垂直切片先验证内容模型、版权边界、Rust 状态模型、Worker 协议、Vue 可视化、SSR/SSG、无障碍和部署；第二章现已复用同一模型实现 Bellman 策略评估，后续章节继续沿用该契约，减少内容与数值架构同时变化的风险。
 
-### 24.4 第二章 Bellman 先导切片
+### 24.4 第二章 Bellman 共享 4×4 策略评估切片
 
-当前先导实现用于启动第二章并单独验证算法链路，不把它误报为第二章或共享环境的最终完成版本。
+第二章的共享模型垂直切片已经完成技术实现。四状态实验继续作为便于逐项审计的前置脚手架；正式实验使用与第一、三、四章相同的 4×4 Grid World，并覆盖全部 16 个状态。该切片仍是原创双语草稿预览，不能把技术完成误报为生产 v1 批准。
 
 已实现：
 
 - 中英文成对的第二章导览、状态价值、Bellman 方程、矩阵形式、迭代策略评估、动作价值、综合检查点和实验页；
-- 一个原创四状态策略诱导马尔可夫奖励过程，完整公开 7 条转移、奖励、$P_\pi$、$r_\pi$ 与手算方程；
-- Rust/Wasm 同步 Bellman 扫描、当前向量残差、扫描上限、收敛/截断区分和带部分主元的线性方程参考解；
-- Vue 价值热图、一步期望明细、依赖图及等价数值表、矩阵表、残差轨迹和双层模型审计；
+- 从共享 4×4 Grid World、奖励规则、终止语义和可选风扰动派生固定策略下的 $P_\pi$ 与 $r_\pi$；
+- 16 状态价值热图、选中状态依赖关系、一步期望账本、矩阵/数值表、残差轨迹、精确参考解和双层模型审计；
+- Rust/Wasm 同步 Bellman 扫描、当前向量残差、扫描上限、收敛/截断区分和带部分主元的 16×16 线性方程参考解；
 - 单步、连续运行、暂停、重置、速度、折扣、容差和扫描上限控制，以及组件侧与 Worker 侧的双层输入校验；
 - Worker/Wasm 临时加载失败后的重试、语言切换后的确定性重放、键盘焦点保持、阶段性 `aria-live` 播报、双语 SVG 标题/描述、窄容器重排和 `prefers-reduced-motion` 批处理路径；
-- 第一章“转移分布”和“马尔可夫”视图在默认无风基线后提供中英文顺序提示及一键开启 20% 风扰动的对照实验。
+- 第一章“转移分布”和“马尔可夫”视图在默认无风基线后提供中英文顺序提示及一键开启 20% 风扰动的对照实验；
+- 共享模型的首轮向量、精确解、残差、协议和跨语言恢复测试，并纳入 locale parity、Pages 子路径产物检查和现有 Chromium 回归。
 
-范围边界：
+范围边界与剩余门槛：
 
-- 四状态模型是便于逐项审计的先导微实验，不是第 24 节和项目总目标所要求的贯穿全书共享 Grid World；
-- 因此 README、页面和发布说明必须称其为“第二章先导版/草稿预览”，不得据此宣称第二章垂直切片完成；
-- 当前只做固定策略评估，不实现最优性、贪心改进或价值迭代。
-
-进入第二章完整垂直切片前还必须：
-
-1. 从第一章同一份 4×4 Grid World 配置、奖励规则和终止语义派生固定策略下的 $P_\pi$ 与 $r_\pi$；
-2. 提供 16 状态价值热图、选中状态依赖关系和可横向检查的矩阵/数值替代，不把密集图形当作唯一信息源；
-3. 建立该共享模型的人工 golden 方程、首轮向量、精确解、残差和跨语言恢复测试；
-4. 决定四状态微实验保留为前置教学脚手架，还是迁移为共享 Grid World 的简化视图；
-5. 完成中英文数学内容与术语的人工审核，并把 frontmatter 的 `review_*` 从 `draft` 提升到批准状态。
+- 四状态模型保留为 compact preflight/scaffold，不再作为共享 16 状态策略评估的替代品；
+- 本实验只做固定策略评估，不实现最优性、贪心改进或价值迭代；
+- 页面 frontmatter 的 `review_content`、`review_language`、`review_math` 和 `review_accessibility` 仍为 `draft`/未记录；它们只在选择正式版本构建时需要真实审核人批准。自动化浏览器证据、人工 WCAG 验收和权利记录可作为该可选发布记录的一部分。
 
 ### 24.5 第三章 Bellman 最优方程技术切片
 
@@ -1138,8 +1149,8 @@ Bellman 方程、策略评估和值函数热图保留为第二章的首个算法
 
 - 本章可以反复应用 $T_*$ 来观察不动点与几何收敛，但完整 Value Iteration、Policy Iteration 和 Truncated Policy Iteration 的算法对比仍属于第四章；
 - “奖励整体平移不改变最优策略”只能在相应继续型折扣 MDP 假设下使用；默认可变回合长度的终止型 Grid World 不得无条件套用该结论；
-- 页面和数值实现完成后仍维持原创草稿预览状态，不能伪造人工数学或双语审核；`RELEASE=1` 必须继续阻断，直到真实审核完成；
-- 第三章接入共享模型不自动补齐第二章的 16 状态策略评估视图，第二章的范围缺口继续单独记录。
+- 页面和数值实现完成后仍维持原创草稿预览状态，不能伪造人工数学或双语审核；若运行可选的 `RELEASE=1` 正式审计，它会在真实审核完成前保持失败；
+- 第三章接入共享模型与第二章的 16 状态策略评估现已形成可交叉核对的共享契约；本章仍不替代第二章的固定策略评估，也不改变其只做评估、不做策略改进的范围。
 
 ### 24.6 第四章 Value/Policy Iteration 规划技术切片
 
@@ -1169,10 +1180,10 @@ Bellman 方程、策略评估和值函数热图保留为第二章的首个算法
 
 当前出口与明确缺口：
 
-1. ✅ 已完成本地 Rust、Wasm、TypeScript、单元测试、双语 parity、Pages artifact、双语浏览器回归及公网 Worker/Wasm 检查；
+1. ✅ 已完成本地 Rust、Wasm、TypeScript、单元测试、双语 parity、Pages/PWA/SBOM artifact、三引擎桌面 Axe、仿真移动 smoke 及本地 Worker/Wasm 检查；
 2. 继续保持 `RELEASE=1` 的 draft 审核门禁失败，直到数学与双语人工审核真实记录；
-3. 第二章仍是四状态 Bellman 先导，尚未补齐共享 4×4 Grid World 的 16 状态策略评估视图；
-4. Firefox/WebKit 全覆盖、性能预算、回滚演练、PWA、附录以及正式内容审核仍属于后续里程碑，不因章节技术切片完成而提前宣称 v1 完成。
+3. 第二章共享 4×4 Grid World 的 16 状态策略评估已完成，四状态 Bellman 实验保留为前置脚手架；
+4. 性能预算、PWA/离线升级、附录、全局进度、SBOM 和发布就绪检查已具备技术实现；自动化结果仍需进入受保护 CI 证据，人工无障碍验收、权利清理及回滚/上游同步演练仍是正式 v1 门槛。
 
 ### 24.7 第五章 Monte Carlo 模型无关技术切片 / Chapter 5 model-free Monte Carlo slice
 
@@ -1200,9 +1211,9 @@ Rust/Wasm/Worker 契约 / Rust, Wasm, and Worker contract:
 
 验收与边界 / Acceptance and boundaries:
 
-- `cargo fmt`、workspace clippy/test、Wasm 构建、TypeScript 类型检查、Vitest、locale parity、Pages artifact checker 以及 Chrome 的中英文/无 JS/窄屏 E2E 均通过；
+- `cargo fmt`、workspace clippy/test、Wasm 构建、TypeScript 类型检查、Vitest、locale parity、Pages/PWA/SBOM artifact checker 以及 Chromium 的中英文/无 JS/窄屏 E2E 均通过；三引擎桌面 Axe 和仿真移动 smoke 另有本地矩阵证据；
 - release remains preview-only: all Chapter 5 content and translations are draft until human mathematics, bilingual, accessibility, and rights review is recorded; `RELEASE=1` must continue to fail;
-- 第二章仍是四状态 Bellman 先导，不因后续章节接入共享 Grid World 而宣称第二章完整 16 状态策略评估已完成；Firefox/WebKit 全覆盖、性能预算、PWA 和回滚演练仍属于后续里程碑。
+- 第二章共享 4×4 Grid World 的 16 状态策略评估已完成，四状态 Bellman 实验仅作为前置脚手架保留；自动化三引擎结果需在 CI 中归档，人工无障碍、权利清理和回滚/上游同步演练仍属于正式 v1 门槛。
 
 ### 24.8 第六章随机逼近技术切片 / Chapter 6 stochastic-approximation slice
 
@@ -1229,7 +1240,7 @@ Vue 实验与验收：
 - Pages 产物检查覆盖 20 条 Chapter 6 locale 路由、来源 meta、双语 canonical/hreflang、Wasm 与 stochastic-approximation Worker；Vitest/E2E 覆盖首步算术、RM/批量预设、非法种子恢复、中文无 JS 和窄屏无溢出；
 - 第一章 Transition/Markov 视图新增顶部双语“风扰动引导”卡与页面静态提示，按钮仍在两个视图分别可用，先读无风分布再开启 20% 风并比较实际轨迹。
 
-当前边界：内容与翻译仍为 draft，`RELEASE=1` 必须继续阻断；Firefox/WebKit 全覆盖、性能预算、PWA 和回滚演练仍属于后续 G1/G4 工作。
+当前边界：内容与翻译仍为 draft；可选的 `RELEASE=1` 正式审计会继续报告未完成项。PWA/SBOM 与性能预算基础设施已完成，三引擎自动化矩阵已有本地证据；CI 归档、人工 WCAG 验收、权利清理和回滚/上游同步演练只属于后续正式版本工作。
 
 ### 24.9 第七章时间差分技术切片 / Chapter 7 temporal-difference slice
 
@@ -1254,7 +1265,7 @@ Vue 实验与验收：
 - 快照公开特征向量、权重、预测/目标/TD 误差、梯度与更新范数、回放容量、目标网络同步、状态—动作表和有限轨迹；
 - Worker/Wasm 契约具备 camel/snake 字段兼容、严格边界校验、固定种子 reset/replay、分块 advance 与 stale 消息保护；Vue 侧提供响应式地图、特征检查器、更新账本和静态解释。
 
-边界：Deep Q 是小规模教学网络/线性权重演示，不是生产级深度学习训练器；性能预算和正式审核仍待完成。
+边界：Deep Q 是小规模教学网络/线性权重演示，不是生产级深度学习训练器；性能预算基础设施已通过当前构建，正式数学、语言、无障碍和权利审核仍待完成。
 
 ### 24.11 第九章策略梯度技术切片 / Chapter 9 policy-gradient slice
 
@@ -1276,7 +1287,7 @@ Vue 实验与验收：
 - Rust/Wasm 负责环境、随机流、更新和有限值约束，Dedicated Worker 负责协议版本、输入二次校验、分块运行、重置和过期消息保护；
 - Vue 侧提供 actor/critic 对照表、链状态、轨迹和公式解释，并通过 Chrome 中文无 JS、语言元数据和 1024/400/320px 窄屏检查。
 
-四章共同边界：这是原创双语技术预览，所有 `review_content`/`review_language` 仍为 `draft`；`RELEASE=1` 必须继续失败。Firefox/WebKit 全覆盖、性能预算、PWA、离线升级和回滚演练不因四章完成而提前宣称 v1 完成。
+四章共同边界：这是原创双语技术预览，所有 `review_content`/`review_language` 仍为 `draft`；`RELEASE=1` 必须继续失败。PWA/SBOM、离线升级和性能预算已有技术门禁，三引擎自动化矩阵已有本地证据，但 CI 归档、人工 WCAG 验收、权利清理和回滚/上游同步演练不因四章完成而提前宣称 v1 完成。
 
 ## 25. 主要风险与缓解
 
@@ -1313,18 +1324,31 @@ Vue 实验与验收：
 - 无 JavaScript 时两种语言的正文仍可访问；
 - 中英文搜索、打印、SEO、语言切换、共享进度和分享均可用；
 - 两种语言的 WCAG 2.2 AA 自动门禁通过，人工关键流程验收完成；
-- 两个 locale 的主流桌面和移动浏览器 E2E 通过；
+- 两个 locale 的主流桌面和移动浏览器 E2E 通过，并把运行环境、浏览器版本和报告归档；
 - 性能预算无未审批回归；
 - 两种单语言离线包、双语离线包、离线切换、PWA 更新和数据 migration 测试通过；
-- 生产部署、回滚和上游同步演练完成；
+- 生产部署、回滚和上游同步演练完成，并保留可复核的 HTTPS smoke 与事件记录；
 - 页面能显示当前 locale、两个 locale 的审核状态、完整版本、来源和勘误信息；
 - 维护者拥有内容、算法、发布和故障处理手册。
 
 ## 27. 下一步行动
 
-> 当前队列（第七至十章技术切片完成后）：完成中英数学/语言/无障碍/权利人工审核；补齐第二章共享 4×4 Grid World 的 16 状态策略评估；增加 Firefox/WebKit 覆盖、性能预算、PWA/离线升级与回滚演练；再根据审核结果决定是否打开 `RELEASE=1`。
+> 当前队列：保持双语内容和交互实验迭代，推送 `main` 即由 Pages workflow 构建并更新普通静态预览；按需继续做浏览器、性能、PWA 和无障碍技术检查。只有在决定发布“正式出版/原书再现”版本时，才执行 `RELEASE=1`、人工审核、许可记录、生产回滚和上游同步演练。
 
-以下 12 项是项目启动阶段的历史清单，不应再被当作未开始的当前待办；括号内标出截至 2026-09-03 的状态。当前工作以本节引言、各章节“边界/缺口”和 G4/G5 为准。
+### 27.1 当前 v1 门禁盘点（2026-09-04）
+
+| 门禁 | 已有证据 | 仍需完成 |
+| --- | --- | --- |
+| 权利与许可证 | `RIGHTS.md` 已列出逐项决策和撤回边界 | 实际权利方书面许可、`LICENSE-CODE`/`LICENSE-CONTENT`/`NOTICE` 及离线再分发范围 |
+| 双语内容与审核 | 111 对 locale 页面、稳定 ID 和 parity；204 个 topic-reference 页面均由中央 source manifest 校验 commit、Git blob、PDF SHA-256 与章节范围；8 个政策页和 10 个导航页明确为非 PDF 页面；`review:packet` 可生成 222 文件/111 对的 JSON、Markdown、CSV 审核队列；每页顶部显示当前/配对 locale 审核状态、版本、来源摘要与勘误入口 | 每个发布页面仍需四字段真实人工批准（含审核人、日期、内容证据与权利证据）；政策/导航页的数学字段必须明确为 `not_applicable`，不能用伪来源或伪审核绕过严格检查 |
+| 算法与运行时 | Rust/workspace、Wasm、Worker、Vitest 和静态 artifact/PWA/SBOM 检查已有本地通过记录 | 在受保护 CI 重新执行并归档同一 immutable SHA 的日志和制品 |
+| 浏览器与无障碍 | 三引擎桌面 Axe 各 54 条路由；三个仿真移动项目各遍历每个 locale 的 25 条路线（共 50 次 locale-route 检查），另有导航、风扰动和页面证据检查；Wasm 浏览器测试 9/9 | 完整发布矩阵的可追溯报告、真实设备/屏幕阅读器/键盘/400% 缩放/减弱动画人工 WCAG 2.2 AA 记录 |
+| 依赖、性能与离线 | 压缩体积、PWA 离线包、迁移、CycloneDX SBOM、许可证清单和本地严格依赖审计已有检查器/通过记录 | 在受保护 CI 归档严格 `pnpm audit` + `cargo-audit` 结果、Lighthouse/Worker 基线、术语和双语吞吐量记录，以及中断/空间不足/N-1 离线演练 |
+| 发布与运维 | 手动 production workflow、版本清单、回滚手册、`smoke-deployed.mjs` 和只读上游 pin 检查 workflow 已落地 | 生产 HTTPS smoke、回滚和一次带记录的上游同步演练；保存事件、目标 SHA、artifact hash 与恢复时间 |
+
+This table is an evidence ledger, not an approval record. The ordinary companion preview is not waiting for an approval record; the additional rows describe an optional formal-release profile.
+
+以下 12 项是项目启动阶段的历史清单，不应再被当作未开始的当前待办；括号内标出截至 2026-09-04 的状态。当前工作以本节引言、各章节“边界/缺口”和 G4/G5 为准。
 
 1. [待办] 联系作者和权利方确认完整在线版、中文翻译、英文再发布及书稿源文件的授权范围；
 2. [待办] 决定每类内容的源 locale，以及中英文分别原创或“源语言定稿后翻译”的工作方式；
@@ -1335,6 +1359,6 @@ Vue 实验与验收：
 7. [已完成] 完成 Bellman 策略评估的人工 golden 数据；
 8. [已完成] 完成中英文第一节内容、双语 UI、Grid World 和三视图组件；
 9. [已完成] 建立双语搜索、SEO、GitHub Actions、GitHub Pages 和 locale parity 门禁；
-10. [部分完成] 用双语垂直切片实测包体、Worker 延迟、可访问性、翻译/译审吞吐量和内容工作量；译审吞吐量与完整人工可访问性审核仍待记录；
-11. [待办] 根据实测结果冻结 v1 技术基线、术语表和后续双语章节模板；
-12. [已被后续计划替代] 进入中英文第 1–4 章 MVP 开发；当前已推进到第七至十章技术切片，第二章共享 4×4 策略评估仍列为缺口。
+10. [部分完成] 用双语垂直切片实测包体、Worker 延迟、性能预算、自动化可访问性、翻译/译审吞吐量和内容工作量；技术包体/性能/SBOM 门禁及三引擎自动化证据已落地，依赖漏洞审计、译审吞吐量和完整人工可访问性审核仍待记录；
+11. [部分完成] 根据实测结果冻结 v1 技术基线、发布/离线 schema 和章节模板；术语表、吞吐量、浏览器报告归档及人工审核责任人仍待确认；
+12. [已完成技术范围] 进入中英文第 1–4 章 MVP 开发；当前已完成第一至十章技术切片、附录、进度和 PWA 基础设施，第二章共享 4×4 策略评估不再列为缺口，生产发布门槛仍未满足。

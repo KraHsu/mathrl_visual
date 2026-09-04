@@ -7,6 +7,7 @@ source_locale: en
 source_kind: topic-reference
 source_commit: 0e348961c28496096d308f1066009266b3674c5a
 source_pdf_blob: e437a038a72f11ee453cb3099866bfb0d9c140af
+source_pdf_sha256: 38eb0a063c5879f1efa4f0291fbd5ff36bd3bdbd077c66f2db2c43c514d6589f
 source_sections: "1.4"
 copied_text: false
 copied_assets: false
@@ -14,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: 策略
 description: 表示确定性与随机决策规则，并区分策略随机性和环境随机性。
 ---

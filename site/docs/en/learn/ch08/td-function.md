@@ -14,6 +14,8 @@ copied_assets: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: TD with function approximation
 description: Derive the linear TD update from a bootstrapped prediction.
 outline: deep

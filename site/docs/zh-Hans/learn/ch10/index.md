@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "第十章：Actor–Critic 方法"
 description: 组合策略 actor 与增量价值 critic，让每条信息路径都可检查。
 outline: deep

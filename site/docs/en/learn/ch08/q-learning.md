@@ -14,6 +14,8 @@ copied_assets: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: Action values with features
 description: Extend linear TD updates from state values to SARSA and Q-learning.
 outline: deep

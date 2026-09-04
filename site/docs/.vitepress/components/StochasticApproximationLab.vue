@@ -584,7 +584,7 @@ watch(() => props.locale, () => {
 
         <div class="chart-caption" aria-live="polite">{{ modeLabel }} · {{ chartSummary }}</div>
 
-        <div class="mini-table-wrap">
+        <div class="mini-table-wrap" tabindex="0" role="region" :aria-label="copy.trajectory">
           <table class="mini-table" data-testid="sa-trace">
             <caption>{{ copy.trajectory }}</caption>
             <thead>

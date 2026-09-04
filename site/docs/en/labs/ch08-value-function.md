@@ -14,6 +14,8 @@ copied_assets: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: Value-function lab
 description: Inspect feature vectors, linear TD updates, replay, and target-network cadence.
 aside: false

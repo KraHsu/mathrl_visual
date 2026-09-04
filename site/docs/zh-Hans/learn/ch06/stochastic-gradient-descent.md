@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "随机梯度下降：用样本做优化"
 description: 将期望目标连接到带噪梯度，识别 SGD 是 Robbins–Monro 的实例，并理解最优点附近的随机性。
 outline: deep

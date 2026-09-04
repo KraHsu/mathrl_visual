@@ -14,6 +14,8 @@ copied_assets: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: SARSA
 description: Follow the state-action-reward-state-action backup and its on-policy meaning.
 outline: deep

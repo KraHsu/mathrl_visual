@@ -7,6 +7,7 @@ source_locale: en
 source_kind: topic-reference
 source_commit: 0e348961c28496096d308f1066009266b3674c5a
 source_pdf_blob: 36ac85b83cef0cbbf041e7142ab816a9c5acd4de
+source_pdf_sha256: a28f082f29e8a9c112361c5481466172a3ddb34cf64ac4c60c5597e085288ffa
 source_sections: "2.6"
 copied_text: false
 copied_assets: false
@@ -14,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: Matrix form of the Bellman equation
 description: Assemble fixed-policy rewards, transitions, and state values into a linear system.
 outline: deep

@@ -1,5 +1,6 @@
 import { readdir, readFile } from 'node:fs/promises'
 
+import { APPENDIX_PAGES, APPENDIX_SOURCE_URL, appendixRoute } from './appendix-manifest.mjs'
 import {
   CHAPTERS_07_10,
   CHAPTER_LOCALES,
@@ -22,6 +23,38 @@ const chapter3Routes = [
   'learn/ch03/factors',
   'learn/ch03/checkpoint',
   'labs/bellman-optimality-grid',
+]
+const chapter2Routes = [
+  'learn/ch02/',
+  'learn/ch02/state-values',
+  'learn/ch02/bellman-equation',
+  'learn/ch02/matrix-form',
+  'learn/ch02/policy-evaluation',
+  'learn/ch02/action-values',
+  'learn/ch02/checkpoint',
+  'labs/ch02-policy-evaluation',
+  'labs/bellman-grid',
+]
+const chapter1Routes = [
+  'learn/ch01/',
+  'learn/ch01/state-action',
+  'learn/ch01/policies',
+  'learn/ch01/rewards',
+  'learn/ch01/transitions',
+  'learn/ch01/episodes',
+  'learn/ch01/returns',
+  'learn/ch01/mdp',
+  'learn/ch01/checkpoint',
+  'labs/ch01-gridworld',
+]
+const appendixRoutes = APPENDIX_PAGES.map((page) => appendixRoute(page))
+const conceptRoutes = ['concepts/markov-property']
+const navigationRoutes = ['map', 'symbols', 'search', 'offline']
+const policyRoutes = [
+  'about/license',
+  'about/source-version',
+  'about/release',
+  'accessibility',
 ]
 const chapter4Routes = [
   'learn/ch04/',
@@ -65,6 +98,8 @@ const requiredFiles = [
   'index.html',
   '404.html',
   'favicon.svg',
+  'sbom.cdx.json',
+  'licenses.json',
   'zh-Hans/index.html',
   'en/index.html',
   'zh-Hans/labs/ch01-gridworld.html',
@@ -73,6 +108,25 @@ const requiredFiles = [
   'en/learn/ch02/index.html',
   'zh-Hans/labs/bellman-grid.html',
   'en/labs/bellman-grid.html',
+  ...['zh-Hans', 'en'].flatMap((locale) =>
+    chapter1Routes.map((route) =>
+      `${locale}/${route.endsWith('/') ? `${route}index.html` : `${route}.html`}`,
+    ),
+  ),
+  ...['zh-Hans', 'en'].flatMap((locale) =>
+    chapter2Routes.map((route) =>
+      `${locale}/${route.endsWith('/') ? `${route}index.html` : `${route}.html`}`,
+    ),
+  ),
+  ...['zh-Hans', 'en'].flatMap((locale) =>
+    appendixRoutes.map((route) =>
+      `${locale}/${route.endsWith('/') ? `${route}index.html` : `${route}.html`}`,
+    ),
+  ),
+  ...['zh-Hans', 'en'].flatMap((locale) => policyRoutes.map((route) => `${locale}/${route}.html`)),
+  ...['zh-Hans', 'en'].flatMap((locale) =>
+    [...conceptRoutes, ...navigationRoutes].map((route) => `${locale}/${route}.html`),
+  ),
   ...['zh-Hans', 'en'].flatMap((locale) =>
     chapter3Routes.map((route) =>
       `${locale}/${route.endsWith('/') ? `${route}index.html` : `${route}.html`}`,
@@ -104,6 +158,76 @@ for (const relativePath of requiredFiles) {
   })
 }
 
+// Keep the static artifact gate independent from the PWA checker: an
+// archived Pages upload must always carry machine-readable dependency and
+// license evidence, even when it is inspected without a service worker.
+let sbom
+let licenses
+try {
+  sbom = JSON.parse(await readFile(new URL('sbom.cdx.json', dist), 'utf8'))
+  licenses = JSON.parse(await readFile(new URL('licenses.json', dist), 'utf8'))
+} catch (error) {
+  throw new Error(`GitHub Pages artifact has invalid SBOM/license JSON: ${error.message}`)
+}
+if (
+  sbom.$schema !== 'https://cyclonedx.org/schema/bom-1.5.schema.json'
+  || sbom.bomFormat !== 'CycloneDX'
+  || sbom.specVersion !== '1.5'
+  || typeof sbom.serialNumber !== 'string'
+  || !/^urn:uuid:[0-9a-f-]{36}$/.test(sbom.serialNumber)
+  || !Array.isArray(sbom.components)
+  || sbom.components.length === 0
+) {
+  throw new Error('GitHub Pages artifact has an invalid or empty CycloneDX SBOM')
+}
+if (!Array.isArray(licenses.licenses) || licenses.licenses.length === 0 || licenses.componentCount !== sbom.components.length) {
+  throw new Error('GitHub Pages artifact has an incomplete license inventory')
+}
+if (
+  licenses.schemaVersion !== 1
+  || typeof licenses.lockDigest !== 'string'
+  || !/^[0-9a-f]{64}$/.test(licenses.lockDigest)
+  || typeof licenses.generatedAt !== 'string'
+  || Number.isNaN(Date.parse(licenses.generatedAt))
+) throw new Error('GitHub Pages artifact has an invalid license inventory metadata')
+const sbomLockDigest = sbom.metadata?.properties?.find((property) => property?.name === 'mathrl:lock-digest')?.value
+if (sbomLockDigest !== licenses.lockDigest) throw new Error('GitHub Pages artifact SBOM/license lock digests differ')
+const sbomRefs = new Set()
+for (const component of sbom.components) {
+  if (
+    !component
+    || typeof component['bom-ref'] !== 'string'
+    || typeof component.name !== 'string'
+    || typeof component.version !== 'string'
+    || typeof component.purl !== 'string'
+    || !Array.isArray(component.licenses)
+    || component.licenses.length === 0
+  ) throw new Error('GitHub Pages artifact has a malformed SBOM component')
+  if (sbomRefs.has(component['bom-ref'])) throw new Error(`GitHub Pages artifact has duplicate SBOM ref ${component['bom-ref']}`)
+  sbomRefs.add(component['bom-ref'])
+}
+const licenseRefs = new Set()
+for (const group of licenses.licenses) {
+  if (typeof group.license !== 'string' || group.license.length === 0 || !Array.isArray(group.components) || group.components.length === 0) {
+    throw new Error('GitHub Pages artifact has a malformed license group')
+  }
+  for (const ref of group.components) {
+    if (typeof ref !== 'string' || ref.length === 0) throw new Error('GitHub Pages artifact has an empty license component reference')
+    if (licenseRefs.has(ref)) throw new Error(`GitHub Pages artifact repeats license component reference ${ref}`)
+    licenseRefs.add(ref)
+  }
+}
+for (const ref of sbomRefs) if (!licenseRefs.has(ref)) throw new Error(`GitHub Pages artifact license inventory misses ${ref}`)
+for (const ref of licenseRefs) if (!sbomRefs.has(ref)) throw new Error(`GitHub Pages artifact license inventory references unknown ${ref}`)
+
+const notFound = await readFile(new URL('404.html', dist), 'utf8')
+if (!notFound.includes('页面不存在') || !notFound.includes('Page not found')) {
+  throw new Error('404 page must contain both Simplified Chinese and English copy')
+}
+if (!notFound.includes(`href="${base}zh-Hans/"`) || !notFound.includes(`href="${base}en/"`)) {
+  throw new Error('404 page must link to both locale home pages')
+}
+
 const assetNames = await readdir(new URL('assets/', dist), { recursive: true })
 if (!assetNames.some((name) => name.endsWith('.wasm'))) {
   throw new Error('GitHub Pages artifact does not contain the Rust/Wasm engine')
@@ -119,6 +243,9 @@ if (!assetNames.some((name) => name.includes('monte-carlo.worker-') && name.ends
 }
 if (!assetNames.some((name) => name.includes('stochastic-approximation.worker-') && name.endsWith('.js'))) {
   throw new Error('GitHub Pages artifact does not contain the Chapter 6 stochastic-approximation Worker')
+}
+if (!assetNames.some((name) => name.includes('grid-policy.worker-') && name.endsWith('.js'))) {
+  throw new Error('GitHub Pages artifact does not contain the Chapter 2 shared-grid policy Worker')
 }
 for (const chapter of CHAPTERS_07_10) {
   if (!assetNames.some((name) => name.includes(chapter.workerAsset) && name.endsWith('.js'))) {
@@ -140,6 +267,10 @@ const rootLeak = base === '/' ? null : new RegExp(`(?:href|src)="/(?!${escapedBa
 
 for (const file of htmlFiles) {
   const html = await readFile(file, 'utf8')
+  // Offline fallback pages are deliberately standalone HTML and do not load
+  // the VitePress asset graph.  Their locale links and manifest are checked
+  // by check-pwa-artifact.mjs instead.
+  if (file.pathname.includes('/dist/offline/')) continue
   if (!html.includes(`${base}assets/`)) {
     throw new Error(`${file.pathname} does not reference assets through ${base}`)
   }
@@ -148,6 +279,24 @@ for (const file of htmlFiles) {
   }
   if (preview && !html.includes('name="robots" content="noindex,nofollow"')) {
     throw new Error(`${file.pathname} is missing the preview robots directive`)
+  }
+}
+
+// Every localized VitePress page carries the same visible evidence contract:
+// current/paired locale review state, build identity, and the provenance
+// disclosure component.  Check the rendered HTML rather than trusting only
+// frontmatter so a theme regression cannot hide release blockers from readers.
+for (const file of htmlFiles.filter((entry) => /\/dist\/(?:zh-Hans|en)\//.test(entry.pathname))) {
+  const html = await readFile(file, 'utf8')
+  if (!html.includes('data-testid="page-evidence"')) {
+    throw new Error(`${file.pathname} is missing the visible page evidence card`)
+  }
+  const reviewStatuses = (html.match(/data-review-status=/g) ?? []).length
+  if (reviewStatuses < 8) {
+    throw new Error(`${file.pathname} exposes ${reviewStatuses} review statuses; expected both locales and four fields`)
+  }
+  if (!html.toLowerCase().includes('errata') && !html.includes('勘误')) {
+    throw new Error(`${file.pathname} is missing the errata disclosure in page evidence`)
   }
 }
 
@@ -256,6 +405,18 @@ for (const page of chapter6Pages) {
   }
 }
 
+const chapter2Source =
+  'https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning/blob/0e348961c28496096d308f1066009266b3674c5a/3%20-%20Chapter%202%20State%20Values%20and%20Bellman%20Equation.pdf'
+const chapter1Source =
+  'https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning/blob/0e348961c28496096d308f1066009266b3674c5a/3%20-%20Chapter%201%20Basic%20Concepts.pdf'
+
+await assertLocalizedRoutes(chapter1Routes, chapter1Source, 'Chapter 1')
+await assertLocalizedRoutes(chapter2Routes, chapter2Source, 'Chapter 2')
+await assertLocalizedRoutes(appendixRoutes, APPENDIX_SOURCE_URL, 'Appendix')
+await assertLocalizedRoutes(policyRoutes, undefined, 'policy')
+await assertLocalizedRoutes(conceptRoutes, chapter1Source, 'concept')
+await assertLocalizedRoutes(navigationRoutes, undefined, 'navigation')
+
 for (const chapter of CHAPTERS_07_10) {
   const pages = CHAPTER_LOCALES.flatMap((locale) =>
     chapterAllRoutes(chapter).map((route) => ({
@@ -290,6 +451,31 @@ for (const chapter of CHAPTERS_07_10) {
 console.log(
   `GitHub Pages artifact OK: ${htmlFiles.length} HTML files, base ${base}, ${assetNames.length} assets`,
 )
+
+async function assertLocalizedRoutes(routes, expectedSource, label) {
+  const pages = ['zh-Hans', 'en'].flatMap((locale) =>
+    routes.map((route) => ({
+      locale,
+      counterpart: locale === 'zh-Hans' ? 'en' : 'zh-Hans',
+      route,
+    })),
+  )
+  for (const page of pages) {
+    const fileRoute = page.route.endsWith('/') ? `${page.route}index.html` : `${page.route}.html`
+    const html = await readFile(new URL(`${page.locale}/${fileRoute}`, dist), 'utf8')
+    const canonical = publicArtifactUrl(`${page.locale}/${page.route}`)
+    const alternate = publicArtifactUrl(`${page.counterpart}/${page.route}`)
+    if (!html.includes(`rel="canonical" href="${canonical}"`)) {
+      throw new Error(`${page.locale}/${fileRoute} has an incorrect ${label} canonical URL`)
+    }
+    if (!html.includes(`hreflang="${page.counterpart}" href="${alternate}"`)) {
+      throw new Error(`${page.locale}/${fileRoute} is missing its ${label} locale alternate`)
+    }
+    if (expectedSource && !html.includes(`name="mathrl:source" content="${expectedSource}"`)) {
+      throw new Error(`${page.locale}/${fileRoute} is missing the pinned ${label} source`)
+    }
+  }
+}
 
 function normalizeBase(value) {
   const withLeadingSlash = value.startsWith('/') ? value : `/${value}`

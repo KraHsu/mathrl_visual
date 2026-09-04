@@ -14,6 +14,8 @@ copied_assets: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: Chapter 7 checkpoint
 description: Verify one TD backup and explain its policy relation.
 outline: deep

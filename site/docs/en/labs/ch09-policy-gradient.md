@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: Policy-gradient lab
 description: Replay seeded softmax policy-gradient updates and compare a state baseline.
 aside: false

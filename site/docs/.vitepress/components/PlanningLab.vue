@@ -980,7 +980,7 @@ onBeforeUnmount(() => {
           <template v-else-if="mode === 'policy_iteration'">{{ copy.policyIterationFormula }}</template>
           <template v-else>{{ copy.truncatedPolicyIterationFormula }}</template>
         </p>
-        <div class="planning-grid" role="grid" :aria-label="`${algorithmName(mode)} ${copy.mapTitle}`">
+        <div class="planning-grid" role="group" :aria-label="`${algorithmName(mode)} ${copy.mapTitle}`">
           <button
             v-for="state in stateIndexes"
             :key="state"
@@ -997,7 +997,6 @@ onBeforeUnmount(() => {
             :data-policy-mask="runs[mode].snapshot.policyMasks[state] ?? 0"
             :data-greedy-mask="runs[mode].snapshot.greedyMasks[state] ?? 0"
             type="button"
-            role="gridcell"
             :aria-pressed="selectedState === state && selectedMode === mode"
             :aria-label="interpolate(copy.stateAria, {
               algorithm: algorithmName(mode),
@@ -1030,7 +1029,7 @@ onBeforeUnmount(() => {
       </article>
     </section>
 
-    <div class="planning-comparison-table mini-table-wrap">
+    <div class="planning-comparison-table mini-table-wrap" tabindex="0" role="region" :aria-label="copy.algorithmTable">
       <table class="mini-table">
         <caption>{{ copy.algorithmTable }}</caption>
         <thead>
@@ -1069,7 +1068,7 @@ onBeforeUnmount(() => {
           <p class="lab-panel__hint">
             {{ algorithmName(selectedMode) }} · {{ copy.policy }}: {{ policyLabel(selectedRun, selectedState) }} · {{ copy.greedy }}: {{ actionList(selectedGreedyMask) }}
           </p>
-          <div class="mini-table-wrap">
+          <div class="mini-table-wrap" tabindex="0" role="region" :aria-label="copy.mapTitle">
             <table class="mini-table planning-action-table">
               <thead><tr><th scope="col">{{ copy.requestedAction }}</th><th scope="col">{{ copy.qValue }}</th><th scope="col">{{ copy.greedy }}</th></tr></thead>
               <tbody>
@@ -1087,7 +1086,7 @@ onBeforeUnmount(() => {
             </table>
           </div>
           <h4>{{ copy.requestedAction }}: {{ actionName(selectedAction) }}</h4>
-          <div class="mini-table-wrap">
+          <div class="mini-table-wrap" tabindex="0" role="region" :aria-label="copy.requestedAction">
             <table class="mini-table planning-ledger-table">
               <thead><tr><th scope="col">{{ copy.actualAction }}</th><th scope="col">{{ copy.nextState }}</th><th scope="col">{{ copy.probability }}</th><th scope="col">{{ copy.reward }}</th><th scope="col">{{ copy.contribution }}</th></tr></thead>
               <tbody>
@@ -1105,7 +1104,7 @@ onBeforeUnmount(() => {
         <h3 :id="`planning-phase-title-${locale}`">{{ copy.phaseTitle }}</h3>
         <p>{{ copy.phaseBody }}</p>
         <p v-if="latestPhases.length === 0" class="lab-panel__hint">{{ copy.noPhase }}</p>
-        <div v-else class="mini-table-wrap">
+        <div v-else class="mini-table-wrap" tabindex="0" role="region" :aria-label="copy.phaseTitle">
           <table class="mini-table planning-phase-table">
             <thead><tr><th scope="col">{{ copy.phase }}</th><th scope="col">{{ copy.phaseSweeps }}</th><th scope="col">{{ copy.phaseChangedStates }}</th><th scope="col">{{ copy.residual }}</th></tr></thead>
             <tbody>
@@ -1148,7 +1147,7 @@ onBeforeUnmount(() => {
         <line x1="22" y1="162" x2="538" y2="162" /><line x1="22" y1="18" x2="22" y2="162" />
         <polyline v-for="mode in PLANNING_MODES" :key="mode" :class="`planning-series planning-series--${mode}`" :points="chartSeries[mode]" :data-mode="mode" />
       </svg>
-      <div class="mini-table-wrap planning-history-table">
+      <div class="mini-table-wrap planning-history-table" tabindex="0" role="region" :aria-label="copy.residualTitle">
         <table class="mini-table">
           <thead><tr><th scope="col">{{ copy.algorithm }}</th><th scope="col">{{ copy.iteration }}</th><th scope="col">{{ copy.residual }}</th></tr></thead>
           <tbody>

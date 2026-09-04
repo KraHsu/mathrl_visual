@@ -7,6 +7,7 @@ source_locale: en
 source_kind: topic-reference
 source_commit: 0e348961c28496096d308f1066009266b3674c5a
 source_pdf_blob: 36ac85b83cef0cbbf041e7142ab816a9c5acd4de
+source_pdf_sha256: a28f082f29e8a9c112361c5481466172a3ddb34cf64ac4c60c5597e085288ffa
 source_sections: "2.1-2.10"
 copied_text: false
 copied_assets: false
@@ -14,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: 第二章：状态价值与 Bellman 方程
 description: 通过期望回报、Bellman 方程、矩阵形式、同步扫描和动作价值，评估一个给定策略。
 outline: deep
@@ -27,8 +30,8 @@ outline: deep
 本站是非官方原创伴读。本章仅参照原书的主题顺序，不复制原书正文、图、表、示例、问答或代码。主题定位基于[固定上游版本](https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning/blob/0e348961c28496096d308f1066009266b3674c5a/3%20-%20Chapter%202%20State%20Values%20and%20Bellman%20Equation.pdf)。
 :::
 
-::: warning 先导状态
-当前交互实验先使用一个便于逐项审计的四状态微模型，用来启动第二章实现；它还不是从第一章共享 4×4 Grid World 派生出的计划版 Bellman 视图。在完成该整合与中英双语人工审核前，第二章仍属于草稿预览。
+::: tip 两种互补的实验视图
+现在的[共享 4×4 策略评估实验](/zh-Hans/labs/ch02-policy-evaluation)已经使用第一、三、四章相同的模型评估全部 16 个状态。原有的[四状态 Bellman 脚手架](/zh-Hans/labs/bellman-grid)保留为逐项审计单次备份的紧凑预演。两种视图都保持策略固定；在完成中英双语人工审核前，本章仍是草稿预览。
 :::
 
 <a id="scope"></a>
@@ -81,7 +84,8 @@ outline: deep
 | [策略评估](./policy-evaluation) | 同步扫描怎样逼近不动点？如何量化误差？ | Bellman 残差 |
 | [动作价值](./action-values) | 如果第一个动作单独固定，期望回报是什么？ | $q_\pi(s,a)$ |
 | [章节检查点](./checkpoint) | 能否评估一个新模型的固定策略，而不越界到优化？ | 综合检查 |
-| [Bellman 策略评估实验](/zh-Hans/labs/bellman-grid) | 能否检查四状态计算中的每一项？ | Rust/Wasm 实验 |
+| [共享 4×4 策略评估实验](/zh-Hans/labs/ch02-policy-evaluation) | 能否在给定策略下评估全部 16 个状态？ | Rust/Wasm 实验 |
+| [四状态 Bellman 脚手架](/zh-Hans/labs/bellman-grid) | 能否检查紧凑计算中的每一项？ | Rust/Wasm 预演 |
 
 <a id="notation"></a>
 
@@ -106,6 +110,6 @@ $$
 
 ## 从期望开始
 
-继续阅读[状态价值](./state-values)，或打开 [Bellman 策略评估实验](/zh-Hans/labs/bellman-grid)，边阅读边对照一次扫描的计算。
+继续阅读[状态价值](./state-values)，或打开[共享 4×4 策略评估实验](/zh-Hans/labs/ch02-policy-evaluation)，边阅读边对照一次扫描的计算。
 
-第二章先导版页面：[概览](/zh-Hans/learn/ch02/) · [状态价值](/zh-Hans/learn/ch02/state-values) · [Bellman 方程](/zh-Hans/learn/ch02/bellman-equation) · [矩阵形式](/zh-Hans/learn/ch02/matrix-form) · [策略评估](/zh-Hans/learn/ch02/policy-evaluation) · [动作价值](/zh-Hans/learn/ch02/action-values) · [检查点](/zh-Hans/learn/ch02/checkpoint) · [实验](/zh-Hans/labs/bellman-grid)
+第二章页面：[概览](/zh-Hans/learn/ch02/) · [状态价值](/zh-Hans/learn/ch02/state-values) · [Bellman 方程](/zh-Hans/learn/ch02/bellman-equation) · [矩阵形式](/zh-Hans/learn/ch02/matrix-form) · [策略评估](/zh-Hans/learn/ch02/policy-evaluation) · [动作价值](/zh-Hans/learn/ch02/action-values) · [检查点](/zh-Hans/learn/ch02/checkpoint) · [共享 4×4 实验](/zh-Hans/labs/ch02-policy-evaluation) · [四状态脚手架](/zh-Hans/labs/bellman-grid)

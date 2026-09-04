@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "Chapter 10: Actor–critic methods"
 description: Combine a policy actor with an incremental value critic and make every information path inspectable.
 outline: deep

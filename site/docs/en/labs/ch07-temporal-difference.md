@@ -14,6 +14,8 @@ copied_assets: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: Temporal-Difference lab
 description: Compare TD(0), SARSA, n-step SARSA, and Q-learning with a seeded transition trace.
 aside: false

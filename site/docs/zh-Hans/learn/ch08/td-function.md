@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: 函数逼近的 TD
 description: 从引导式预测推导线性 TD 更新。
 outline: deep

@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "Stochastic gradient descent: optimization with samples"
 description: Connect expected objectives to noisy gradients, identify SGD as Robbins–Monro, and interpret its near-optimum randomness.
 outline: deep

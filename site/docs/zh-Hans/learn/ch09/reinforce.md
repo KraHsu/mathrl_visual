@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "REINFORCE：采样策略梯度"
 description: 审计一次完整采样更新，理解 baseline 改变的是方差而非期望方向。
 outline: deep

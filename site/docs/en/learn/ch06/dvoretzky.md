@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "Dvoretzky-style convergence: an error-process lens"
 description: Read the scalar stochastic recursion behind convergence arguments and see how the finite-index extension foreshadows tabular RL proofs.
 outline: deep

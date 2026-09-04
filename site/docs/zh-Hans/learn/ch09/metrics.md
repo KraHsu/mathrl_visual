@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "策略指标"
 description: 比较平均价值、平均奖励和实验显示的有限目标。
 outline: deep

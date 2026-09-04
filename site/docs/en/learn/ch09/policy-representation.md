@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "Policy representation: table to function"
 description: Understand what changes when action probabilities come from parameters rather than table entries.
 outline: deep

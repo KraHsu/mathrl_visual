@@ -6,7 +6,8 @@ origin: companion-translation
 source_locale: en
 source_kind: topic-reference
 source_commit: 0e348961c28496096d308f1066009266b3674c5a
-source_pdf_blob: 77a4369d31c82b1d5ab58a833d6190771daa2905eb7e27372114b4fb493f2245
+source_pdf_blob: acdd6aff8046fe7ed7e45b4d4cd2a89ead30aac8
+source_pdf_sha256: 77a4369d31c82b1d5ab58a833d6190771daa2905eb7e27372114b4fb493f2245
 source_sections: "5.7"
 copied_text: false
 copied_assets: false
@@ -14,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "第五章问答"
 description: 用简短的原创回答复习 Monte Carlo 回报、访问策略、探索性起点、epsilon-greedy 与证据标准。
 outline: deep

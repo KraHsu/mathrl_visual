@@ -3,11 +3,13 @@ import { relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { CHAPTER_SOURCE_COMMIT, chapterForPath } from './chapter-manifest.mjs'
+import { UPSTREAM_SOURCE_COMMIT, topicSourceForPath } from './source-manifest.mjs'
 
 const projectRoot = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const docsRoot = resolve(projectRoot, 'site/docs')
 const locales = ['zh-Hans', 'en']
 const allowedRights = new Set(['companion-original'])
+const allowedSourceKinds = new Set(['topic-reference', 'project-policy', 'site-navigation'])
 
 async function markdownFiles(root, directory = root) {
   const entries = await readdir(directory, { withFileTypes: true })
@@ -74,6 +76,7 @@ for (const path of referenceFiles) {
       id: scalar(metadata, 'id', `${locale}/${path}`),
       translationKey: scalar(metadata, 'translation_key', `${locale}/${path}`),
       locale: scalar(metadata, 'locale', `${locale}/${path}`),
+      sourceKind: scalar(metadata, 'source_kind', `${locale}/${path}`),
       rights: scalar(metadata, 'rights', `${locale}/${path}`),
       contentReview: scalar(metadata, 'review_content', `${locale}/${path}`),
       languageReview: scalar(metadata, 'review_language', `${locale}/${path}`),
@@ -91,12 +94,43 @@ for (const path of referenceFiles) {
         `${locale}/${path}: rights value ${record.rights} is not in the release allowlist`,
       )
     }
+    if (!allowedSourceKinds.has(record.sourceKind)) {
+      throw new Error(`${locale}/${path}: source_kind value ${record.sourceKind} is not allowed`)
+    }
+    if (record.sourceKind === 'topic-reference') {
+      const expected = topicSourceForPath(path)
+      if (!expected) throw new Error(`${locale}/${path}: no topic source manifest entry`)
+      for (const [field, value, expectedValue] of [
+        ['source_commit', record.sourceCommit, expected.sourceCommit ?? UPSTREAM_SOURCE_COMMIT],
+        ['source_pdf_blob', record.sourcePdfBlob, expected.sourcePdfBlob],
+        ['source_pdf_sha256', record.sourcePdfSha256, expected.sourcePdfSha256],
+      ]) {
+        if (!value) throw new Error(`${locale}/${path}: missing ${field}`)
+        if (field === 'source_commit' && !/^[0-9a-f]{40}$/i.test(value)) {
+          throw new Error(`${locale}/${path}: ${field} must be a 40-character SHA`)
+        }
+        if (field === 'source_pdf_blob' && !/^[0-9a-f]{40}$/i.test(value)) {
+          throw new Error(`${locale}/${path}: ${field} must be a 40-character Git blob ID`)
+        }
+        if (field === 'source_pdf_sha256' && !/^[0-9a-f]{64}$/i.test(value)) {
+          throw new Error(`${locale}/${path}: ${field} must be a 64-character SHA-256`)
+        }
+        if (value !== expectedValue) {
+          throw new Error(`${locale}/${path}: ${field} does not match the source manifest`)
+        }
+      }
+      if (!record.sourceSections) throw new Error(`${locale}/${path}: missing source_sections`)
+    }
     records.push(record)
   }
 
   const [first, ...rest] = records
   for (const record of rest) {
-    if (record.id !== first.id || record.translationKey !== first.translationKey) {
+    if (
+      record.id !== first.id
+      || record.translationKey !== first.translationKey
+      || record.sourceKind !== first.sourceKind
+    ) {
       throw new Error(`${path}: bilingual IDs do not match`)
     }
     if (

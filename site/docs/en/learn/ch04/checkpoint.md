@@ -6,7 +6,8 @@ origin: companion-original
 source_locale: en
 source_kind: topic-reference
 source_commit: 0e348961c28496096d308f1066009266b3674c5a
-source_pdf_blob: 6ad14567a8c992d36883147270150004775c198f68c75bb5bd991670fdaef402
+source_pdf_blob: d16a55302a9aff5fad518fb18a518d202376ac97
+source_pdf_sha256: 6ad14567a8c992d36883147270150004775c198f68c75bb5bd991670fdaef402
 source_sections: "4.1-4.5"
 copied_text: false
 copied_assets: false
@@ -14,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: Chapter 4 checkpoint
 description: Compare value iteration, policy iteration, and truncated policy iteration on one original finite MDP, then audit the shared Grid World.
 outline: deep

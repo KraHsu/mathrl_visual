@@ -14,6 +14,8 @@ copied_assets: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: 第七章检查点
 description: 验证一次 TD 备份并说明其策略关系。
 outline: deep

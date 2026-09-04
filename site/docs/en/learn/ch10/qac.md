@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "Q actor–critic (QAC)"
 description: Pair a softmax actor with an action-value critic and inspect the coupled updates.
 outline: deep

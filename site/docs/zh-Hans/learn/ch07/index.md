@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "第七章：时间差分方法"
 description: 从一步目标出发，比较 TD(0)、SARSA、n-step SARSA 与 Q-learning。
 outline: deep

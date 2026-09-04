@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: Q-learning
 description: 对比贪心引导项与实际采样动作，理解异策略更新。
 outline: deep

@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "Batch, stochastic, and mini-batch updates"
 description: Compare one-sample and averaged gradients, clarify sampling with replacement, and make batch size a visible statistical and computational tradeoff.
 outline: deep

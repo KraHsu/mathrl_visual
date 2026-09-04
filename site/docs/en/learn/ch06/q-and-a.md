@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "Chapter 6 Q&A"
 description: Short original answers about incremental means, Robbins–Monro, convergence assumptions, SGD, and finite experiments.
 outline: deep

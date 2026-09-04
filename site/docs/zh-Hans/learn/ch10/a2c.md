@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "优势 Actor–Critic（A2C）"
 description: 用 TD 误差优势替代原始动作价值，并理解 baseline 方差。
 outline: deep

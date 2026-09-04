@@ -7,6 +7,7 @@ source_locale: en
 source_kind: topic-reference
 source_commit: 0e348961c28496096d308f1066009266b3674c5a
 source_pdf_blob: 36ac85b83cef0cbbf041e7142ab816a9c5acd4de
+source_pdf_sha256: a28f082f29e8a9c112361c5481466172a3ddb34cf64ac4c60c5597e085288ffa
 source_sections: "2.4-2.5"
 copied_text: false
 copied_assets: false
@@ -14,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: Bellman 方程
 description: 从回报的一步分解推导固定策略的 Bellman 期望方程。
 outline: deep
@@ -181,6 +184,6 @@ $$
 
 ## 继续学习第二章
 
-接下来把所有状态方程收集成[矩阵形式](./matrix-form)，也可以在 [Bellman 实验](/zh-Hans/labs/bellman-grid)中逐项检查。
+接下来把所有状态方程收集成[矩阵形式](./matrix-form)，也可以在[共享 4×4 策略评估实验](/zh-Hans/labs/ch02-policy-evaluation)中检查全部 16 个状态。
 
 第二章先导版页面：[概览](/zh-Hans/learn/ch02/) · [状态价值](/zh-Hans/learn/ch02/state-values) · [Bellman 方程](/zh-Hans/learn/ch02/bellman-equation) · [矩阵形式](/zh-Hans/learn/ch02/matrix-form) · [策略评估](/zh-Hans/learn/ch02/policy-evaluation) · [动作价值](/zh-Hans/learn/ch02/action-values) · [检查点](/zh-Hans/learn/ch02/checkpoint) · [实验](/zh-Hans/labs/bellman-grid)

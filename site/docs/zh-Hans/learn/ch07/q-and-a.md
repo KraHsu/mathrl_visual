@@ -14,6 +14,8 @@ copied_assets: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: 第七章问答
 description: 检查目标与策略区别的简短问题。
 outline: deep

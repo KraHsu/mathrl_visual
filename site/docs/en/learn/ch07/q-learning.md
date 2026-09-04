@@ -14,6 +14,8 @@ copied_assets: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: Q-learning
 description: Contrast an off-policy greedy bootstrap with the action actually sampled.
 outline: deep

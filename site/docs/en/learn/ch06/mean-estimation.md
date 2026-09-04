@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "Mean estimation: from a batch to an online update"
 description: Rewrite a sample average as an incremental stochastic-approximation update and inspect what each step-size schedule remembers.
 outline: deep

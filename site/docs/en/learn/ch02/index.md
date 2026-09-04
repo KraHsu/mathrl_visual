@@ -7,6 +7,7 @@ source_locale: en
 source_kind: topic-reference
 source_commit: 0e348961c28496096d308f1066009266b3674c5a
 source_pdf_blob: 36ac85b83cef0cbbf041e7142ab816a9c5acd4de
+source_pdf_sha256: a28f082f29e8a9c112361c5481466172a3ddb34cf64ac4c60c5597e085288ffa
 source_sections: "2.1-2.10"
 copied_text: false
 copied_assets: false
@@ -14,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "Chapter 2: State values and the Bellman equation"
 description: Evaluate one fixed policy through expected return, Bellman equations, matrix form, synchronous sweeps, and action values.
 outline: deep
@@ -27,8 +30,8 @@ Chapter 1 described individual trajectories and their returns. Chapter 2 asks a 
 This is an unofficial original companion. It follows only the topic order of the book and does not reproduce its prose, figures, tables, examples, questions, or code. Topic locations refer to a [fixed upstream version](https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning/blob/0e348961c28496096d308f1066009266b3674c5a/3%20-%20Chapter%202%20State%20Values%20and%20Bellman%20Equation.pdf).
 :::
 
-::: warning Pilot status
-The current interactive lab is a focused four-state micro-model that makes every Bellman term easy to audit. It starts the Chapter 2 implementation but does not yet provide the planned Bellman view derived from Chapter 1's shared 4×4 Grid World. Until that integration and human bilingual review are complete, this chapter remains a draft preview.
+::: tip Two complementary lab views
+The chapter-scale [shared 4×4 policy-evaluation lab](/en/labs/ch02-policy-evaluation) now evaluates all 16 states with the same model used by Chapters 1, 3, and 4. The original [four-state Bellman scaffold](/en/labs/bellman-grid) remains as a compact preflight for auditing one backup term by term. Both views keep the policy fixed; the chapter remains a draft preview until human bilingual review is recorded.
 :::
 
 <a id="scope"></a>
@@ -81,7 +84,8 @@ The crucial transition is from a realized number to an expectation. Two runs fro
 | [Policy evaluation](./policy-evaluation) | How can synchronous sweeps approach the fixed point, and how do we measure error? | Bellman residual |
 | [Action values](./action-values) | What is the expected return if the first action is fixed separately? | $q_\pi(s,a)$ |
 | [Chapter checkpoint](./checkpoint) | Can you evaluate a new fixed-policy model without crossing into optimization? | Integrated check |
-| [Bellman policy-evaluation lab](/en/labs/bellman-grid) | Can you inspect every term of a four-state calculation? | Rust/Wasm experiment |
+| [Shared 4×4 policy-evaluation lab](/en/labs/ch02-policy-evaluation) | Can you evaluate all 16 states under one supplied policy? | Rust/Wasm experiment |
+| [Four-state Bellman scaffold](/en/labs/bellman-grid) | Can you inspect every term of a compact calculation? | Rust/Wasm preflight |
 
 <a id="notation"></a>
 
@@ -106,6 +110,6 @@ The subscript $\pi$ is not decoration. It records which decision rule generates 
 
 ## Start with the expectation
 
-Continue to [State values](./state-values), or open the [Bellman policy-evaluation lab](/en/labs/bellman-grid) and compare one sweep with the equations as you read.
+Continue to [State values](./state-values), or open the [shared 4×4 policy-evaluation lab](/en/labs/ch02-policy-evaluation) and compare one sweep with the equations as you read.
 
-Chapter 2 pilot pages: [Overview](/en/learn/ch02/) · [State values](/en/learn/ch02/state-values) · [Bellman equation](/en/learn/ch02/bellman-equation) · [Matrix form](/en/learn/ch02/matrix-form) · [Policy evaluation](/en/learn/ch02/policy-evaluation) · [Action values](/en/learn/ch02/action-values) · [Checkpoint](/en/learn/ch02/checkpoint) · [Lab](/en/labs/bellman-grid)
+Chapter 2 pages: [Overview](/en/learn/ch02/) · [State values](/en/learn/ch02/state-values) · [Bellman equation](/en/learn/ch02/bellman-equation) · [Matrix form](/en/learn/ch02/matrix-form) · [Policy evaluation](/en/learn/ch02/policy-evaluation) · [Action values](/en/learn/ch02/action-values) · [Checkpoint](/en/learn/ch02/checkpoint) · [Shared 4×4 lab](/en/labs/ch02-policy-evaluation) · [Four-state scaffold](/en/labs/bellman-grid)

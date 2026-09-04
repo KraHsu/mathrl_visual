@@ -1067,7 +1067,12 @@ onBeforeUnmount(() => {
           </button>
         </div>
         <h4 class="optimality-numeric-title">{{ copy.numericTable }}</h4>
-        <div class="optimality-map-fallback mini-table-wrap">
+        <div
+          class="optimality-map-fallback mini-table-wrap"
+          tabindex="0"
+          role="region"
+          :aria-label="copy.numericTable"
+        >
           <table class="mini-table">
             <thead>
               <tr><th scope="col">s</th><th scope="col">{{ copy.currentValue }}</th><th scope="col">{{ copy.referenceValue }}</th><th scope="col">{{ copy.greedy }}</th><th scope="col">{{ copy.referenceGreedy }}</th></tr>
@@ -1100,7 +1105,12 @@ onBeforeUnmount(() => {
 
         <p v-if="selectedState === 15" class="lab-panel__hint">{{ copy.terminalNoActions }}</p>
         <template v-else>
-          <div class="mini-table-wrap">
+          <div
+            class="mini-table-wrap"
+            tabindex="0"
+            role="region"
+            :aria-label="interpolate(copy.backupsTitle, { state: selectedState })"
+          >
             <table class="mini-table optimality-action-table">
               <thead>
                 <tr><th scope="col">{{ copy.requestedAction }}</th><th scope="col">{{ copy.actionValue }}</th><th scope="col">{{ copy.greedyStatus }}</th></tr>
@@ -1136,7 +1146,12 @@ onBeforeUnmount(() => {
 
           <h4>{{ interpolate(copy.ledgerTitle, { action: actionName(selectedAction) }) }}</h4>
           <p>{{ copy.ledgerBody }}</p>
-          <div class="mini-table-wrap">
+          <div
+            class="mini-table-wrap"
+            tabindex="0"
+            role="region"
+            :aria-label="interpolate(copy.ledgerTitle, { action: actionName(selectedAction) })"
+          >
             <table class="mini-table optimality-ledger-table">
               <thead>
                 <tr>
@@ -1184,7 +1199,12 @@ onBeforeUnmount(() => {
           <line x1="14" y1="14" x2="14" y2="128" />
           <polyline v-if="chartPoints" :points="chartPoints" />
         </svg>
-        <div class="optimality-history-table mini-table-wrap">
+        <div
+          class="optimality-history-table mini-table-wrap"
+          tabindex="0"
+          role="region"
+          :aria-label="copy.historyAria"
+        >
           <table class="mini-table">
             <thead><tr><th scope="col">{{ copy.sweep }}</th><th scope="col">{{ copy.residual }}</th></tr></thead>
             <tbody>
@@ -1233,7 +1253,12 @@ onBeforeUnmount(() => {
           </div>
         </dl>
         <p class="lab-panel__hint">{{ interpolate(copy.factorStatesChanged, { count: changedGreedyCount }) }}</p>
-        <div class="mini-table-wrap">
+        <div
+          class="mini-table-wrap"
+          tabindex="0"
+          role="region"
+          :aria-label="copy.factorsTitle"
+        >
           <table class="mini-table optimality-reference-table">
             <thead><tr><th scope="col">s</th><th scope="col">{{ copy.currentValue }}</th><th scope="col">{{ copy.referenceValue }}</th><th scope="col">{{ copy.referenceGreedy }}</th></tr></thead>
             <tbody>

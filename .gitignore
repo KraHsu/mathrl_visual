@@ -9,3 +9,4 @@ node_modules/
 /site/test-results/
 *.log
 .DS_Store
+release-evidence/

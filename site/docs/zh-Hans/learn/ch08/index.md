@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "第八章：值函数方法"
 description: 用显式特征替代表格，理解线性 TD、动作价值逼近与教学型 Deep-Q 边界。
 outline: deep

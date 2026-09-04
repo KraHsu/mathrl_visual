@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "Dvoretzky 型收敛：用误差过程观察"
 description: 阅读收敛论证背后的标量随机递推，理解有限索引扩展如何预示表格型强化学习证明。
 outline: deep

@@ -1,10 +1,27 @@
+import { readFileSync } from 'node:fs'
+import { resolve as resolvePath } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitepress'
 
+import {
+  APPENDIX_PAGES,
+  APPENDIX_SOURCE_URL,
+  appendixRoute,
+} from '../../../scripts/appendix-manifest.mjs'
 import { CHAPTERS_07_10 } from '../../../scripts/chapter-manifest.mjs'
+import { DEFAULT_UPSTREAM_COMMIT } from '../../../scripts/release-manifest.mjs'
+import { sourceTreeIdentitySync } from '../../../scripts/source-identity.mjs'
 
 const base = normalizeBase(process.env.SITE_BASE ?? '/')
 const siteOrigin = (process.env.SITE_ORIGIN ?? '').replace(/\/$/, '')
 const isPreview = process.env.VITE_SITE_STAGE === 'preview'
+const projectRoot = resolvePath(fileURLToPath(new URL('../../../', import.meta.url)))
+const docsRoot = resolvePath(projectRoot, 'site/docs')
+const sourceIdentity = sourceTreeIdentitySync(projectRoot)
+const buildAppVersion = process.env.APP_VERSION ?? '0.1.0'
+const buildContentSetVersion = process.env.CONTENT_VERSION
+  ?? `content-${sourceIdentity.hash.slice(0, 16)}`
+const buildStage = process.env.VITE_SITE_STAGE ?? 'preview'
 
 function normalizeBase(value: string): string {
   const withLeadingSlash = value.startsWith('/') ? value : `/${value}`
@@ -26,6 +43,68 @@ function routeFor(locale: 'zh-Hans' | 'en', relativePath: string): string {
   return withBase(`${locale}/${route}`)
 }
 
+type SiteLocale = 'zh-Hans' | 'en'
+type ReviewState = string | undefined
+
+interface EvidenceLocale {
+  locale: SiteLocale
+  content: ReviewState
+  language: ReviewState
+  math: ReviewState
+  accessibility: ReviewState
+}
+
+interface PageEvidence {
+  counterpartPath: string
+  current: EvidenceLocale
+  counterpart: EvidenceLocale
+}
+
+function frontmatterValue(source: string, key: string): string | undefined {
+  return source.match(new RegExp(`^${key}:\\s*["']?([^"'\\n]+)["']?\\s*$`, 'm'))?.[1]?.trim()
+}
+
+function localeForPath(relativePath: string): SiteLocale | undefined {
+  if (relativePath.startsWith('zh-Hans/')) return 'zh-Hans'
+  if (relativePath.startsWith('en/')) return 'en'
+  return undefined
+}
+
+function evidenceForFile(locale: SiteLocale, relativePath: string): EvidenceLocale {
+  const source = readFileSync(resolvePath(docsRoot, locale, relativePath), 'utf8')
+  return {
+    locale,
+    content: frontmatterValue(source, 'review_content'),
+    language: frontmatterValue(source, 'review_language'),
+    math: frontmatterValue(source, 'review_math'),
+    accessibility: frontmatterValue(source, 'review_accessibility'),
+  }
+}
+
+/**
+ * Inject paired review state into page frontmatter at build time.  Keeping
+ * this derived from the same Markdown files as the release checker means the
+ * visible badge cannot drift from the fail-closed metadata audit.
+ */
+function pairedEvidence(relativePath: string): PageEvidence | undefined {
+  const locale = localeForPath(relativePath)
+  if (!locale) return undefined
+  const pathWithinLocale = relativePath.replace(/^(zh-Hans|en)\//, '')
+  const counterpart: SiteLocale = locale === 'zh-Hans' ? 'en' : 'zh-Hans'
+  const counterpartPath = `/${counterpart}/${pathWithinLocale.replace(/index\.md$/, '').replace(/\.md$/, '')}`
+  try {
+    return {
+      counterpartPath,
+      current: evidenceForFile(locale, pathWithinLocale),
+      counterpart: evidenceForFile(counterpart, pathWithinLocale),
+    }
+  } catch {
+    // Virtual pages (for example a generated 404) do not have a bilingual
+    // Markdown counterpart and should keep the default VitePress layout.
+    return undefined
+  }
+}
+
 const chapterSources = {
   ch01:
     'https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning/blob/0e348961c28496096d308f1066009266b3674c5a/3%20-%20Chapter%201%20Basic%20Concepts.pdf',
@@ -40,8 +119,6 @@ const chapterSources = {
   ch06:
     'https://github.com/MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning/blob/0e348961c28496096d308f1066009266b3674c5a/3%20-%20Chapter%206%20Stochastic%20Approximation.pdf',
 } as const
-
-type SiteLocale = 'zh-Hans' | 'en'
 
 type ChapterManifestEntry = {
   number: number
@@ -84,6 +161,41 @@ function chapterLabSidebar(locale: SiteLocale) {
   }))
 }
 
+function appendixSidebar(locale: SiteLocale) {
+  return [
+    {
+      text: locale === 'zh-Hans' ? '附录 · 数学工具箱' : 'Appendix · Mathematical toolbox',
+      items: APPENDIX_PAGES.map((page) => ({
+        text: page.title[locale],
+        link: `/${locale}/${appendixRoute(page)}`,
+      })),
+    },
+  ]
+}
+
+function aboutSidebar(locale: SiteLocale) {
+  const prefix = `/${locale}`
+  return [
+    {
+      text: locale === 'zh-Hans' ? '关于与发布' : 'About and release',
+      items: [
+        {
+          text: locale === 'zh-Hans' ? '许可证与权利' : 'License and rights',
+          link: `${prefix}/about/license`,
+        },
+        {
+          text: locale === 'zh-Hans' ? '来源与版本记录' : 'Source and version record',
+          link: `${prefix}/about/source-version`,
+        },
+        {
+          text: locale === 'zh-Hans' ? '发布清单' : 'Release checklist',
+          link: `${prefix}/about/release`,
+        },
+      ],
+    },
+  ]
+}
+
 function chapterSource(relativePath: string): string | undefined {
   return chapterManifest.find((chapter) => {
     const normalized = `/${relativePath.replace(/^\/+/, '')}`
@@ -95,6 +207,11 @@ function chapterSource(relativePath: string): string | undefined {
 export default defineConfig({
   base,
   cleanUrls: true,
+  // Keep page rendering and the built-in local-search index insertion order
+  // stable across identical builds.  The local-search plugin indexes pages
+  // with this concurrency value; parallel insertion makes document IDs (and
+  // consequently content-hashed search/theme chunks) vary between runs.
+  buildConcurrency: 1,
   lastUpdated: true,
   title: 'MathRL Visual',
   description: 'A bilingual, interactive companion for the mathematical foundations of reinforcement learning.',
@@ -116,12 +233,13 @@ export default defineConfig({
       themeConfig: {
         siteTitle: '强化学习数学基础',
         nav: [
-          { text: '第一章', link: '/zh-Hans/learn/ch01/' },
-          { text: '第二章', link: '/zh-Hans/learn/ch02/' },
-          { text: '第三章', link: '/zh-Hans/learn/ch03/' },
-          { text: '第四章', link: '/zh-Hans/learn/ch04/' },
-          { text: '第五章', link: '/zh-Hans/learn/ch05/' },
-          { text: '第六章', link: '/zh-Hans/learn/ch06/' },
+          {
+            text: '第一至六章',
+            items: Array.from({ length: 6 }, (_, index) => ({
+              text: `第${index + 1}章`,
+              link: `/zh-Hans/learn/ch${String(index + 1).padStart(2, '0')}/`,
+            })),
+          },
           {
             text: '第七至十章',
             items: chapterManifest.map((chapter) => ({
@@ -129,7 +247,27 @@ export default defineConfig({
               link: `/zh-Hans/learn/ch${String(chapter.number).padStart(2, '0')}/`,
             })),
           },
+          { text: '附录', link: '/zh-Hans/learn/appendix/' },
           { text: '实验', link: '/zh-Hans/labs/bellman-optimality-grid' },
+          {
+            text: '导览',
+            items: [
+              { text: '学习地图', link: '/zh-Hans/map' },
+              { text: '马尔可夫性质', link: '/zh-Hans/concepts/markov-property' },
+              { text: '符号与术语', link: '/zh-Hans/symbols' },
+              { text: '搜索伴读', link: '/zh-Hans/search' },
+              { text: '离线阅读', link: '/zh-Hans/offline' },
+            ],
+          },
+          {
+            text: '关于',
+            items: [
+              { text: '来源与版本', link: '/zh-Hans/about/source-version' },
+              { text: '许可证与权利', link: '/zh-Hans/about/license' },
+              { text: '无障碍', link: '/zh-Hans/accessibility' },
+              { text: '发布清单', link: '/zh-Hans/about/release' },
+            ],
+          },
         ],
         sidebar: {
           '/zh-Hans/learn/ch01/': [
@@ -167,7 +305,13 @@ export default defineConfig({
             },
             {
               text: '动手实验',
-              items: [{ text: 'Bellman 策略评估实验', link: '/zh-Hans/labs/bellman-grid' }],
+              items: [
+                {
+                  text: '共享 4×4 策略评估实验',
+                  link: '/zh-Hans/labs/ch02-policy-evaluation',
+                },
+                { text: '四状态 Bellman 脚手架', link: '/zh-Hans/labs/bellman-grid' },
+              ],
             },
           ],
           '/zh-Hans/learn/ch03/': [
@@ -268,6 +412,8 @@ export default defineConfig({
           '/zh-Hans/learn/ch08/': chapterLearningSidebar('zh-Hans', chapterManifest[1]),
           '/zh-Hans/learn/ch09/': chapterLearningSidebar('zh-Hans', chapterManifest[2]),
           '/zh-Hans/learn/ch10/': chapterLearningSidebar('zh-Hans', chapterManifest[3]),
+          '/zh-Hans/learn/appendix/': appendixSidebar('zh-Hans'),
+          '/zh-Hans/about/': aboutSidebar('zh-Hans'),
           '/zh-Hans/labs/': [
             {
               text: '第一章实验',
@@ -275,7 +421,13 @@ export default defineConfig({
             },
             {
               text: '第二章实验',
-              items: [{ text: 'Bellman 策略评估实验', link: '/zh-Hans/labs/bellman-grid' }],
+              items: [
+                {
+                  text: '共享 4×4 策略评估实验',
+                  link: '/zh-Hans/labs/ch02-policy-evaluation',
+                },
+                { text: '四状态 Bellman 脚手架', link: '/zh-Hans/labs/bellman-grid' },
+              ],
             },
             {
               text: '第三章实验',
@@ -346,12 +498,13 @@ export default defineConfig({
       themeConfig: {
         siteTitle: 'MathRL Visual',
         nav: [
-          { text: 'Chapter 1', link: '/en/learn/ch01/' },
-          { text: 'Chapter 2', link: '/en/learn/ch02/' },
-          { text: 'Chapter 3', link: '/en/learn/ch03/' },
-          { text: 'Chapter 4', link: '/en/learn/ch04/' },
-          { text: 'Chapter 5', link: '/en/learn/ch05/' },
-          { text: 'Chapter 6', link: '/en/learn/ch06/' },
+          {
+            text: 'Chapters 1–6',
+            items: Array.from({ length: 6 }, (_, index) => ({
+              text: `Chapter ${index + 1}`,
+              link: `/en/learn/ch${String(index + 1).padStart(2, '0')}/`,
+            })),
+          },
           {
             text: 'Chapters 7–10',
             items: chapterManifest.map((chapter) => ({
@@ -359,7 +512,27 @@ export default defineConfig({
               link: `/en/learn/ch${String(chapter.number).padStart(2, '0')}/`,
             })),
           },
+          { text: 'Appendix', link: '/en/learn/appendix/' },
           { text: 'Lab', link: '/en/labs/bellman-optimality-grid' },
+          {
+            text: 'Guide',
+            items: [
+              { text: 'Learning map', link: '/en/map' },
+              { text: 'Markov property', link: '/en/concepts/markov-property' },
+              { text: 'Symbols and terminology', link: '/en/symbols' },
+              { text: 'Search the companion', link: '/en/search' },
+              { text: 'Offline reading', link: '/en/offline' },
+            ],
+          },
+          {
+            text: 'About',
+            items: [
+              { text: 'Source and version', link: '/en/about/source-version' },
+              { text: 'License and rights', link: '/en/about/license' },
+              { text: 'Accessibility', link: '/en/accessibility' },
+              { text: 'Release checklist', link: '/en/about/release' },
+            ],
+          },
         ],
         sidebar: {
           '/en/learn/ch01/': [
@@ -397,7 +570,13 @@ export default defineConfig({
             },
             {
               text: 'Hands-on lab',
-              items: [{ text: 'Bellman policy-evaluation lab', link: '/en/labs/bellman-grid' }],
+              items: [
+                {
+                  text: 'Shared 4×4 policy-evaluation lab',
+                  link: '/en/labs/ch02-policy-evaluation',
+                },
+                { text: 'Four-state Bellman scaffold', link: '/en/labs/bellman-grid' },
+              ],
             },
           ],
           '/en/learn/ch03/': [
@@ -498,6 +677,8 @@ export default defineConfig({
           '/en/learn/ch08/': chapterLearningSidebar('en', chapterManifest[1]),
           '/en/learn/ch09/': chapterLearningSidebar('en', chapterManifest[2]),
           '/en/learn/ch10/': chapterLearningSidebar('en', chapterManifest[3]),
+          '/en/learn/appendix/': appendixSidebar('en'),
+          '/en/about/': aboutSidebar('en'),
           '/en/labs/': [
             {
               text: 'Chapter 1 labs',
@@ -505,7 +686,13 @@ export default defineConfig({
             },
             {
               text: 'Chapter 2 labs',
-              items: [{ text: 'Bellman policy-evaluation lab', link: '/en/labs/bellman-grid' }],
+              items: [
+                {
+                  text: 'Shared 4×4 policy-evaluation lab',
+                  link: '/en/labs/ch02-policy-evaluation',
+                },
+                { text: 'Four-state Bellman scaffold', link: '/en/labs/bellman-grid' },
+              ],
             },
             {
               text: 'Chapter 3 labs',
@@ -537,6 +724,19 @@ export default defineConfig({
           ],
         },
         outline: { label: 'On this page' },
+        darkModeSwitchLabel: 'Appearance',
+        lightModeSwitchTitle: 'Switch to light theme',
+        darkModeSwitchTitle: 'Switch to dark theme',
+        sidebarMenuLabel: 'Menu',
+        returnToTopLabel: 'Return to top',
+        langMenuLabel: 'Change language',
+        skipToContentLabel: 'Skip to content',
+        notFound: {
+          title: 'Page not found',
+          quote: 'This address does not point to a lesson.',
+          linkLabel: 'Return to English home page',
+          linkText: 'Return home',
+        },
       },
     },
   },
@@ -603,6 +803,22 @@ export default defineConfig({
       ...(source ? ([['meta', { name: 'mathrl:source', content: source }]] as const) : []),
     ]
   },
+  transformPageData(pageData) {
+    const evidence = pairedEvidence(pageData.relativePath)
+    if (!evidence) return undefined
+    return {
+      frontmatter: {
+        ...pageData.frontmatter,
+        mathrlEvidence: evidence,
+        mathrlAppVersion: buildAppVersion,
+        mathrlContentSetVersion: buildContentSetVersion,
+        mathrlStage: buildStage,
+        mathrlGitCommit: process.env.RELEASE_GIT_SHA ?? process.env.GIT_COMMIT ?? 'working-tree-dirty',
+        mathrlUpstreamCommit: DEFAULT_UPSTREAM_COMMIT,
+        mathrlSourceUrl: sourceFor(pageData.relativePath),
+      },
+    }
+  },
 })
 
 function absoluteRouteFor(locale: 'zh-Hans' | 'en', relativePath: string): string {
@@ -611,8 +827,10 @@ function absoluteRouteFor(locale: 'zh-Hans' | 'en', relativePath: string): strin
 }
 
 function sourceFor(relativePath: string): string | undefined {
+  if (relativePath.includes('/concepts/markov-property.md')) return chapterSources.ch01
   const manifestSource = chapterSource(relativePath)
   if (manifestSource) return manifestSource
+  if (relativePath.includes('/learn/appendix/')) return APPENDIX_SOURCE_URL
   if (
     relativePath.includes('/learn/ch06/') ||
     relativePath.includes('/labs/ch06-stochastic-approximation.md')
@@ -637,7 +855,11 @@ function sourceFor(relativePath: string): string | undefined {
   ) {
     return chapterSources.ch03
   }
-  if (relativePath.includes('/learn/ch02/') || relativePath.includes('/labs/bellman-grid.md')) {
+  if (
+    relativePath.includes('/learn/ch02/') ||
+    relativePath.includes('/labs/bellman-grid.md') ||
+    relativePath.includes('/labs/ch02-policy-evaluation.md')
+  ) {
     return chapterSources.ch02
   }
   if (relativePath.includes('/learn/ch01/') || relativePath.includes('/labs/ch01-gridworld.md')) {

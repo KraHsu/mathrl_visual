@@ -7,6 +7,7 @@ source_locale: en
 source_kind: topic-reference
 source_commit: 0e348961c28496096d308f1066009266b3674c5a
 source_pdf_blob: 9806707397947da8e8d46be903d9ddb02c000211
+source_pdf_sha256: 669cd4a4ba12b80b22bc702b8b71373fbcc2fa1b7c2ca848e06ed2949bb99c3c
 source_sections: "3.4"
 copied_text: false
 copied_assets: false
@@ -14,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: 从最优价值恢复贪心策略
 description: 用最优动作集合恢复确定性或随机最优策略，并解释价值唯一而策略可以不唯一。
 outline: deep

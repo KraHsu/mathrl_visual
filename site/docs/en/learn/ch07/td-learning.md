@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: TD learning of state values
 description: Read the one-step TD backup as a stochastic approximation update.
 outline: deep

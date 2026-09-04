@@ -14,6 +14,8 @@ copied_assets: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: Choosing feature approximators
 description: Compare coordinate, polynomial, Fourier, and one-hot feature maps.
 outline: deep

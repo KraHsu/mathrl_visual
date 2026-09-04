@@ -7,6 +7,7 @@ source_locale: en
 source_kind: topic-reference
 source_commit: 0e348961c28496096d308f1066009266b3674c5a
 source_pdf_blob: 36ac85b83cef0cbbf041e7142ab816a9c5acd4de
+source_pdf_sha256: a28f082f29e8a9c112361c5481466172a3ddb34cf64ac4c60c5597e085288ffa
 source_sections: "2.4-2.5"
 copied_text: false
 copied_assets: false
@@ -14,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: The Bellman equation
 description: Derive the fixed-policy Bellman expectation equation from a one-step decomposition of return.
 outline: deep
@@ -181,6 +184,6 @@ The first term is $0.4(3.5)=1.4$ and the second is $0.6(-0.5)=-0.3$, giving $1.1
 
 ## Continue through Chapter 2
 
-Next, gather the state equations into [matrix form](./matrix-form), or inspect their terms in the [Bellman lab](/en/labs/bellman-grid).
+Next, gather the state equations into [matrix form](./matrix-form), or inspect all 16 states in the [shared 4×4 policy-evaluation lab](/en/labs/ch02-policy-evaluation).
 
 Chapter 2 pilot pages: [Overview](/en/learn/ch02/) · [State values](/en/learn/ch02/state-values) · [Bellman equation](/en/learn/ch02/bellman-equation) · [Matrix form](/en/learn/ch02/matrix-form) · [Policy evaluation](/en/learn/ch02/policy-evaluation) · [Action values](/en/learn/ch02/action-values) · [Checkpoint](/en/learn/ch02/checkpoint) · [Lab](/en/labs/bellman-grid)

@@ -14,6 +14,8 @@ copied_assets: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: 如何选择特征逼近器
 description: 比较坐标、多项式、Fourier 与独热特征映射。
 outline: deep

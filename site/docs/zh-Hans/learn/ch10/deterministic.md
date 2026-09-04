@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "确定性 Actor–Critic"
 description: 标记概率策略与确定性策略梯度之间的边界。
 outline: deep

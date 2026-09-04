@@ -14,6 +14,8 @@ copied_assets: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: Deep Q-learning boundary
 description: Make replay and target-network timing visible without hiding the mathematical boundary.
 outline: deep

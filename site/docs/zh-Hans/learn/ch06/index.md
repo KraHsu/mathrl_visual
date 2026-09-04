@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "第六章：随机逼近"
 description: 从均值估计出发，理解 Robbins–Monro、Dvoretzky 型收敛与随机梯度下降的增量视角。
 outline: deep

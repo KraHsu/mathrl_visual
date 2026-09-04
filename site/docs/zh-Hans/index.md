@@ -3,9 +3,12 @@ id: site-home
 translation_key: site-home
 locale: zh-Hans
 origin: companion-translation
+source_kind: site-navigation
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: not_applicable
+review_accessibility: draft
 title: 强化学习数学基础 · 可视化伴读
 description: 用可复现的 Rust/Wasm 实验理解强化学习的数学基础。
 layout: home

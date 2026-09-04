@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "Off-policy actor–critic"
 description: See how behavior and target policies are separated by an importance-sampling ratio.
 outline: deep

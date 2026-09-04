@@ -1,4 +1,32 @@
 {
+  "progress": {
+    "label": "Learning progress",
+    "complete": "Mark page complete",
+    "completed": "Completed",
+    "bookmark": "Bookmark page",
+    "bookmarked": "Bookmarked",
+    "share": "Copy page link",
+    "copied": "Link copied",
+    "export": "Export progress",
+    "exported": "Progress file downloaded",
+    "import": "Import progress",
+    "localOnly": "Saved on this device only",
+    "storageFallback": "IndexedDB unavailable; using local fallback",
+    "storageError": "Progress could not be saved",
+    "noContentId": "This page has no progress record"
+  },
+  "pwa": {
+    "ariaLabel": "Site update",
+    "updateAvailable": "A new version of MathRL Visual is ready.",
+    "updateDetails": "Review the release before activating it. Your current page will not refresh automatically.",
+    "updateButton": "Activate update",
+    "updating": "Activating update…",
+    "updated": "The update is active. Refresh when you are ready to load the new assets.",
+    "refreshButton": "Refresh now",
+    "dismiss": "Later",
+    "unavailable": "The update could not be activated. You can try again later.",
+    "noWorker": "Updates are unavailable in this browser; the site remains readable."
+  },
   "lab": {
     "eyebrow": "CHAPTER 01 · LIVE MODEL",
     "title": "Grid World concept lab",

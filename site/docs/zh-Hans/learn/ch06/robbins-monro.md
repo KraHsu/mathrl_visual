@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "Robbins–Monro：用带噪观测寻找根"
 description: 刻画黑盒求根问题，跟踪 Robbins–Monro 更新，并把步长假设变成可检查的量。
 outline: deep

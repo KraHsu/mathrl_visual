@@ -6,7 +6,8 @@ origin: companion-translation
 source_locale: en
 source_kind: topic-reference
 source_commit: 0e348961c28496096d308f1066009266b3674c5a
-source_pdf_blob: 6ad14567a8c992d36883147270150004775c198f68c75bb5bd991670fdaef402
+source_pdf_blob: d16a55302a9aff5fad518fb18a518d202376ac97
+source_pdf_sha256: 6ad14567a8c992d36883147270150004775c198f68c75bb5bd991670fdaef402
 source_sections: "4.1"
 copied_text: false
 copied_assets: false
@@ -14,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "Value Iteration：一次最优备份"
 description: 从同步 Bellman 最优备份推导 Value Iteration，审计中间向量并选择诚实的停止准则。
 outline: deep

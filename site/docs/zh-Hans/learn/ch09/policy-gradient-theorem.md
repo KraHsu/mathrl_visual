@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "策略梯度定理"
 description: 从期望和对数导数走向按得分加权的动作价值。
 outline: deep

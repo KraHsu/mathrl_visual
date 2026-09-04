@@ -14,6 +14,8 @@ copied_assets: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: 第八章检查点
 description: 验证一次特征备份并解释回放节奏。
 outline: deep

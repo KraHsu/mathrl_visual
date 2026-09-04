@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "Chapter 8: Value function methods"
 description: Replace a value table with explicit features, linear TD updates, action-value approximation, and a small deep-Q teaching boundary.
 outline: deep

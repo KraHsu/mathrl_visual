@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "第十章总结"
 description: 将 actor、critic、优势和策略分布选择放在同一张图中。
 outline: deep

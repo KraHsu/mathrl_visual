@@ -306,7 +306,7 @@ onBeforeUnmount(() => {
           </div>
         </section>
 
-        <section class="mini-table-wrap">
+        <section class="mini-table-wrap" tabindex="0" role="region" :aria-label="copy.traceTable">
           <table class="mini-table" data-testid="pg-trace">
             <caption>{{ copy.traceTable }}</caption>
             <thead><tr><th scope="col">{{ copy.tableEpisode }}</th><th scope="col">{{ copy.tableState }}</th><th scope="col">{{ copy.tableAction }}</th><th scope="col">{{ copy.tableReward }}</th><th scope="col">{{ copy.tableReturn }}</th><th scope="col">{{ copy.tableBaseline }}</th><th scope="col">{{ copy.tableAdvantage }}</th><th scope="col">{{ copy.tableProbability }}</th><th scope="col">{{ copy.tableUpdate }}</th></tr></thead>

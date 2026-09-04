@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "策略表示：从表格到函数"
 description: 理解动作概率从表格条目变为参数输出后发生了什么变化。
 outline: deep

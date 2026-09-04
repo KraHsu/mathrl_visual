@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "第九章总结"
 description: 将策略表示、目标选择、定理和 REINFORCE 放在一条可审计链路中。
 outline: deep

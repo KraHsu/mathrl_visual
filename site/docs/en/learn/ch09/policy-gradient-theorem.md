@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "The policy-gradient theorem"
 description: Follow the log-derivative route from an expectation to a score-weighted action value.
 outline: deep

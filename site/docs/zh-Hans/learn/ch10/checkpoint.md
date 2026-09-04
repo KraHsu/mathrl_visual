@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "第十章检查点"
 description: 计算一次 TD 目标、优势、actor 更新和重要性比率。
 outline: deep

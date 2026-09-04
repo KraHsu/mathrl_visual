@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "第九章：策略梯度方法"
 description: 从表格策略走向参数化 softmax，并用采样梯度更新策略。
 outline: deep

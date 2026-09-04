@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "Chapter 7: Temporal-difference methods"
 description: Learn why a one-step target can replace a complete return, then compare TD(0), SARSA, n-step SARSA, and Q-learning.
 outline: deep

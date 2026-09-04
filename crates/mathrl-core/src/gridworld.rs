@@ -849,6 +849,25 @@ mod tests {
     }
 
     #[test]
+    fn guided_wind_seed_replays_the_documented_right_right_down_left_trace() {
+        let mut stochastic = config();
+        stochastic.slip_probability = 0.2;
+        let mut session = GridWorldSession::new(stochastic).expect("valid config");
+        let requested = [Action::Right, Action::Right, Action::Down, Action::Down];
+
+        let actual: Vec<_> = requested
+            .into_iter()
+            .map(|action| session.step(action).expect("active episode").actual_action)
+            .collect();
+
+        assert_eq!(
+            actual,
+            vec![Action::Right, Action::Right, Action::Down, Action::Left],
+            "the guided wind lesson must keep its fixed-seed replay contract"
+        );
+    }
+
+    #[test]
     fn discounted_return_uses_reward_time_index() {
         let mut session = GridWorldSession::new(config()).expect("valid config");
         let first = session.step(Action::Right).expect("step 1");

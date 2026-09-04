@@ -1,4 +1,32 @@
 {
+  "progress": {
+    "label": "学习进度",
+    "complete": "标记本页完成",
+    "completed": "已完成",
+    "bookmark": "收藏本页",
+    "bookmarked": "已收藏",
+    "share": "复制本页链接",
+    "copied": "链接已复制",
+    "export": "导出进度",
+    "exported": "进度文件已下载",
+    "import": "导入进度",
+    "localOnly": "仅保存在此设备",
+    "storageFallback": "IndexedDB 不可用，已使用本地回退存储",
+    "storageError": "无法保存学习进度",
+    "noContentId": "本页没有可记录的进度 ID"
+  },
+  "pwa": {
+    "ariaLabel": "站点更新",
+    "updateAvailable": "MathRL Visual 有新版本可以使用。",
+    "updateDetails": "请先确认更新；当前页面不会自动刷新。",
+    "updateButton": "确认启用更新",
+    "updating": "正在启用更新……",
+    "updated": "更新已启用。准备好加载新资源时，再手动刷新页面。",
+    "refreshButton": "立即刷新",
+    "dismiss": "稍后",
+    "unavailable": "暂时无法启用更新，可以稍后重试。",
+    "noWorker": "当前浏览器不支持更新提示；站点正文仍可阅读。"
+  },
   "lab": {
     "eyebrow": "第一章 · 实时模型",
     "title": "Grid World 概念实验",

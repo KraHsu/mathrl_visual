@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "第九章问答"
 description: 回顾 softmax 得分、指标、baseline 和 REINFORCE。
 outline: deep

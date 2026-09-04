@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "Chapter 10 Q&A"
 description: Retrieval questions about QAC, A2C, importance sampling, and deterministic actors.
 outline: deep

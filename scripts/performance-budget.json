@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "budgets": {
+    "maxTotalGzipBytes": 16777216,
+    "maxTotalBrotliBytes": 14680064,
+    "maxRouteInitialGzipBytes": 614400,
+    "maxHtmlGzipBytes": 184320,
+    "maxJavaScriptGzipBytes": 245760,
+    "maxCssGzipBytes": 262144,
+    "maxWasmGzipBytes": 524288,
+    "maxWorkerGzipBytes": 262144
+  }
+}

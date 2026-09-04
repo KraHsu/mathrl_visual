@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "Chapter 9 checkpoint"
 description: Practice one softmax score update and explain baseline invariance before opening the lab.
 outline: deep

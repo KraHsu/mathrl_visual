@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "第六章问答"
 description: 用简短原创答案回顾增量均值、Robbins–Monro、收敛假设、SGD 与有限实验。
 outline: deep

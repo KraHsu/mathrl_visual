@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "第六章检查点"
 description: 在打开实验前练习增量均值、带噪求根、步长条件和批量梯度推理。
 outline: deep

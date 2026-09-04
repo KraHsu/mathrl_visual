@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: Stochastic approximation lab
 description: Replay seeded mean, Robbins–Monro, SGD, batch, and mini-batch updates while inspecting step-size and noise diagnostics.
 aside: false

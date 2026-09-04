@@ -14,6 +14,8 @@ copied_assets: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: n 步 SARSA
 description: 观察延迟备份如何在一步 SARSA 与 Monte Carlo 回报之间插值。
 outline: deep

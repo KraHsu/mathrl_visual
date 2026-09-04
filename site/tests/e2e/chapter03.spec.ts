@@ -1,5 +1,17 @@
 import { expect, test } from '@playwright/test'
 
+async function openLanguageMenu(page: import('@playwright/test').Page): Promise<void> {
+  // Target VitePress' stable desktop translation control while its
+  // hide-on-scroll transition settles after the experiment. Keyboard opening
+  // avoids VPFlyout's WebKit pointer-leave race during the nav transition.
+  await page.evaluate(() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' }))
+  const switcher = page.locator('.VPNavBarTranslations > button[aria-label="Change language"]')
+  await expect(switcher).toBeVisible()
+  await switcher.focus()
+  await switcher.press('Enter')
+  await expect(switcher).toHaveAttribute('aria-expanded', 'true')
+}
+
 const route = 'en/labs/bellman-optimality-grid'
 
 async function waitForEngine(page: import('@playwright/test').Page) {
@@ -225,29 +237,83 @@ test('chunks reduced-motion work, pauses at a boundary, and preserves every resi
   await expect(lab.locator('.optimality-history-table tbody tr')).toHaveCount(pausedAt + 1)
 })
 
-test('retries transient Worker script and Wasm initialization failures', async ({ page }) => {
-  let workerAttempts = 0
-  let wasmAttempts = 0
-  await page.route('**/optimality.worker-*.js', async (requestRoute) => {
-    workerAttempts += 1
-    if (workerAttempts === 1) await requestRoute.abort()
-    else await requestRoute.continue()
-  })
-  await page.route('**/mathrl_wasm_bg-*.wasm', async (requestRoute) => {
-    wasmAttempts += 1
-    if (wasmAttempts === 1) await requestRoute.abort()
-    else await requestRoute.continue()
+test('retries a transient Wasm initialization failure in the real Worker', async ({ page }) => {
+  let workerBundles = 0
+  let faultInjected = false
+  // Route through the browser context because WebKit does not reliably expose
+  // module-Worker requests to page.route. The response is the real bundle,
+  // with a one-shot fetch failure prepended inside that Worker.
+  await page.context().route('**/optimality.worker-*.js', async (requestRoute) => {
+    workerBundles += 1
+    const response = await requestRoute.fetch()
+    // Preview may Brotli-compress hashed assets. Strip entity headers on both
+    // pass-through and rewritten responses so they cannot describe stale body
+    // bytes and make a browser reject the Worker script.
+    const headers = Object.fromEntries(
+      Object.entries(response.headers()).filter(
+        ([name]) =>
+          !['content-encoding', 'content-length', 'transfer-encoding', 'etag'].includes(name),
+      ),
+    )
+    // Only the first bundle response is faulted. Browsers can issue another
+    // request while the failed Worker is being retried.
+    if (faultInjected) {
+      await requestRoute.fulfill({
+        response,
+        headers: { ...headers, 'cache-control': 'no-store' },
+      })
+      return
+    }
+    const source = await response.text()
+    if (!source.includes('fetch(t)')) {
+      throw new Error('generated Worker bundle no longer exposes the wasm fetch marker')
+    }
+    const patchedSource = source.replace('fetch(t)', 'globalThis.__mathrlFetch(t)')
+    const fault = `
+      (() => {
+        // Rewrite the generated glue's bare fetch call to an explicit hook.
+        // A rejected response follows the same path as a transient network
+        // failure and avoids mutating host WebAssembly methods in the Worker.
+        const originalFetch = fetch
+        let failNextWasm = true
+        globalThis.__mathrlFetch = (input, init) => {
+          const url = typeof input === 'string'
+            ? input
+            : input && typeof input === 'object' && 'url' in input
+              ? input.url
+              : String(input)
+          if (failNextWasm && url.includes('mathrl_wasm_bg-')) {
+            failNextWasm = false
+            return Promise.resolve(new Response('', {
+              status: 503,
+              statusText: 'Transient test failure',
+              headers: {
+                'cache-control': 'no-store',
+                'content-type': 'application/wasm',
+              },
+            }))
+          }
+          return Reflect.apply(originalFetch, globalThis, [input, init])
+        }
+      })();
+    `
+    faultInjected = true
+    await requestRoute.fulfill({
+      response,
+      headers: { ...headers, 'cache-control': 'no-store' },
+      body: `${fault}\n${patchedSource}`,
+    })
   })
 
   await page.goto(route)
   const lab = page.locator('.optimality-lab')
   await expect(lab.locator('.engine-chip')).toHaveAttribute('data-phase', 'error')
-  await page.getByRole('button', { name: 'Apply and start from V₀' }).click()
-  await expect(lab.locator('.engine-chip')).toHaveAttribute('data-phase', 'error')
+  expect(workerBundles).toBeGreaterThanOrEqual(1)
+
+  // The failed initialization is explicitly retryable; the next Apply action
+  // should reuse the Worker and reach the ready state without a page reload.
   await page.getByRole('button', { name: 'Apply and start from V₀' }).click()
   await expect(lab.locator('.engine-chip')).toHaveAttribute('data-phase', 'ready')
-  expect(workerAttempts).toBeGreaterThanOrEqual(2)
-  expect(wasmAttempts).toBeGreaterThanOrEqual(2)
 })
 
 test('recovers when the browser rejects Worker construction synchronously', async ({ page }) => {
@@ -328,7 +394,7 @@ test('restores the applied vector and selection after switching to Chinese', asy
   await lab.locator('.optimality-state[data-state="10"]').click()
   await page.getByRole('button', { name: 'Inspect outcomes for down' }).click()
 
-  await page.getByRole('button', { name: 'Change language' }).click()
+  await openLanguageMenu(page)
   await page.getByRole('link', { name: '简体中文' }).click()
   await expect(page).toHaveURL(/\/zh-Hans\/labs\/bellman-optimality-grid$/)
   const chineseLab = page.locator('.optimality-lab')

@@ -789,7 +789,12 @@ onBeforeUnmount(() => {
           <span>{{ copy.backupEquation }}</span>
           <strong>V<sub>k+1</sub>(s{{ selectedState }}) = {{ formatNumber(backupTotal) }}</strong>
         </div>
-        <div class="mini-table-wrap">
+        <div
+          class="mini-table-wrap"
+          tabindex="0"
+          role="region"
+          :aria-label="interpolate(copy.backupTitle, { state: selectedState })"
+        >
           <table class="mini-table bellman-term-table">
             <thead>
               <tr>
@@ -852,7 +857,12 @@ onBeforeUnmount(() => {
             <g transform="translate(470 100)"><circle r="27" /><text text-anchor="middle" dy="5">s3</text></g>
           </g>
         </svg>
-        <div class="mini-table-wrap">
+        <div
+          class="mini-table-wrap"
+          tabindex="0"
+          role="region"
+          :aria-label="copy.dependenciesTitle"
+        >
           <table class="mini-table">
             <thead><tr><th scope="col">{{ copy.fromState }}</th><th scope="col">{{ copy.toState }}</th><th scope="col">{{ copy.probability }}</th><th scope="col">{{ copy.reward }}</th></tr></thead>
             <tbody>
@@ -867,7 +877,12 @@ onBeforeUnmount(() => {
       <section v-else-if="mode === 'matrix'" class="bellman-view-panel">
         <h3>{{ copy.matrixTitle }}</h3>
         <p>{{ copy.matrixBody }}</p>
-        <div class="mini-table-wrap">
+        <div
+          class="mini-table-wrap"
+          tabindex="0"
+          role="region"
+          :aria-label="copy.matrixTitle"
+        >
           <table class="mini-table bellman-matrix-table">
             <thead>
               <tr><th scope="col">P<sub>π</sub></th><th v-for="state in stateIndexes" :key="state" scope="col">s{{ state }}</th><th scope="col">{{ copy.expectedReward }}</th><th scope="col">{{ copy.matrixValue }}</th><th scope="col">{{ copy.matrixExact }}</th></tr>
@@ -902,7 +917,12 @@ onBeforeUnmount(() => {
           <circle v-if="residualHistory.length === 1" cx="12" cy="12" r="3" />
         </svg>
         <p v-if="residualHistory.length <= 1" class="lab-panel__hint">{{ copy.noHistory }}</p>
-        <div class="mini-table-wrap bellman-history-table">
+        <div
+          class="mini-table-wrap bellman-history-table"
+          tabindex="0"
+          role="region"
+          :aria-label="copy.historyAria"
+        >
           <table class="mini-table">
             <thead><tr><th scope="col">{{ copy.sweeps }}</th><th scope="col">{{ copy.residual }}</th></tr></thead>
             <tbody>

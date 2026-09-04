@@ -37,6 +37,7 @@ use wasm_bindgen::prelude::*;
 // The module exports wasm-bindgen classes from this crate, therefore the
 // generated glue still exposes one flat `mathrl_wasm` API to the Workers.
 mod chapter_adapters;
+mod grid_policy_adapters;
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -2478,7 +2479,12 @@ mod tests {
         assert_eq!(outcome.snapshot.iteration_count, 1);
         assert_eq!(outcome.iteration.index, 1);
         assert_eq!(outcome.iteration.batch_size, 1);
-        assert!(outcome.iteration.observation < 0.0);
+        // The adapter contract is about a finite bounded root observation;
+        // the core unit test owns the exact sign golden.  Keeping the Wasm
+        // assertion platform-independent avoids coupling this boundary test
+        // to libm's implementation of `tanh` in a particular browser.
+        assert!(outcome.iteration.observation.is_finite());
+        assert!(outcome.iteration.observation.abs() <= 1.0);
         assert_eq!(outcome.diagnostics.alpha_sum, outcome.snapshot.alpha_sum);
     }
 

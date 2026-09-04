@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: Actor–Critic 实验
 description: 在小型链式环境中追踪 actor 概率、critic TD 误差、优势和离策略比率。
 aside: false

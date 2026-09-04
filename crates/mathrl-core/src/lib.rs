@@ -1,6 +1,7 @@
 //! Language-neutral reinforcement-learning primitives used by the native tests and Wasm adapter.
 
 pub mod actor_critic;
+pub mod grid_policy_evaluation;
 pub mod gridworld;
 pub mod monte_carlo;
 pub mod optimality;
@@ -18,6 +19,14 @@ pub use actor_critic::{
     ActorCriticSnapshot, ActorCriticStep, MAX_ACTOR_CRITIC_ALPHA, MAX_ACTOR_CRITIC_EPISODES,
     MAX_ACTOR_CRITIC_EPISODES_PER_ADVANCE, MAX_ACTOR_CRITIC_HISTORY, MAX_ACTOR_CRITIC_MAGNITUDE,
     MAX_ACTOR_CRITIC_STEPS, transition as actor_critic_transition,
+};
+pub use grid_policy_evaluation::{
+    GRID_POLICY_ACTION_COUNT, GRID_POLICY_STATE_COUNT, GridPolicyAdvanceOutcome,
+    GridPolicyEvaluationConfig, GridPolicyEvaluationConfigError, GridPolicyEvaluationError,
+    GridPolicyEvaluationEvaluator, GridPolicyEvaluationReference, GridPolicyEvaluationSnapshot,
+    GridPolicyKind, GridPolicyKindError, GridPolicySweepOutcome, GridPolicyTerm,
+    GridPolicyTransition, GridPolicyUpdate, MAX_GRID_POLICY_REWARD_MAGNITUDE,
+    MAX_GRID_POLICY_SWEEPS,
 };
 pub use gridworld::{
     Action, ConfigError, GoalMode, GridWorldConfig, GridWorldSession, Policy, PolicyError, Rewards,

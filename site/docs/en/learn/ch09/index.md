@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "Chapter 9: Policy-gradient methods"
 description: Move from a tabular policy to a parameterized softmax and a sample-based gradient.
 outline: deep

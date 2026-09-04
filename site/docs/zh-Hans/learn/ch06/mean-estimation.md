@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "均值估计：从批量平均到在线更新"
 description: 将样本平均改写为增量式随机逼近更新，观察不同步长调度保留了什么信息。
 outline: deep

@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "离策略 Actor–Critic"
 description: 通过重要性采样比率区分产生数据的行为策略与待优化目标策略。
 outline: deep

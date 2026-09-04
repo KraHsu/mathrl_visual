@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "Chapter 10 checkpoint"
 description: Calculate one TD target, advantage, actor update, and importance ratio.
 outline: deep

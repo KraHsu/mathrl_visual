@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: 值函数实验
 description: 检查特征向量、线性 TD 更新、经验回放与目标网络节奏。
 aside: false

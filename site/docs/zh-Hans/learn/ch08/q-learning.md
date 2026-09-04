@@ -14,6 +14,8 @@ copied_assets: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: 使用特征的动作价值
 description: 将线性 TD 从状态价值扩展到 SARSA 与 Q-learning。
 outline: deep

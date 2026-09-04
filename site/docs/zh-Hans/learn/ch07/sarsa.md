@@ -14,6 +14,8 @@ copied_assets: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: SARSA
 description: 跟随状态—动作—奖励—状态—动作备份，理解其同策略含义。
 outline: deep

@@ -14,6 +14,8 @@ copied_assets: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: A unified TD viewpoint
 description: Place MC, one-step TD, multi-step TD, SARSA, and Q-learning on one target spectrum.
 outline: deep

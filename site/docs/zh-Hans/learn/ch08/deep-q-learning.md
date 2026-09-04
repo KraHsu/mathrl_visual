@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: Deep Q-learning 边界
 description: 显式展示经验回放与目标网络节奏，同时标明数学边界。
 outline: deep

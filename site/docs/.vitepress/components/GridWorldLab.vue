@@ -761,7 +761,12 @@ onBeforeUnmount(() => {
               </option>
             </select>
           </label>
-          <div class="mini-table-wrap">
+          <div
+            class="mini-table-wrap"
+            tabindex="0"
+            role="region"
+            :aria-label="copy.transitionPanelTitle"
+          >
             <table class="mini-table">
               <thead>
                 <tr>

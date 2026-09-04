@@ -14,6 +14,8 @@ copied_assets: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: Chapter 7 summary
 description: A compact checklist for temporal-difference methods.
 outline: deep

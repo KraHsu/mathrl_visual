@@ -3,9 +3,12 @@ id: site-home
 translation_key: site-home
 locale: en
 origin: companion-original
+source_kind: site-navigation
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: not_applicable
+review_accessibility: draft
 title: Mathematical Foundations of RL · Visual Companion
 description: Understand reinforcement learning foundations with reproducible Rust/Wasm experiments.
 layout: home

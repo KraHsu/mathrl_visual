@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "Robbins–Monro: finding a root through noisy observations"
 description: Formulate a black-box root problem, follow the Robbins–Monro update, and make its step-size assumptions testable.
 outline: deep

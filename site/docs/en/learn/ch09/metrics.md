@@ -15,6 +15,8 @@ copied_code: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: "Metrics for a policy"
 description: Compare average value, average reward, and the finite objective shown by the lab.
 outline: deep

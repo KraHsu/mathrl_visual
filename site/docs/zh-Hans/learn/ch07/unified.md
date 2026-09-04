@@ -14,6 +14,8 @@ copied_assets: false
 rights: companion-original
 review_content: draft
 review_language: draft
+review_math: draft
+review_accessibility: draft
 title: TD 的统一视角
 description: 将 MC、一步 TD、多步 TD、SARSA 与 Q-learning 放在同一目标谱系中。
 outline: deep
